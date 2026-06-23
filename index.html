@@ -11,6 +11,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16.png">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
   <meta name="theme-color" content="#080c10">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="YTMetrics">
@@ -36,7 +37,6 @@
     body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");opacity:.35;}
     [data-theme="light"] body::before{opacity:.1;}
 
-    /* ══ БАН ЭКРАН ══ */
     #ban-screen{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:var(--bg);padding:20px;}
     .ban-card{background:var(--surface);border:1px solid rgba(255,71,87,.3);border-radius:20px;padding:48px 44px;width:100%;max-width:500px;text-align:center;}
     .ban-icon{font-size:52px;margin-bottom:20px;}
@@ -49,7 +49,6 @@
     .ban-btn:disabled{opacity:.5;cursor:not-allowed;}
     .ban-success{background:rgba(57,255,154,.08);border:1px solid rgba(57,255,154,.2);border-radius:12px;padding:14px 18px;font-family:'DM Mono',monospace;font-size:12px;color:var(--green);margin-top:14px;display:none;}
 
-    /* ══ ЛЕНДИНГ ══ */
     #landing-screen{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;}
     .landing-nav{display:flex;align-items:center;justify-content:space-between;padding:22px 60px;border-bottom:1px solid var(--border);}
     .landing-logo{display:flex;align-items:center;gap:10px;}
@@ -106,7 +105,6 @@
     .footer-link{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);cursor:pointer;transition:color .15s;text-decoration:none;}
     .footer-link:hover{color:var(--accent);}
 
-    /* ══ ДАШБОРД ══ */
     #dashboard{display:flex;min-height:100vh;position:relative;z-index:1;}
     #sidebar{width:240px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:28px 0;position:sticky;top:0;height:100vh;}
     .sidebar-logo{display:flex;align-items:center;gap:10px;padding:0 24px 28px;border-bottom:1px solid var(--border);}
@@ -137,7 +135,6 @@
     .badge-live{display:flex;align-items:center;gap:6px;background:rgba(232,255,71,.1);border:1px solid rgba(232,255,71,.25);border-radius:20px;padding:6px 14px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);}
     .badge-live::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.5s infinite;}
 
-    /* ══ МЕТРИКИ ══ */
     .metric-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 22px;position:relative;overflow:hidden;transition:border-color .2s;}
     .metric-card:hover{border-color:var(--accent);}
     .metric-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent);opacity:0;transition:opacity .2s;}
@@ -149,7 +146,6 @@
     .metric-icon{position:absolute;top:18px;right:18px;font-size:20px;opacity:.12;}
     .metric-nodata{font-family:'DM Mono',monospace;font-size:10px;color:var(--orange);line-height:1.5;}
 
-    /* ══ КАЛЬКУЛЯТОР ══ */
     .calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
     .calc-block{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 26px;}
     .calc-block-title{font-size:14px;font-weight:800;margin-bottom:4px;}
@@ -165,7 +161,6 @@
     .calc-result-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;}
     .calc-divider{border:none;border-top:1px solid var(--border);margin:28px 0;}
 
-    /* ══ ВИДЕО СПИСОК ══ */
     .video-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
     .video-item{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;cursor:pointer;transition:all .15s;}
     .video-item:hover{border-color:rgba(232,255,71,.3);background:rgba(232,255,71,.02);}
@@ -180,7 +175,6 @@
     .sim-new-btn{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--surface);border:1px dashed var(--border);border-radius:12px;padding:16px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .15s;margin-bottom:20px;}
     .sim-new-btn:hover{border-color:var(--accent2);color:var(--accent2);}
 
-    /* ══ ПРОГНОЗ ══ */
     .facts-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
     .fact-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden;}
     .fact-icon{position:absolute;top:12px;right:12px;font-size:15px;opacity:.12;}
@@ -194,7 +188,6 @@
     .fe-bar-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
     .fe-bar-fill{height:100%;border-radius:3px;transition:width .5s;}
 
-    /* ══ СВАЙПЫ ══ */
     .swipe-card{background:var(--surface);border:1px solid rgba(71,200,255,.2);border-radius:14px;padding:16px 20px;margin-bottom:14px;}
     .swipe-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
     .swipe-title{font-size:13px;font-weight:700;}
@@ -207,7 +200,6 @@
     .open-sim-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px;background:rgba(71,200,255,.06);border:1px solid rgba(71,200,255,.25);border-radius:12px;margin-bottom:14px;font-size:14px;font-weight:700;color:var(--accent2);cursor:pointer;transition:all .15s;}
     .open-sim-btn:hover{background:rgba(71,200,255,.1);border-color:rgba(71,200,255,.5);}
 
-    /* ══ ПОЛЗУНКИ ══ */
     .sliders-card{background:var(--input-bg);border:1px solid var(--border);border-radius:14px;padding:20px 22px;margin-bottom:14px;}
     .sliders-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
     .sl-field{display:flex;flex-direction:column;gap:7px;}
@@ -226,7 +218,6 @@
     .type-tab.active{background:var(--accent);color:var(--bg);border-color:var(--accent);}
     .type-tab:hover:not(.active){color:var(--text);border-color:var(--muted);}
 
-    /* ══ МОДАЛКИ ══ */
     .modal-overlay{position:fixed;inset:0;z-index:300;background:rgba(8,12,16,.92);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:20px;}
     .modal-overlay.open{display:flex;}
     .modal-box{background:var(--modal-bg);border:1px solid var(--border);border-radius:20px;width:100%;max-width:860px;max-height:92vh;overflow-y:auto;position:relative;animation:modalIn .28s cubic-bezier(.4,0,.2,1);}
@@ -240,7 +231,6 @@
     .modal-close:hover{color:var(--red);border-color:rgba(255,71,87,.3);}
     .modal-body{padding:22px 26px 28px;}
 
-    /* ══ AI ══ */
     .ai-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;margin-bottom:14px;}
     .ai-btn:disabled{opacity:.5;cursor:not-allowed;}
     .ai-btn-green{background:linear-gradient(135deg,rgba(57,255,154,.15),rgba(57,255,154,.05));border:1px solid rgba(57,255,154,.3);color:var(--green);}
@@ -264,7 +254,6 @@
     .ai-counter-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;transition:background .3s;}
     .ai-counter span.hi{color:var(--text);font-weight:700;}
 
-    /* ══ ЧАТ ══ */
     .chat-container{display:flex;flex-direction:column;height:520px;background:var(--input-bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
     .chat-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;}
     .chat-msg{max-width:82%;padding:12px 16px;border-radius:14px;font-family:'DM Mono',monospace;font-size:12px;line-height:1.7;}
@@ -282,7 +271,6 @@
     .chat-context-btn:disabled{opacity:.5;cursor:not-allowed;}
     .chat-context-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(180,100,255,.1);border:1px solid rgba(180,100,255,.2);border-radius:8px;padding:4px 10px;font-family:'DM Mono',monospace;font-size:10px;color:#c084fc;margin-bottom:10px;}
 
-    /* ══ НАСТРОЙКИ ══ */
     .settings-tabs{display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap;}
     .settings-tab-btn{padding:8px 18px;border-radius:8px;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border:1px solid var(--border);background:var(--surface);transition:all .15s;}
     .settings-tab-btn.active{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:700;}
@@ -316,7 +304,6 @@
     .lang-auto-note{font-family:'DM Mono',monospace;font-size:10px;color:var(--green);}
     .lang-option.active .lang-name{color:var(--accent);}
 
-    /* ══ ОТЗЫВЫ ══ */
     .feedback-card{background:var(--surface);border:1px solid rgba(232,255,71,.15);border-radius:16px;padding:24px 26px;margin-bottom:12px;}
     .feedback-title{font-size:15px;font-weight:800;margin-bottom:4px;}
     .feedback-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:20px;line-height:1.6;}
@@ -330,7 +317,6 @@
     .feedback-success{background:rgba(57,255,154,.08);border:1px solid rgba(57,255,154,.2);border-radius:12px;padding:14px 18px;font-family:'DM Mono',monospace;font-size:12px;color:var(--green);margin-top:12px;display:none;}
     .feedback-error{font-family:'DM Mono',monospace;font-size:12px;color:var(--red);margin-top:8px;min-height:18px;}
 
-    /* ══ АВТОРЫ ══ */
     .author-item{display:flex;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--border);}
     .author-item:last-child{border-bottom:none;padding-bottom:0;}
     .author-avatar{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;flex-shrink:0;}
@@ -344,7 +330,6 @@
     .ab-gemini{color:var(--accent2);border-color:rgba(71,200,255,.3);background:rgba(71,200,255,.07);}
     .ab-claude{color:var(--orange);border-color:rgba(255,159,71,.3);background:rgba(255,159,71,.07);}
 
-    /* ══ ADMIN ══ */
     #channel-select-screen{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;background:var(--bg);}
     @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
     .fade-up{animation:fadeUp .4s ease forwards;}
@@ -363,7 +348,6 @@
     .admin-empty{display:flex;align-items:center;justify-content:center;height:120px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);border:1px dashed var(--border);border-radius:12px;}
     .admin-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:30px 0;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);}
 
-    /* ══ УВЕДОМЛЕНИЯ ══ */
     .notif-block{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px;margin-bottom:24px;}
     .notif-block-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
     .notif-block-title{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:8px;}
@@ -396,7 +380,6 @@
     .notif-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px 0;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);}
     .notif-empty-icon{font-size:32px;opacity:.3;}
 
-    /* ══ МОДАЛКА ПОЛЬЗОВАТЕЛЯ ══ */
     .umodal-header{display:flex;align-items:center;gap:18px;padding:28px 28px 20px;border-bottom:1px solid var(--border);}
     .umodal-avatar-stack{position:relative;flex-shrink:0;width:68px;height:68px;}
     .umodal-yt-avatar{width:60px;height:60px;border-radius:50%;object-fit:cover;background:var(--border);border:2px solid var(--border);}
@@ -439,7 +422,6 @@
     .admin-card-btn-perms{color:var(--accent2);border-color:rgba(71,200,255,.3);background:transparent;}
     .admin-card-btn-perms:hover{background:rgba(71,200,255,.1);}
 
-    /* ══ МОДАЛКА ПРАВ АДМИНА ══ */
     .perm-row{display:flex;align-items:center;justify-content:space-between;background:var(--input-bg);border:1px solid var(--border);border-radius:11px;padding:13px 16px;margin-bottom:8px;cursor:pointer;transition:border-color .15s;}
     .perm-row:hover{border-color:rgba(71,200,255,.3);}
     .perm-row-label{font-size:13px;font-weight:700;}
@@ -452,7 +434,6 @@
     .perm-save-btn:hover{opacity:.85;}
     .perm-supreme-note{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.6;}
 
-    /* ══ НОВОСТИ ══ */
     .news-create-card{background:var(--surface);border:1px solid rgba(232,255,71,.2);border-radius:16px;padding:20px 22px;margin-bottom:20px;}
     .news-create-title{font-size:14px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
     .news-input{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:11px 16px;color:var(--text);font-family:'Syne',sans-serif;font-size:14px;outline:none;margin-bottom:10px;}
@@ -493,13 +474,11 @@
     .news-comment-send:hover{border-color:var(--accent);}
     .news-empty{text-align:center;padding:60px 0;font-family:'DM Mono',monospace;font-size:13px;color:var(--muted);}
 
-    /* ══ ВИДЕО ПЛЕЕР ══ */
     .video-player-wrap{position:relative;width:100%;padding-top:56.25%;background:#000;border-radius:12px;overflow:hidden;margin-bottom:16px;}
     .video-player-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none;}
     .video-player-toggle{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;background:rgba(232,255,71,.08);border:1px solid rgba(232,255,71,.2);border-radius:10px;margin-bottom:14px;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;transition:all .15s;}
     .video-player-toggle:hover{background:rgba(232,255,71,.14);border-color:rgba(232,255,71,.4);}
 
-    /* ══ СКАЧАТЬ ПРИЛОЖЕНИЕ ══ */
     .install-hero{background:var(--surface);border:1px solid rgba(232,255,71,.2);border-radius:20px;padding:40px 36px;text-align:center;margin-bottom:24px;}
     .install-hero-icon{width:88px;height:88px;border-radius:20px;margin:0 auto 20px;display:block;box-shadow:0 12px 32px rgba(232,255,71,.2);}
     .install-hero-title{font-size:22px;font-weight:800;margin-bottom:8px;}
@@ -532,7 +511,6 @@
 </head>
 <body>
 
-<!-- ══ БАН ЭКРАН ══ -->
 <div id="ban-screen">
   <div class="ban-card">
     <div class="ban-icon">🚫</div>
@@ -548,7 +526,6 @@
   </div>
 </div>
 
-<!-- ══ ЛЕНДИНГ ══ -->
 <div id="landing-screen" style="display:none">
   <nav class="landing-nav">
     <div class="landing-logo">
@@ -619,7 +596,6 @@
   </footer>
 </div>
 
-<!-- ══ ВЫБОР КАНАЛА ══ -->
 <div id="channel-select-screen">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px 44px;width:500px;max-height:85vh;overflow-y:auto;text-align:center">
     <div style="display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:14px;background:var(--accent);color:var(--bg);font-size:22px;font-weight:800;margin-bottom:20px">▶</div>
@@ -630,7 +606,6 @@
   </div>
 </div>
 
-<!-- ══ ДАШБОРД ══ -->
 <div id="dashboard" style="display:none">
   <aside id="sidebar">
     <div class="sidebar-logo">
@@ -664,7 +639,6 @@
 
   <main id="main">
 
-    <!-- ══ СТАТИСТИКА ══ -->
     <div class="tab-panel active fade-up" id="tab-stats">
       <div class="page-header">
         <div>
@@ -706,7 +680,6 @@
       <div id="stats-video-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:28px"></div>
     </div>
 
-    <!-- ══ ПРОГНОЗ ══ -->
     <div class="tab-panel" id="tab-forecast">
       <div class="page-header">
         <div><h2 class="page-title" id="forecast-page-title">Прогноз ролика</h2><p class="page-sub" id="forecast-sub">Симулятор параметров видео</p></div>
@@ -760,7 +733,6 @@
       </div>
     </div>
 
-    <!-- ══ КАЛЬКУЛЯТОР ══ -->
     <div class="tab-panel" id="tab-calc">
       <div class="page-header">
         <div><h2 class="page-title" id="calc-page-title">Калькулятор метрик</h2><p class="page-sub" id="calc-sub">Конвертер данных Творческой студии YouTube</p></div>
@@ -819,7 +791,6 @@
       </div>
     </div>
 
-    <!-- ══ НОВОСТИ ══ -->
     <div class="tab-panel" id="tab-news">
       <div class="page-header">
         <div><h2 class="page-title" id="news-page-title">Новости</h2><p class="page-sub" id="news-sub">Обновления и объявления YTMetrics</p></div>
@@ -846,7 +817,6 @@
       <div id="news-feed"></div>
     </div>
 
-    <!-- ══ ЧАТ С ИИ ══ -->
     <div class="tab-panel" id="tab-ai">
       <div class="page-header">
         <div><h2 class="page-title" id="ai-page-title">Чат с ИИ</h2><p class="page-sub" id="ai-sub">Персональный ИИ-продюсер, обученный на алгоритмах YouTube</p></div>
@@ -881,14 +851,12 @@
       </div>
     </div>
 
-    <!-- ══ СКАЧАТЬ ПРИЛОЖЕНИЕ ══ -->
     <div class="tab-panel" id="tab-install">
       <div class="page-header">
         <div><h2 class="page-title" id="install-page-title">Скачать приложение</h2><p class="page-sub" id="install-page-sub">Установите YTMetrics как приложение на устройство</p></div>
         <div class="badge-live" style="background:rgba(232,255,71,.08);border-color:rgba(232,255,71,.25);color:var(--accent)">⬇️ PWA</div>
       </div>
 
-      <!-- Если уже установлено -->
       <div id="install-already-card" class="install-already-card" style="display:none">
         <div style="font-size:32px;margin-bottom:10px">✅</div>
         <div style="font-size:16px;font-weight:800;margin-bottom:6px" id="already-installed-title">Приложение уже установлено</div>
@@ -944,7 +912,6 @@
       </div>
     </div>
 
-    <!-- ══ НАСТРОЙКИ ══ -->
     <div class="tab-panel" id="tab-settings">
       <div class="page-header"><div><h2 class="page-title" id="settings-page-title">Настройки</h2><p class="page-sub" id="settings-sub">Персонализация</p></div></div>
       <div class="settings-tabs">
@@ -998,7 +965,6 @@
       </div>
     </div>
 
-    <!-- ══ АДМИН-ПАНЕЛЬ ══ -->
     <div class="tab-panel" id="tab-admin">
       <div class="page-header">
         <div><h2 class="page-title" id="admin-page-title">Админ-панель</h2><p class="page-sub" id="admin-sub">Управление пользователями YTMetrics</p></div>
@@ -1027,7 +993,7 @@
 
   </main>
 </div>
-<!-- ══ МОДАЛКА: АНАЛИТИКА ВИДЕО ══ -->
+
 <div class="modal-overlay" id="stats-modal">
   <div class="modal-box">
     <div class="modal-header">
@@ -1090,7 +1056,6 @@
   </div>
 </div>
 
-<!-- ══ МОДАЛКА: ПРОГНОЗ ══ -->
 <div class="modal-overlay" id="forecast-modal">
   <div class="modal-box">
     <div class="modal-header">
@@ -1128,7 +1093,6 @@
   </div>
 </div>
 
-<!-- ══ МОДАЛКА: СИМУЛЯТОР ══ -->
 <div class="modal-overlay" id="sim-modal-overlay">
   <div class="modal-box">
     <div class="modal-header">
@@ -1166,7 +1130,6 @@
   </div>
 </div>
 
-<!-- ══ МОДАЛКА: ПОЛЬЗОВАТЕЛЬ ══ -->
 <div class="modal-overlay" id="admin-user-modal">
   <div class="modal-box modal-sm">
     <div class="umodal-header">
@@ -1201,7 +1164,6 @@
   </div>
 </div>
 
-<!-- ══ МОДАЛКА: ПРАВА АДМИНА ══ -->
 <div class="modal-overlay" id="perms-modal">
   <div class="modal-box modal-sm">
     <div class="modal-header">
@@ -1248,7 +1210,6 @@
   </div>
 </div>
 
-<!-- ══ МОДАЛКА: АВТОРЫ ══ -->
 <div class="modal-overlay" id="authors-modal">
   <div class="modal-box modal-sm">
     <div class="modal-header"><span style="font-size:22px">👥</span><div><div class="modal-title" id="authors-modal-title">Авторы YTMetrics</div><div class="modal-sub" id="authors-modal-sub">Команда, создавшая этот продукт</div></div><button class="modal-close" onclick="closeModal('authors-modal')">✕</button></div>
@@ -1261,7 +1222,6 @@
   </div>
 </div>
 
-<!-- ══ МОДАЛКА: ПОЛИТИКА ══ -->
 <div class="modal-overlay" id="privacy-modal">
   <div class="modal-box modal-sm">
     <div class="modal-header"><span style="font-size:22px">🔒</span><div><div class="modal-title" id="privacy-modal-title">Политика конфиденциальности</div><div class="modal-sub">YTMetrics · Privacy Policy</div></div><button class="modal-close" onclick="closeModal('privacy-modal')">✕</button></div>
@@ -1273,7 +1233,6 @@
   </div>
 </div>
 
-<!-- ══ МОДАЛКА: УСЛОВИЯ ══ -->
 <div class="modal-overlay" id="terms-modal">
   <div class="modal-box modal-sm">
     <div class="modal-header"><span style="font-size:22px">📄</span><div><div class="modal-title" id="terms-modal-title">Условия использования</div><div class="modal-sub">YTMetrics · Terms of Service</div></div><button class="modal-close" onclick="closeModal('terms-modal')">✕</button></div>
@@ -1286,18 +1245,11 @@
 </div>
 
 <script>
-// ════════════════════════════════════════════════════════
-// КОНСТАНТЫ
-// ════════════════════════════════════════════════════════
 const API_URL='https://youtube-analytics-ruddy.vercel.app';
 const LS_KEY='ytmetrics_user', LS_TOK='ytmetrics_token', LS_CHAT='ytmetrics_chat';
 const LS_THEME='ytmetrics_theme', LS_FORMAT='ytmetrics_format', LS_LANG='ytmetrics_lang';
-
 const PERM_KEYS=['read_notifications','view_users','ban_users','view_admins','ban_admins','add_admins','remove_admins'];
-
 let _banUserId=null, _banEmail=null;
-
-// ════════ PWA: УСТАНОВКА ПРИЛОЖЕНИЯ ════════
 let _deferredInstallPrompt=null;
 let _installBrowser='chrome';
 
@@ -1314,7 +1266,6 @@ window.addEventListener('appinstalled', ()=>{
 });
 
 function isRunningAsInstalledApp(){
-  // standalone display mode = запущено как установленное приложение
   return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
 }
 
@@ -1363,13 +1314,8 @@ function renderInstallInstructions(){
   if(!list)return;
   const instructions=getInstallInstructions(_installBrowser);
   list.innerHTML=instructions.map((text,i)=>
-    `<div class="install-instruction-item">
-      <div class="install-instruction-num">${i+1}</div>
-      <div class="install-instruction-text">${text}</div>
-    </div>`
+    '<div class="install-instruction-item"><div class="install-instruction-num">'+(i+1)+'</div><div class="install-instruction-text">'+text+'</div></div>'
   ).join('');
-  // Кнопка установки видна только там, где есть нативный prompt (chrome/android)
-  // и только если beforeinstallprompt уже сработал
   const installBtn=document.getElementById('install-action-btn');
   if(installBtn){
     const supportsNativePrompt=(_installBrowser==='chrome'||_installBrowser==='android')&&_deferredInstallPrompt;
@@ -1453,7 +1399,6 @@ function initInstallTab(){
   setInstallBrowser(detected);
 }
 
-// ════════ ТЕМА ════════
 function applyTheme(isDark){
   document.documentElement.setAttribute('data-theme',isDark?'dark':'light');
   const chk=document.getElementById('theme-toggle-check');
@@ -1463,7 +1408,6 @@ function applyTheme(isDark){
 function toggleTheme(isDark){applyTheme(isDark);}
 function loadTheme(){applyTheme((localStorage.getItem(LS_THEME)||'dark')==='dark');}
 
-// ════════ ФОРМАТ ════════
 let _statsFormat='blocks', _fcFormat='blocks', _calcFormat='blocks';
 function setDisplayFormat(fmt){
   _statsFormat=fmt; _fcFormat=fmt; _calcFormat=fmt;
@@ -1516,7 +1460,6 @@ function loadDisplayFormat(){
   syncFormatButtons(); applyCalcFormat();
 }
 
-// ════════ ЯЗЫК ════════
 let _currentLang='ru';
 
 const T={
@@ -1659,7 +1602,7 @@ const T={
     total:'total', of_views:'of views', of_likes:'of likes', sharing:'sharing', channel:'channel', avg_view:'average',
     no_data:'no data', real_data:'real data', swipe_away:'swipe away', clickthrough:'click-through rate',
     no_data_low_views:'Not enough views yet for detailed YouTube Analytics stats (needs more traffic over 30 days).',
-    no_data_insufficient_traffic:'YouTube hasn\\'t provided detailed retention/CTR metrics yet — more accumulated traffic over the last 30 days is needed.',
+    no_data_insufficient_traffic:'YouTube has not provided detailed retention/CTR metrics yet — more accumulated traffic over the last 30 days is needed.',
     swipe_title:'Watched vs Swiped', swipe_sub:'Key signal for Shorts algorithm',
     watched:'👁 Watched', swiped:'↕ Swiped',
     watched_pct:'Watched', swiped_pct:'Swiped',
@@ -1691,7 +1634,7 @@ const T={
     ai_title:'AI Chat', ai_sub:'Personal AI producer trained on YouTube algorithms',
     ai_producer:'YTMetrics AI Producer',
     ai_hint:'Ask about Shorts, Long-form, algorithms, metrics, strategies. You can request an analysis of your channel videos below.',
-    ai_welcome:'Hi! I\\'m your AI producer trained on YouTube 2026 algorithm principles. Ask about Shorts, Long-form, metrics, strategies. You can request a channel video analysis with the button above. How can I help? 🎬',
+    ai_welcome:'Hi! I am your AI producer trained on YouTube 2026 algorithm principles. Ask about Shorts, Long-form, metrics, strategies. You can request a channel video analysis with the button above. How can I help? 🎬',
     send_video_context:'📊 Ask AI to analyze my channel videos',
     context_sent:'✓ Video analysis received',
     analyzing_videos:'Analyzing channel videos...',
@@ -1767,7 +1710,7 @@ const T={
     footer_privacy:'Privacy Policy', footer_terms:'Terms of Service',
     perms_modal_title:'Admin permissions',
     save_perms:'Save permissions', grant_all:'🔥 Grant all permissions',
-    supreme_note:'Only the supreme admin can manage other admins\\' permissions.',
+    supreme_note:'Only the supreme admin can manage other admins permissions.',
     perms_saved:'Permissions saved!', all_perms_granted:'ALL permissions granted!',
     grant_all_confirm:'Grant this admin ALL permissions without restriction?',
     manage_perms_btn:'🔐 Permissions',
@@ -1789,6 +1732,8 @@ function applyLang(lang){
   const ae=document.getElementById(activeId);if(ae)ae.classList.add('active');
   applyTranslations();
 }
+
+function setElText(id,text){const el=document.getElementById(id);if(el&&text!=null)el.textContent=text;}
 
 function applyTranslations(){
   document.querySelectorAll('.nav-label[data-key]').forEach(el=>{ el.textContent=t(el.dataset.key); });
@@ -1993,15 +1938,12 @@ function applyTranslations(){
   setElText('perm-supreme-note',t('supreme_note'));
 }
 
-function setElText(id,text){const el=document.getElementById(id);if(el&&text!=null)el.textContent=text;}
-
 function setLanguage(lang){
   try{localStorage.setItem(LS_LANG,lang);}catch(e){}
   applyLang(lang);
 }
 function loadLanguage(){applyLang(localStorage.getItem(LS_LANG)||'auto');}
 
-// ════════ ОТЗЫВ ════════
 let _feedbackRating=0;
 function setFeedbackRating(n){
   _feedbackRating=n;
@@ -2023,7 +1965,6 @@ async function submitFeedback(){
   btn.disabled=false;btn.textContent=t('send_feedback');
 }
 
-// ════════ НАСТРОЙКИ ТАБЫ ════════
 function switchSettingsTab(name){
   document.querySelectorAll('.settings-tab-btn').forEach((btn,i)=>{
     btn.classList.toggle('active',['appearance','language','feedback','about'][i]===name);
@@ -2032,7 +1973,6 @@ function switchSettingsTab(name){
   const panel=document.getElementById('stab-'+name);if(panel)panel.classList.add('active');
 }
 
-// ════════ AUTH ════════
 function startLogin(){window.location.href=API_URL+'/api/auth/google';}
 function scrollToFeatures(){document.getElementById('features').scrollIntoView({behavior:'smooth'});}
 function showPrivacyPolicy(){openModal('privacy-modal');}
@@ -2061,7 +2001,6 @@ async function submitAppeal(){
   }catch(e){btn.disabled=false;btn.textContent=t('ban_btn_text');}
 }
 
-// ════════ AI ЛИМИТЫ ════════
 let _limitsCache=null;
 async function fetchAndRenderLimits(){
   try{
@@ -2077,11 +2016,11 @@ function renderCounter(data){
   if(data.role==='admin'){
     enableAdminMode();
     const left=data.totalRequestsLeft??0,total=data.totalLimit??250;
-    el.innerHTML=`<span class="hi">VIP</span> · API: <span class="hi">${left}/${total}</span>`;
+    el.innerHTML='<span class="hi">VIP</span> · API: <span class="hi">'+left+'/'+total+'</span>';
     dot.style.background='var(--accent)';
   }else{
     const left=data.userRequestsLeft??0,total=data.userLimit??25;
-    el.innerHTML=`${t('left')}: <span class="hi">${left}/${total}</span>`;
+    el.innerHTML=t('left')+': <span class="hi">'+left+'/'+total+'</span>';
     dot.style.background=left<=3?'var(--red)':left<=8?'var(--orange)':'var(--green)';
   }
 }
@@ -2093,7 +2032,7 @@ function handleBanFromResponse(){
   document.getElementById('ban-screen').style.display='flex';
 }
 function aiErrorMessage(s,d){
-  if(s===429)return d?.message||(_currentLang==='en'?'Daily limit reached.':'Дневной лимит исчерпан.');
+  if(s===429)return d&&d.message||(_currentLang==='en'?'Daily limit reached.':'Дневной лимит исчерпан.');
   if(s===403)return _currentLang==='en'?'Access blocked.':'Доступ заблокирован.';
   return _currentLang==='en'?'AI unavailable.':'ИИ недоступен.';
 }
@@ -2106,7 +2045,6 @@ async function callAI(messages,systemPrompt){
   return data.text||'';
 }
 
-// ════════ ЧАТ ════════
 let chatHistory=[];
 function getChatWelcome(){return t('ai_welcome');}
 function getChatKey(){const u=getUser();return u?LS_CHAT+'_'+(u.email||'anon'):null;}
@@ -2137,9 +2075,9 @@ async function analyzeChannelVideos(){
   const originalText=document.getElementById('send-context-btn-text').textContent;
   document.getElementById('send-context-btn-text').textContent=t('analyzing_videos');
 
-  appendChatMsg('user',_currentLang==='en'?`Please analyze my channel's videos (${_realVideos.length} videos)`:`Проанализируй видео моего канала (${_realVideos.length} видео)`);
+  appendChatMsg('user',_currentLang==='en'?('Please analyze my channels videos ('+_realVideos.length+' videos)'):('Проанализируй видео моего канала ('+_realVideos.length+' видео)'));
   const lid='loading-analyze-'+Date.now();
-  appendChatMsg('ai',`<div class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">${t('ai_analyzing')}</span></div>`,lid);
+  appendChatMsg('ai','<div class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+t('ai_analyzing')+'</span></div>',lid);
 
   try{
     const payload={
@@ -2148,7 +2086,7 @@ async function analyzeChannelVideos(){
         retention:v.retention, ctr:v.ctr, retentionShort:v.retentionShort, swipedRatio:v.swipedRatio,
         avgDurationSec:v.avgDurationSec, watchHours:v.watchHours,
       })),
-      channelInfo:{ name:_currentUser?.channel_name||_currentUser?.name||'', subscribers:_currentUser?.subscribers||0 },
+      channelInfo:{ name:(_currentUser&&(_currentUser.channel_name||_currentUser.name))||'', subscribers:(_currentUser&&_currentUser.subscribers)||0 },
       lang:_currentLang,
     };
     const res=await apiFetch('/api/ai/analyze-videos',{method:'POST',body:JSON.stringify(payload)});
@@ -2177,7 +2115,7 @@ async function sendChatMessage(){
   input.value='';sendBtn.disabled=true;
   appendChatMsg('user',msg);
   const lid='loading-'+Date.now();
-  appendChatMsg('ai',`<div class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">${t('thinking')}</span></div>`,lid);
+  appendChatMsg('ai','<div class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+t('thinking')+'</span></div>',lid);
   chatHistory.push({role:'user',content:msg});
   try{
     const answer=await callAI(chatHistory);
@@ -2199,10 +2137,9 @@ function updateChatMsg(id,html,isError){
   document.getElementById('ai-chat-messages').scrollTop=99999;
 }
 
-// ════════ УТИЛИТЫ ════════
-const fmt=n=>{if(n==null||isNaN(n))return'—';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return String(Math.round(n));};
-const fmtFull=n=>{if(n==null||isNaN(n))return'—';return Math.round(n).toLocaleString('ru-RU');};
-const pctOf=(a,b)=>b?((a/b)*100).toFixed(1)+'%':'—';
+const fmt=function(n){if(n==null||isNaN(n))return'—';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return String(Math.round(n));};
+const fmtFull=function(n){if(n==null||isNaN(n))return'—';return Math.round(n).toLocaleString('ru-RU');};
+const pctOf=function(a,b){return b?((a/b)*100).toFixed(1)+'%':'—';};
 function fmtSubs(n){if(!n||isNaN(n))return'0';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(0)+'K';return String(n);}
 function fmtDuration(sec){if(!sec||sec===0)return'—';const m=Math.floor(sec/60),s=Math.round(sec%60);return m+'m '+s+'s';}
 function formatChannelSubs(n){if(!n||isNaN(n))return null;if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(0)+'K';return String(n);}
@@ -2248,22 +2185,21 @@ function formatNotifDate(iso){
   return new Date(iso).toLocaleDateString(_currentLang==='en'?'en-US':'ru-RU',{day:'2-digit',month:'short'});
 }
 
-function escapeHtml(str){if(!str)return'';return str.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function escapeHtml(str){if(!str)return'';return str.replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
 function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
 function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
 function openAuthorsModal(){openModal('authors-modal');}
-document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('click',e=>{if(e.target===el)closeModal(el.id);});});
+document.querySelectorAll('.modal-overlay').forEach(function(el){el.addEventListener('click',function(e){if(e.target===el)closeModal(el.id);});});
 
-// ════════ УВЕДОМЛЕНИЯ АДМИНА ════════
 const NOTIF_ICONS={new_user:'👤',appeal:'📩',feedback:'💬',content_violation:'⚠️',new_admin:'⭐',user_banned:'🚫',user_deleted:'🗑️',default:'🔔'};
 
 async function loadAdminNotifications(){
   const list=document.getElementById('admin-notif-list');if(!list)return;
-  list.innerHTML=`<div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">${t('loading')}</span></div>`;
+  list.innerHTML='<div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+t('loading')+'</span></div>';
   try{
     const res=await apiFetch('/api/admin/notifications');
     if(res.status===403){
-      list.innerHTML=`<div class="admin-empty">${_currentLang==='en'?'No permission to view notifications':'Нет прав на просмотр уведомлений'}</div>`;
+      list.innerHTML='<div class="admin-empty">'+(_currentLang==='en'?'No permission to view notifications':'Нет прав на просмотр уведомлений')+'</div>';
       updateNotifBadge([]);
       return;
     }
@@ -2271,30 +2207,30 @@ async function loadAdminNotifications(){
     const data=await res.json();const notifs=data.notifications||[];
     updateNotifBadge(notifs);
     if(!notifs.length){
-      list.innerHTML=`<div class="notif-empty"><div class="notif-empty-icon">🔔</div><div>${t('notif_empty')}</div></div>`;
+      list.innerHTML='<div class="notif-empty"><div class="notif-empty-icon">🔔</div><div>'+t('notif_empty')+'</div></div>';
       return;
     }
-    list.innerHTML=notifs.map(n=>{
+    list.innerHTML=notifs.map(function(n){
       const icon=NOTIF_ICONS[n.type]||NOTIF_ICONS.default;
       const iconClass='notif-icon-'+(NOTIF_ICONS[n.type]?n.type:'default');
-      return`<div class="notif-item${n.is_read?'':' unread'}" id="notif-item-${n.id}">
-        <div class="notif-icon-wrap ${iconClass}">${icon}</div>
-        <div class="notif-content">
-          <div class="notif-title">${escapeHtml(n.title)}</div>
-          <div class="notif-body">${escapeHtml(n.body||'')}</div>
-          <div class="notif-time">${formatNotifDate(n.created_at)}</div>
-        </div>
-        <div class="notif-actions">
-          ${!n.is_read?`<button class="notif-read-btn" title="Прочитано" onclick="markNotifRead('${n.id}')">✓</button>`:''}
-          <button class="notif-del-btn" title="Удалить" onclick="deleteNotif('${n.id}')">✕</button>
-        </div>
-      </div>`;
+      return '<div class="notif-item'+(n.is_read?'':' unread')+'" id="notif-item-'+n.id+'">'
+        +'<div class="notif-icon-wrap '+iconClass+'">'+icon+'</div>'
+        +'<div class="notif-content">'
+        +'<div class="notif-title">'+escapeHtml(n.title)+'</div>'
+        +'<div class="notif-body">'+escapeHtml(n.body||'')+'</div>'
+        +'<div class="notif-time">'+formatNotifDate(n.created_at)+'</div>'
+        +'</div>'
+        +'<div class="notif-actions">'
+        +(!n.is_read?'<button class="notif-read-btn" title="Прочитано" onclick="markNotifRead(\''+n.id+'\')">✓</button>':'')
+        +'<button class="notif-del-btn" title="Удалить" onclick="deleteNotif(\''+n.id+'\')">✕</button>'
+        +'</div>'
+        +'</div>';
     }).join('');
-  }catch(e){list.innerHTML=`<div class="admin-empty">Error: ${e.message}</div>`;}
+  }catch(e){list.innerHTML='<div class="admin-empty">Error: '+e.message+'</div>';}
 }
 
 function updateNotifBadge(notifs){
-  const unread=(notifs||[]).filter(n=>!n.is_read).length;
+  const unread=(notifs||[]).filter(function(n){return !n.is_read;}).length;
   const badge=document.getElementById('nav-admin-badge');
   const unreadBadge=document.getElementById('admin-notif-unread-badge');
   if(badge){badge.textContent=unread;badge.style.display=unread>0?'flex':'none';}
@@ -2314,7 +2250,7 @@ async function markNotifRead(id){
 async function markAllNotificationsRead(){
   try{
     await apiFetch('/api/admin/notifications/read-all',{method:'POST',body:JSON.stringify({})});
-    document.querySelectorAll('.notif-item').forEach(item=>{
+    document.querySelectorAll('.notif-item').forEach(function(item){
       item.classList.remove('unread');const btn=item.querySelector('.notif-read-btn');if(btn)btn.remove();
     });
     updateNotifBadge([]);
@@ -2326,7 +2262,7 @@ async function deleteNotif(id){
     await apiFetch('/api/admin/notifications/'+id,{method:'DELETE'});
     const item=document.getElementById('notif-item-'+id);if(item)item.remove();
     if(!document.querySelectorAll('.notif-item').length){
-      document.getElementById('admin-notif-list').innerHTML=`<div class="notif-empty"><div class="notif-empty-icon">🔔</div><div>${t('notif_empty')}</div></div>`;
+      document.getElementById('admin-notif-list').innerHTML='<div class="notif-empty"><div class="notif-empty-icon">🔔</div><div>'+t('notif_empty')+'</div></div>';
     }
     const unread=document.querySelectorAll('.notif-item.unread').length;
     updateNotifBadge(Array(unread).fill({is_read:false}));
@@ -2341,9 +2277,8 @@ async function pollNotifCount(){
   }catch(e){}
 }
 
-// ════════ НОВОСТИ ════════
 let _isAdminForNews=false, _editingPostId=null, _newsMediaBase64=null, _newsMediaType=null;
-function onNewsMediaSelect(e){const file=e.target.files[0];if(!file)return;if(file.size>3*1024*1024){alert(_currentLang==='en'?'File too large (max 3MB)':'Файл слишком большой (макс. 3MB)');e.target.value='';return;}const reader=new FileReader();reader.onload=()=>{_newsMediaBase64=reader.result;_newsMediaType=file.type.startsWith('video')?'video':'image';document.getElementById('news-media-preview').textContent='✓ '+file.name;document.getElementById('news-media-clear').style.display='inline';};reader.readAsDataURL(file);}
+function onNewsMediaSelect(e){const file=e.target.files[0];if(!file)return;if(file.size>3*1024*1024){alert(_currentLang==='en'?'File too large (max 3MB)':'Файл слишком большой (макс. 3MB)');e.target.value='';return;}const reader=new FileReader();reader.onload=function(){_newsMediaBase64=reader.result;_newsMediaType=file.type.startsWith('video')?'video':'image';document.getElementById('news-media-preview').textContent='✓ '+file.name;document.getElementById('news-media-clear').style.display='inline';};reader.readAsDataURL(file);}
 function clearNewsMedia(){_newsMediaBase64=null;_newsMediaType=null;document.getElementById('news-media-input').value='';document.getElementById('news-media-preview').textContent='';document.getElementById('news-media-clear').style.display='none';}
 function cancelNewsEdit(){
   _editingPostId=null;
@@ -2357,45 +2292,45 @@ async function loadNews(){
   try{
     const res=await apiFetch('/api/news');
     if(res.status===403){handleBanFromResponse();return;}
-    if(!res.ok){loading.style.display='none';feed.innerHTML=`<div class="news-empty">${t('news_error')}</div>`;return;}
+    if(!res.ok){loading.style.display='none';feed.innerHTML='<div class="news-empty">'+t('news_error')+'</div>';return;}
     const data=await res.json();
     _isAdminForNews=!!data.isAdmin;
     document.getElementById('news-create-card').style.display=_isAdminForNews?'block':'none';
     loading.style.display='none';
     const posts=data.posts||[];
-    if(!posts.length){feed.innerHTML=`<div class="news-empty">${t('no_news')}</div>`;return;}
+    if(!posts.length){feed.innerHTML='<div class="news-empty">'+t('no_news')+'</div>';return;}
     feed.innerHTML=posts.map(renderNewsPost).join('');
-  }catch(e){loading.style.display='none';feed.innerHTML=`<div class="news-empty">${t('news_error')}</div>`;}
+  }catch(e){loading.style.display='none';feed.innerHTML='<div class="news-empty">'+t('news_error')+'</div>';}
 }
 function renderNewsPost(p){
   let mediaHtml='';
-  if(p.media_url){if(p.media_type==='video')mediaHtml=`<video class="news-post-media" controls src="${p.media_url}"></video>`;else mediaHtml=`<img class="news-post-media" src="${p.media_url}" alt="" loading="lazy">`;}
+  if(p.media_url){if(p.media_type==='video')mediaHtml='<video class="news-post-media" controls src="'+p.media_url+'"></video>';else mediaHtml='<img class="news-post-media" src="'+p.media_url+'" alt="" loading="lazy">';}
   const likeActive=p.userReaction==='like'?' active-like':'',dislikeActive=p.userReaction==='dislike'?' active-dislike':'';
-  const commentsHtml=(p.comments||[]).map(c=>{const canDel=_isAdminForNews||c.user_email===getUser()?.email;return`<div class="news-comment"><div class="news-comment-avatar">${(c.user_name||'?')[0].toUpperCase()}</div><div class="news-comment-body"><div class="news-comment-name">${escapeHtml(c.user_name||c.user_email)}</div><div class="news-comment-text">${escapeHtml(c.content)}</div></div>${canDel?`<div class="news-comment-del" onclick="deleteNewsComment('${c.id}')">✕</div>`:''}</div>`;}).join('');
-  const adminHtml=_isAdminForNews?`<button class="news-edit-btn" onclick="startEditNewsPost('${p.id}')">✏️</button><button class="news-delete-btn" onclick="deleteNewsPost('${p.id}')">🗑</button>`:'';
-  return`<div class="news-post" id="news-post-${p.id}" data-post='${JSON.stringify(p).replace(/'/g,"&#39;")}'>
-    <div class="news-post-title">${escapeHtml(p.title)}</div>
-    <div class="news-post-meta">${escapeHtml(p.author_name||p.author_email)} · ${formatNewsDate(p.created_at)}</div>
-    ${mediaHtml}<div class="news-post-content">${escapeHtml(p.content)}</div>
-    <div class="news-post-actions">
-      <button class="news-react-btn${likeActive}" onclick="reactNewsPost('${p.id}','like')">👍 <span>${p.likes||0}</span></button>
-      <button class="news-react-btn${dislikeActive}" onclick="reactNewsPost('${p.id}','dislike')">👎 <span>${p.dislikes||0}</span></button>
-      ${adminHtml}
-    </div>
-    <div class="news-comments">${commentsHtml}
-      <div class="news-comment-input-row">
-        <input type="text" class="news-comment-input" id="comment-input-${p.id}" placeholder="${t('write_comment')}" maxlength="500" onkeydown="if(event.key==='Enter'){submitNewsComment('${p.id}')}">
-        <button class="news-comment-send" onclick="submitNewsComment('${p.id}')">${t('send')}</button>
-      </div>
-    </div>
-  </div>`;
+  const commentsHtml=(p.comments||[]).map(function(c){const canDel=_isAdminForNews||c.user_email===(getUser()&&getUser().email);return '<div class="news-comment"><div class="news-comment-avatar">'+(c.user_name||'?')[0].toUpperCase()+'</div><div class="news-comment-body"><div class="news-comment-name">'+escapeHtml(c.user_name||c.user_email)+'</div><div class="news-comment-text">'+escapeHtml(c.content)+'</div></div>'+(canDel?'<div class="news-comment-del" onclick="deleteNewsComment(\''+c.id+'\')">✕</div>':'')+'</div>';}).join('');
+  const adminHtml=_isAdminForNews?'<button class="news-edit-btn" onclick="startEditNewsPost(\''+p.id+'\')">✏️</button><button class="news-delete-btn" onclick="deleteNewsPost(\''+p.id+'\')">🗑</button>':'';
+  return '<div class="news-post" id="news-post-'+p.id+'" data-post=\''+JSON.stringify(p).replace(/'/g,"&#39;")+'\'>'
+    +'<div class="news-post-title">'+escapeHtml(p.title)+'</div>'
+    +'<div class="news-post-meta">'+escapeHtml(p.author_name||p.author_email)+' · '+formatNewsDate(p.created_at)+'</div>'
+    +mediaHtml+'<div class="news-post-content">'+escapeHtml(p.content)+'</div>'
+    +'<div class="news-post-actions">'
+    +'<button class="news-react-btn'+likeActive+'" onclick="reactNewsPost(\''+p.id+'\',\'like\')">👍 <span>'+(p.likes||0)+'</span></button>'
+    +'<button class="news-react-btn'+dislikeActive+'" onclick="reactNewsPost(\''+p.id+'\',\'dislike\')">👎 <span>'+(p.dislikes||0)+'</span></button>'
+    +adminHtml
+    +'</div>'
+    +'<div class="news-comments">'+commentsHtml
+    +'<div class="news-comment-input-row">'
+    +'<input type="text" class="news-comment-input" id="comment-input-'+p.id+'" placeholder="'+t('write_comment')+'" maxlength="500" onkeydown="if(event.key===\'Enter\'){submitNewsComment(\''+p.id+'\')}">'
+    +'<button class="news-comment-send" onclick="submitNewsComment(\''+p.id+'\')">'+t('send')+'</button>'
+    +'</div>'
+    +'</div>'
+    +'</div>';
 }
 async function submitNewsPost(){
   const title=document.getElementById('news-title-input').value.trim(),content=document.getElementById('news-content-input').value.trim();
   if(!title||!content){alert(_currentLang==='en'?'Fill in title and content.':'Заполните заголовок и текст.');return;}
   const btn=document.getElementById('news-submit-btn');btn.disabled=true;btn.textContent='...';
   try{
-    const payload={title,content,media_url:_newsMediaBase64,media_type:_newsMediaType};
+    const payload={title:title,content:content,media_url:_newsMediaBase64,media_type:_newsMediaType};
     const res=_editingPostId?await apiFetch('/api/news/'+_editingPostId,{method:'PUT',body:JSON.stringify(payload)}):await apiFetch('/api/news',{method:'POST',body:JSON.stringify(payload)});
     const data=await res.json();
     if(res.ok){cancelNewsEdit();await loadNews();}else{alert('Error: '+(data.error||'unknown'));}
@@ -2415,11 +2350,10 @@ function startEditNewsPost(postId){
   document.getElementById('news-create-card').scrollIntoView({behavior:'smooth'});
 }
 async function deleteNewsPost(postId){if(!confirm(_currentLang==='en'?'Delete this post?':'Удалить эту новость?'))return;try{const res=await apiFetch('/api/news/'+postId,{method:'DELETE'});if(res.ok)await loadNews();}catch(e){}}
-async function reactNewsPost(postId,reaction){try{const res=await apiFetch('/api/news/'+postId+'/react',{method:'POST',body:JSON.stringify({reaction})});if(res.ok)await loadNews();}catch(e){}}
-async function submitNewsComment(postId){const input=document.getElementById('comment-input-'+postId);const content=input.value.trim();if(!content)return;try{const res=await apiFetch('/api/news/'+postId+'/comment',{method:'POST',body:JSON.stringify({content})});if(res.ok){input.value='';await loadNews();}else{const d=await res.json();alert(d.error||'Error');}}catch(e){}}
+async function reactNewsPost(postId,reaction){try{const res=await apiFetch('/api/news/'+postId+'/react',{method:'POST',body:JSON.stringify({reaction:reaction})});if(res.ok)await loadNews();}catch(e){}}
+async function submitNewsComment(postId){const input=document.getElementById('comment-input-'+postId);const content=input.value.trim();if(!content)return;try{const res=await apiFetch('/api/news/'+postId+'/comment',{method:'POST',body:JSON.stringify({content:content})});if(res.ok){input.value='';await loadNews();}else{const d=await res.json();alert(d.error||'Error');}}catch(e){}}
 async function deleteNewsComment(commentId){if(!confirm(_currentLang==='en'?'Delete comment?':'Удалить комментарий?'))return;try{const res=await apiFetch('/api/news/comments/'+commentId,{method:'DELETE'});if(res.ok)await loadNews();}catch(e){}}
 
-// ════════ ADMIN ════════
 let _isAdmin=false, _currentAdminUserIdx=null, _myPermissions=null, _isSupreme=false, _isPrimary=false;
 
 function enableAdminMode(){
@@ -2444,37 +2378,37 @@ async function loadAdminUsers(){
   if(!list)return;
   await loadMyPermissions();
   if(_myPermissions&&!_myPermissions.view_users){
-    list.innerHTML=`<div class="admin-empty">${_currentLang==='en'?'No permission to view users':'Нет прав на просмотр пользователей'}</div>`;
+    list.innerHTML='<div class="admin-empty">'+(_currentLang==='en'?'No permission to view users':'Нет прав на просмотр пользователей')+'</div>';
     if(countEl)countEl.textContent='';
     return;
   }
-  list.innerHTML=`<div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">${t('loading')}</span></div>`;
+  list.innerHTML='<div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+t('loading')+'</span></div>';
   try{
     const res=await apiFetch('/api/admin/users');
-    if(res.status===403){list.innerHTML=`<div class="admin-empty">${_currentLang==='en'?'No permission':'Нет прав'}</div>`;return;}
-    if(!res.ok){const err=await res.json().catch(()=>({}));list.innerHTML=`<div class="admin-empty">Error: ${err.error||res.status}</div>`;return;}
+    if(res.status===403){list.innerHTML='<div class="admin-empty">'+(_currentLang==='en'?'No permission':'Нет прав')+'</div>';return;}
+    if(!res.ok){const err=await res.json().catch(function(){return {};});list.innerHTML='<div class="admin-empty">Error: '+(err.error||res.status)+'</div>';return;}
     const data=await res.json();const users=data.users||[];
     if(countEl)countEl.textContent='· '+users.length;
     if(!users.length){list.innerHTML='<div class="admin-empty">—</div>';return;}
-    list.innerHTML=users.map((u,idx)=>{
+    list.innerHTML=users.map(function(u,idx){
       const name=u.name||u.email||'—',avatar=u.google_avatar||null,initials=name[0].toUpperCase(),isBanned=u.banned||false;
-      const avatarHtml=avatar?`<img class="admin-user-avatar" src="${avatar}" alt="" onerror="this.style.display='none'">`:`<div class="admin-user-avatar-placeholder">${initials}</div>`;
-      return`<div class="admin-user-card${isBanned?' banned-card':''}" onclick="openAdminUserModal(${idx})">${avatarHtml}<div style="flex:1;min-width:0"><div class="admin-user-name">${escapeHtml(name)}</div><div class="admin-user-email">${u.email||''}</div></div>${isBanned?`<span class="admin-banned-badge">${t('banned_label')}</span>`:'<span style="font-size:16px;color:var(--muted)">›</span>'}</div>`;
+      const avatarHtml=avatar?'<img class="admin-user-avatar" src="'+avatar+'" alt="" onerror="this.style.display=\'none\'">':'<div class="admin-user-avatar-placeholder">'+initials+'</div>';
+      return '<div class="admin-user-card'+(isBanned?' banned-card':'')+'" onclick="openAdminUserModal('+idx+')">'+avatarHtml+'<div style="flex:1;min-width:0"><div class="admin-user-name">'+escapeHtml(name)+'</div><div class="admin-user-email">'+(u.email||'')+'</div></div>'+(isBanned?'<span class="admin-banned-badge">'+t('banned_label')+'</span>':'<span style="font-size:16px;color:var(--muted)">›</span>')+'</div>';
     }).join('');
     window._adminUsersData=users;
     renderAdminList();
-  }catch(e){list.innerHTML=`<div class="admin-empty">Error: ${e.message}</div>`;}
+  }catch(e){list.innerHTML='<div class="admin-empty">Error: '+e.message+'</div>';}
 }
 
 async function renderAdminList(){
   const adminList=document.getElementById('admin-admins-list');if(!adminList)return;
   if(_myPermissions&&!_myPermissions.view_admins){
-    adminList.innerHTML=`<div class="admin-empty">${_currentLang==='en'?'No permission to view admins':'Нет прав на просмотр админов'}</div>`;
+    adminList.innerHTML='<div class="admin-empty">'+(_currentLang==='en'?'No permission to view admins':'Нет прав на просмотр админов')+'</div>';
     return;
   }
   try{
     const res=await apiFetch('/api/admin/admins');
-    if(res.status===403){adminList.innerHTML=`<div class="admin-empty">${_currentLang==='en'?'No permission':'Нет прав'}</div>`;return;}
+    if(res.status===403){adminList.innerHTML='<div class="admin-empty">'+(_currentLang==='en'?'No permission':'Нет прав')+'</div>';return;}
     if(!res.ok){adminList.innerHTML='<div class="admin-empty">Error</div>';return;}
     const data=await res.json();
     const admins=data.admins||[];
@@ -2482,36 +2416,36 @@ async function renderAdminList(){
     const iAmSupreme=!!data.isSupreme;
     window._adminsData=admins;
     if(!admins.length){adminList.innerHTML='<div class="admin-empty">—</div>';return;}
-    adminList.innerHTML=admins.map((a,idx)=>{
+    adminList.innerHTML=admins.map(function(a,idx){
       const name=a.name||a.email||'—',email=a.email,avatar=a.google_avatar||null,initials=name[0].toUpperCase();
-      const avatarHtml=avatar?`<img style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0" src="${avatar}" alt="">`:`<div class="admin-card-avatar">${initials}</div>`;
+      const avatarHtml=avatar?'<img style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0" src="'+avatar+'" alt="">':'<div class="admin-card-avatar">'+initials+'</div>';
       const isSelf=email===myEmail;
       const badge=a.is_supreme
         ?'<span class="admin-card-badge" style="background:rgba(255,71,87,.12);border-color:rgba(255,71,87,.3);color:var(--red)">SUPREME</span>'
         :a.is_primary?'<span class="admin-card-badge" style="background:rgba(255,159,71,.12);border-color:rgba(255,159,71,.3);color:var(--orange)">PRIMARY</span>'
         :'<span class="admin-card-badge">ADMIN</span>';
       const showSupremeActions=iAmSupreme&&!isSelf&&!a.is_supreme;
-      const banBtn=showSupremeActions?`<button class="admin-card-btn admin-card-btn-ban" onclick="event.stopPropagation();adminBanAdmin('${a.user_id}','${email}','${escapeHtml(name)}')">🚫</button>`:'';
-      const removeBtn=showSupremeActions?`<button class="admin-card-btn admin-card-btn-remove" onclick="event.stopPropagation();adminRemoveAdmin('${email}','${escapeHtml(name)}')">✕</button>`:'';
-      const permsBtn=showSupremeActions?`<button class="admin-card-btn admin-card-btn-perms" onclick="event.stopPropagation();openPermsModal(${idx})">${t('manage_perms_btn')}</button>`:'';
-      return`<div class="admin-card-item">${avatarHtml}<div style="flex:1;min-width:0"><div class="admin-card-name">${escapeHtml(name)}</div><div class="admin-card-email">${escapeHtml(email)}</div></div>${badge}<div class="admin-card-actions">${permsBtn}${banBtn}${removeBtn}</div></div>`;
+      const banBtn=showSupremeActions?'<button class="admin-card-btn admin-card-btn-ban" onclick="event.stopPropagation();adminBanAdmin(\''+a.user_id+'\',\''+email+'\',\''+escapeHtml(name)+'\')">🚫</button>':'';
+      const removeBtn=showSupremeActions?'<button class="admin-card-btn admin-card-btn-remove" onclick="event.stopPropagation();adminRemoveAdmin(\''+email+'\',\''+escapeHtml(name)+'\')">✕</button>':'';
+      const permsBtn=showSupremeActions?'<button class="admin-card-btn admin-card-btn-perms" onclick="event.stopPropagation();openPermsModal('+idx+')">'+t('manage_perms_btn')+'</button>':'';
+      return '<div class="admin-card-item">'+avatarHtml+'<div style="flex:1;min-width:0"><div class="admin-card-name">'+escapeHtml(name)+'</div><div class="admin-card-email">'+escapeHtml(email)+'</div></div>'+badge+'<div class="admin-card-actions">'+permsBtn+banBtn+removeBtn+'</div></div>';
     }).join('');
   }catch(e){adminList.innerHTML='<div class="admin-empty">Error</div>';}
 }
 
 async function adminBanAdmin(userId,email,name){
-  if(!confirm(`${t('ban_confirm')} "${name}"?`))return;
+  if(!confirm(t('ban_confirm')+' "'+name+'"?'))return;
   try{
-    const res=await apiFetch('/api/admin/ban-admin',{method:'POST',body:JSON.stringify({userId,email})});
+    const res=await apiFetch('/api/admin/ban-admin',{method:'POST',body:JSON.stringify({userId:userId,email:email})});
     const data=await res.json();
     if(res.ok){alert(_currentLang==='en'?'Banned.':'Заблокирован.');renderAdminList();loadAdminUsers();}
     else alert(data.error||'Error');
   }catch(e){alert('Error');}
 }
 async function adminRemoveAdmin(email,name){
-  if(!confirm(`${t('ban_confirm')} "${name}"?`))return;
+  if(!confirm(t('ban_confirm')+' "'+name+'"?'))return;
   try{
-    const res=await apiFetch('/api/admin/remove-admin',{method:'POST',body:JSON.stringify({email})});
+    const res=await apiFetch('/api/admin/remove-admin',{method:'POST',body:JSON.stringify({email:email})});
     const data=await res.json();
     if(res.ok){alert(_currentLang==='en'?'Admin rights removed.':'Права сняты.');renderAdminList();}
     else alert(data.error||'Error');
@@ -2523,9 +2457,9 @@ function openPermsModal(idx){
   const admins=window._adminsData;if(!admins||!admins[idx])return;
   _currentPermsAdminIdx=idx;
   const admin=admins[idx];
-  _currentPermsState={...admin.permissions};
+  _currentPermsState=Object.assign({},admin.permissions);
   document.getElementById('perms-modal-sub').textContent=admin.name||admin.email;
-  PERM_KEYS.forEach(key=>{
+  PERM_KEYS.forEach(function(key){
     const cb=document.getElementById('perm-cb-'+key);
     if(cb)cb.classList.toggle('checked',!!_currentPermsState[key]);
   });
@@ -2560,8 +2494,9 @@ async function grantAllPermissions(){
     const data=await res.json();
     if(res.ok){
       alert(t('all_perms_granted'));
-      PERM_KEYS.forEach(key=>{const cb=document.getElementById('perm-cb-'+key);if(cb)cb.classList.add('checked');});
-      _currentPermsState=Object.fromEntries(PERM_KEYS.map(k=>[k,true]));
+      PERM_KEYS.forEach(function(key){const cb=document.getElementById('perm-cb-'+key);if(cb)cb.classList.add('checked');});
+      _currentPermsState={};
+      PERM_KEYS.forEach(function(k){_currentPermsState[k]=true;});
       closeModal('perms-modal');
       renderAdminList();
     }else alert(data.error||'Error');
@@ -2576,11 +2511,11 @@ function openAdminUserModal(idx){
   document.getElementById('aum-channel-name').textContent=ytChannelName||googleName;
   document.getElementById('aum-google-name').textContent=googleName;
   const ytWrap=document.getElementById('aum-yt-avatar-wrap');
-  if(ytAvatar)ytWrap.innerHTML=`<img class="umodal-yt-avatar" src="${ytAvatar}" alt="" onerror="this.outerHTML='<div class=\\'umodal-yt-avatar-ph\\'>${googleName[0].toUpperCase()}</div>'">`;
-  else if(googleAvatar)ytWrap.innerHTML=`<img class="umodal-yt-avatar" src="${googleAvatar}" alt="" onerror="this.outerHTML='<div class=\\'umodal-yt-avatar-ph\\'>${googleName[0].toUpperCase()}</div>'">`;
-  else ytWrap.innerHTML=`<div class="umodal-yt-avatar-ph">${googleName[0].toUpperCase()}</div>`;
+  if(ytAvatar)ytWrap.innerHTML='<img class="umodal-yt-avatar" src="'+ytAvatar+'" alt="" onerror="this.outerHTML=\'<div class=&quot;umodal-yt-avatar-ph&quot;>'+googleName[0].toUpperCase()+'</div>\'">';
+  else if(googleAvatar)ytWrap.innerHTML='<img class="umodal-yt-avatar" src="'+googleAvatar+'" alt="" onerror="this.outerHTML=\'<div class=&quot;umodal-yt-avatar-ph&quot;>'+googleName[0].toUpperCase()+'</div>\'">';
+  else ytWrap.innerHTML='<div class="umodal-yt-avatar-ph">'+googleName[0].toUpperCase()+'</div>';
   const gWrap=document.getElementById('aum-google-avatar-wrap');
-  if(googleAvatar&&ytAvatar)gWrap.innerHTML=`<img class="umodal-google-avatar" src="${googleAvatar}" alt="" onerror="this.style.display='none'">`;
+  if(googleAvatar&&ytAvatar)gWrap.innerHTML='<img class="umodal-google-avatar" src="'+googleAvatar+'" alt="" onerror="this.style.display=\'none\'">';
   else gWrap.innerHTML='';
   const banBanner=document.getElementById('aum-ban-banner');
   if(isBanned){banBanner.style.display='flex';document.getElementById('aum-ban-date').textContent=u.banned_at?new Date(u.banned_at).toLocaleDateString(_currentLang==='en'?'en-US':'ru-RU'):'';}
@@ -2589,11 +2524,11 @@ function openAdminUserModal(idx){
   document.getElementById('aum-google-nick').textContent=googleName;
   document.getElementById('aum-yt-channel').textContent=ytChannelName||'—';
   const urlEl=document.getElementById('aum-channel-url');
-  if(channelUrl)urlEl.innerHTML=`<a href="${channelUrl}" target="_blank" rel="noopener">${channelUrl}</a>`;
-  else urlEl.innerHTML=`<span class="umodal-no-data">${t('no_data_val')}</span>`;
+  if(channelUrl)urlEl.innerHTML='<a href="'+channelUrl+'" target="_blank" rel="noopener">'+channelUrl+'</a>';
+  else urlEl.innerHTML='<span class="umodal-no-data">'+t('no_data_val')+'</span>';
   const subsEl=document.getElementById('aum-subs');
-  if(u.subscriber_count>0)subsEl.innerHTML=`<span class="umodal-subs-badge">👥 ${fmtSubs(u.subscriber_count)}</span>`;
-  else subsEl.innerHTML=`<span class="umodal-no-data">${t('no_data_val')}</span>`;
+  if(u.subscriber_count>0)subsEl.innerHTML='<span class="umodal-subs-badge">👥 '+fmtSubs(u.subscriber_count)+'</span>';
+  else subsEl.innerHTML='<span class="umodal-no-data">'+t('no_data_val')+'</span>';
   document.getElementById('aum-created').textContent=formatRegDate(u.created_at);
   const descEl=document.getElementById('aum-desc');
   descEl.textContent=u.channel_description&&u.channel_description.trim()?u.channel_description:t('no_desc');
@@ -2614,7 +2549,7 @@ function openAdminUserModal(idx){
 async function toggleBanUser(){
   const users=window._adminUsersData;if(!users||_currentAdminUserIdx==null)return;
   const u=users[_currentAdminUserIdx];const isBanned=u.banned||false;
-  if(!confirm(`${isBanned?t('unban_confirm'):t('ban_confirm')} "${u.name||u.email}"?`))return;
+  if(!confirm((isBanned?t('unban_confirm'):t('ban_confirm'))+' "'+(u.name||u.email)+'"?'))return;
   const btn=document.getElementById('aum-ban-btn');btn.disabled=true;btn.textContent='...';
   try{
     const res=await apiFetch(isBanned?'/api/admin/unban':'/api/admin/ban',{method:'POST',body:JSON.stringify({userId:u.id})});
@@ -2627,7 +2562,7 @@ async function toggleBanUser(){
 async function makeUserAdmin(){
   const users=window._adminUsersData;if(!users||_currentAdminUserIdx==null)return;
   const u=users[_currentAdminUserIdx];
-  if(!confirm(`${t('admin_confirm')}: "${u.name||u.email}"?`))return;
+  if(!confirm(t('admin_confirm')+': "'+(u.name||u.email)+'"?'))return;
   try{
     const res=await apiFetch('/api/admin/make-admin',{method:'POST',body:JSON.stringify({userId:u.id})});
     const data=await res.json();
@@ -2639,7 +2574,7 @@ async function makeUserAdmin(){
 async function deleteUser(){
   const users=window._adminUsersData;if(!users||_currentAdminUserIdx==null)return;
   const u=users[_currentAdminUserIdx];
-  if(!confirm(`${t('delete_confirm')} "${u.name||u.email}"?\n${t('delete_warning')}`))return;
+  if(!confirm(t('delete_confirm')+' "'+(u.name||u.email)+'"?\n'+t('delete_warning')))return;
   const btn=document.getElementById('aum-delete-btn');btn.disabled=true;btn.textContent='...';
   try{
     const res=await apiFetch('/api/admin/users/'+u.id,{method:'DELETE'});
@@ -2649,27 +2584,25 @@ async function deleteUser(){
   }catch(e){btn.disabled=false;alert('Error');}
 }
 
-// ════════ LOGOUT ════════
-document.getElementById('logout-btn').addEventListener('click',()=>{
+document.getElementById('logout-btn').addEventListener('click',function(){
   clearToken();clearUser();clearChatHistory();_isAdmin=false;
   const navAdmin=document.getElementById('nav-admin');if(navAdmin)navAdmin.style.display='none';
-  apiFetch('/api/auth/logout',{method:'POST'}).catch(()=>{});
+  apiFetch('/api/auth/logout',{method:'POST'}).catch(function(){});
   document.getElementById('dashboard').style.display='none';
   document.getElementById('channel-select-screen').style.display='none';
   document.getElementById('landing-screen').style.display='flex';
   window.scrollTo(0,0);
 });
 
-// ════════ ТОКЕН ════════
 function checkTokenInURL(){
   const params=new URLSearchParams(window.location.search);
   const token=params.get('token'),error=params.get('error'),uid=params.get('uid'),uemail=params.get('uemail');
-  if(token){saveToken(token);window.history.replaceState({},document.title,window.location.pathname);return{token};}
+  if(token){saveToken(token);window.history.replaceState({},document.title,window.location.pathname);return{token:token};}
   if(error==='banned'){_banUserId=uid||null;_banEmail=uemail||null;window.history.replaceState({},document.title,window.location.pathname);return{banned:true};}
-  if(error){window.history.replaceState({},document.title,window.location.pathname);return{error};}
+  if(error){window.history.replaceState({},document.title,window.location.pathname);return{error:error};}
   return null;
 }
-function buildMergedUser(user,ch){return{...user,channel_id:ch.channel_id||ch.id||user.channel_id,channel_name:ch.channel_name||ch.title||user.channel_name,avatar_url:ch.avatar_url||ch.avatar||user.avatar_url,subscribers:ch.subscribers!=null?ch.subscribers:user.subscribers};}
+function buildMergedUser(user,ch){return Object.assign({},user,{channel_id:ch.channel_id||ch.id||user.channel_id,channel_name:ch.channel_name||ch.title||user.channel_name,avatar_url:ch.avatar_url||ch.avatar||user.avatar_url,subscribers:ch.subscribers!=null?ch.subscribers:user.subscribers});}
 
 function showChannelSelect(user){
   const channels=user.channels||[];
@@ -2679,18 +2612,16 @@ function showChannelSelect(user){
   document.getElementById('dashboard').style.display='none';
   document.getElementById('channel-select-screen').style.display='flex';
   window._pendingUser=user;window._pendingChannels=channels;
-  document.getElementById('channel-list-items').innerHTML=channels.map((ch,idx)=>{
+  document.getElementById('channel-list-items').innerHTML=channels.map(function(ch,idx){
     const name=ch.channel_name||ch.title||'—',avatar=ch.avatar_url||ch.avatar||null,subs=formatChannelSubs(ch.subscribers),init=name[0].toUpperCase();
-    return`<div onclick="selectChannel(${idx})" style="display:flex;align-items:center;gap:14px;background:var(--input-bg);border:1px solid var(--border);border-radius:14px;padding:14px 18px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-      <div style="width:46px;height:46px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:var(--bg)">${avatar?`<img src="${avatar}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:init}</div>
-      <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700">${name}</div>${subs?`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);margin-top:2px">${subs} ${t('subs_label')}</div>`:''}
-      </div><span style="color:var(--muted);font-size:18px">›</span></div>`;
+    return '<div onclick="selectChannel('+idx+')" style="display:flex;align-items:center;gap:14px;background:var(--input-bg);border:1px solid var(--border);border-radius:14px;padding:14px 18px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+      +'<div style="width:46px;height:46px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:var(--bg)">'+(avatar?'<img src="'+avatar+'" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=\'none\'">':init)+'</div>'
+      +'<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700">'+name+'</div>'+(subs?'<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--accent);margin-top:2px">'+subs+' '+t('subs_label')+'</div>':'')+'</div><span style="color:var(--muted);font-size:18px">›</span></div>';
   }).join('');
 }
 function selectChannel(idx){const user=window._pendingUser,ch=window._pendingChannels[idx];if(!user||!ch)return;document.getElementById('channel-select-screen').style.display='none';showDashboard(buildMergedUser(user,ch));}
 function logoutFromChannelSelect(){clearToken();clearUser();document.getElementById('channel-select-screen').style.display='none';document.getElementById('landing-screen').style.display='flex';}
 
-// ════════ ВИДЕО ════════
 let _currentUser=null, _realVideos=[], _statsFilter='all', _fcFilter='all';
 
 function normalizeVideo(v,idx){
@@ -2730,7 +2661,7 @@ async function loadRealVideos(user){
     const res=await apiFetch(url);
     if(res.status===401){clearToken();clearUser();document.getElementById('dashboard').style.display='none';document.getElementById('landing-screen').style.display='flex';return;}
     if(res.status===403){handleBanFromResponse();return;}
-    if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.error||'HTTP '+res.status);}
+    if(!res.ok){const err=await res.json().catch(function(){return {};});throw new Error(err.error||'HTTP '+res.status);}
     const data=await res.json(),raw=data.videos||[];
     document.getElementById('stats-loading').style.display='none';
     if(data.subscriber_count){
@@ -2748,7 +2679,7 @@ async function loadRealVideos(user){
       const countEl=document.getElementById('channel-hours-count');
       if(badge&&countEl){countEl.textContent=data.channel_watch_hours+'h';badge.style.display='flex';}
     }
-    if(!raw.length){document.getElementById('stats-video-grid').innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px 0;font-family:'DM Mono',monospace;font-size:13px;color:var(--muted)">${t('no_videos')}</div>`;return;}
+    if(!raw.length){document.getElementById('stats-video-grid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px 0;font-family:\'DM Mono\',monospace;font-size:13px;color:var(--muted)">'+t('no_videos')+'</div>';return;}
     _realVideos=raw.map(normalizeVideo);
     const ctxBtn=document.getElementById('send-video-context-btn');if(ctxBtn)ctxBtn.style.display='flex';
     renderStatsVideoGrid();renderForecastGrid();
@@ -2759,52 +2690,52 @@ async function loadRealVideos(user){
   }
 }
 
-function setStatsFilter(type){_statsFilter=type;document.querySelectorAll('[data-type]').forEach(b=>b.classList.toggle('active',b.dataset.type===type));renderStatsVideoGrid();}
-function setForecastFilter(type){_fcFilter=type;document.querySelectorAll('[data-ftype]').forEach(b=>b.classList.toggle('active',b.dataset.ftype===type));renderForecastGrid();}
-function getFilteredStats(){return _statsFilter==='all'?_realVideos:_realVideos.filter(v=>v.type===_statsFilter);}
-function getFilteredForecast(){return _fcFilter==='all'?_realVideos:_realVideos.filter(v=>v.type===_fcFilter);}
+function setStatsFilter(type){_statsFilter=type;document.querySelectorAll('[data-type]').forEach(function(b){b.classList.toggle('active',b.dataset.type===type);});renderStatsVideoGrid();}
+function setForecastFilter(type){_fcFilter=type;document.querySelectorAll('[data-ftype]').forEach(function(b){b.classList.toggle('active',b.dataset.ftype===type);});renderForecastGrid();}
+function getFilteredStats(){return _statsFilter==='all'?_realVideos:_realVideos.filter(function(v){return v.type===_statsFilter;});}
+function getFilteredForecast(){return _fcFilter==='all'?_realVideos:_realVideos.filter(function(v){return v.type===_fcFilter;});}
 
 function renderStatsVideoGrid(){
   const videos=getFilteredStats();
   const grid=document.getElementById('stats-video-grid');
-  if(!videos.length){grid.style.display='block';grid.innerHTML=`<div style="text-align:center;padding:40px 0;font-family:'DM Mono',monospace;font-size:13px;color:var(--muted)">${t('no_videos_filter')}</div>`;return;}
+  if(!videos.length){grid.style.display='block';grid.innerHTML='<div style="text-align:center;padding:40px 0;font-family:\'DM Mono\',monospace;font-size:13px;color:var(--muted)">'+t('no_videos_filter')+'</div>';return;}
   if(_statsFormat==='table'){
     grid.style.display='block';
     grid.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">'
       +'<table style="width:100%;border-collapse:collapse;font-family:\'DM Mono\',monospace;font-size:12px">'
       +'<thead><tr style="border-bottom:1px solid var(--border);background:var(--input-bg)">'
-      +`<th style="padding:11px 14px;text-align:left;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">${_currentLang==='en'?'Video':'Видео'}</th>`
-      +`<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">${t('views')}</th>`
-      +`<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">${t('likes')}</th>`
-      +`<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">${t('retention')}</th>`
-      +`<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">CTR / ${_currentLang==='en'?'Swipe':'Свайп'}</th>`
+      +'<th style="padding:11px 14px;text-align:left;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">'+(_currentLang==='en'?'Video':'Видео')+'</th>'
+      +'<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">'+t('views')+'</th>'
+      +'<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">'+t('likes')+'</th>'
+      +'<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">'+t('retention')+'</th>'
+      +'<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">CTR / '+(_currentLang==='en'?'Swipe':'Свайп')+'</th>'
       +'</tr></thead><tbody>'
-      +videos.map(v=>{
+      +videos.map(function(v){
         const isShort=v.type==='short';
         const retVal=isShort?(v.retentionShort!=null?v.retentionShort+'%':'—'):(v.retention!=null?v.retention+'%':'—');
         const ctrVal=isShort?(v.swipedRatio!=null?v.swipedRatio+'%':'—'):(v.ctr!=null?v.ctr+'%':'—');
-        return`<tr style="border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s" onclick="openStatsModal(${v.id})" onmouseover="this.style.background='rgba(232,255,71,.04)'" onmouseout="this.style.background='transparent'">
-          <td style="padding:10px 14px;max-width:280px"><div style="display:flex;align-items:center;gap:10px">
-            ${v.thumbnail?`<img src="${v.thumbnail}" style="width:56px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">`:''}
-            <div><div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;color:var(--text)">${escapeHtml(v.title)}</div>
-            <div style="font-size:10px;color:var(--muted);margin-top:2px">${isShort?'⚡ Shorts':'📹 Long'} · ${formatRelDate(v.published_at)}</div></div>
-          </div></td>
-          <td style="padding:10px 14px;text-align:right;color:var(--text);font-weight:700">${fmt(v.views)}</td>
-          <td style="padding:10px 14px;text-align:right;color:var(--muted)">${fmt(v.likes)}</td>
-          <td style="padding:10px 14px;text-align:right;color:var(--accent2)">${retVal}</td>
-          <td style="padding:10px 14px;text-align:right;color:var(--accent)">${ctrVal}</td>
-        </tr>`;
+        return '<tr style="border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s" onclick="openStatsModal('+v.id+')" onmouseover="this.style.background=\'rgba(232,255,71,.04)\'" onmouseout="this.style.background=\'transparent\'">'
+          +'<td style="padding:10px 14px;max-width:280px"><div style="display:flex;align-items:center;gap:10px">'
+          +(v.thumbnail?'<img src="'+v.thumbnail+'" style="width:56px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">':'')
+          +'<div><div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;color:var(--text)">'+escapeHtml(v.title)+'</div>'
+          +'<div style="font-size:10px;color:var(--muted);margin-top:2px">'+(isShort?'⚡ Shorts':'📹 Long')+' · '+formatRelDate(v.published_at)+'</div></div>'
+          +'</div></td>'
+          +'<td style="padding:10px 14px;text-align:right;color:var(--text);font-weight:700">'+fmt(v.views)+'</td>'
+          +'<td style="padding:10px 14px;text-align:right;color:var(--muted)">'+fmt(v.likes)+'</td>'
+          +'<td style="padding:10px 14px;text-align:right;color:var(--accent2)">'+retVal+'</td>'
+          +'<td style="padding:10px 14px;text-align:right;color:var(--accent)">'+ctrVal+'</td>'
+          +'</tr>';
       }).join('')+'</tbody></table></div>';
   }else{
     grid.style.display='grid';
-    grid.innerHTML=videos.map(v=>{
+    grid.innerHTML=videos.map(function(v){
       const isShort=v.type==='short';
       const bs=isShort?'color:var(--accent2);border-color:rgba(71,200,255,.3);background:rgba(71,200,255,.06)':'color:var(--accent);border-color:rgba(232,255,71,.3);background:rgba(232,255,71,.06)';
-      const hoursHtml=v.watchHours?`<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--green);margin-top:2px">🕐 ${v.watchHours}h</div>`:'';
-      return`<div onclick="openStatsModal(${v.id})" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s" onmouseover="this.style.borderColor='rgba(232,255,71,.4)';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='translateY(0)'">
-        <div style="position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--border)">${v.thumbnail?`<img src="${v.thumbnail}" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">`:''}<span style="position:absolute;top:7px;right:7px;font-family:'DM Mono',monospace;font-size:9px;font-weight:700;padding:3px 8px;border-radius:5px;border:1px solid;${bs}">${isShort?'⚡ Shorts':'📹 Long'}</span></div>
-        <div style="padding:10px 12px"><div style="font-size:12px;font-weight:700;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${escapeHtml(v.title)}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:5px">${fmt(v.views)} ${_currentLang==='en'?'views':'просм.'} · ${formatRelDate(v.published_at)}</div>${hoursHtml}</div></div>`;
+      const hoursHtml=v.watchHours?'<div style="font-family:\'DM Mono\',monospace;font-size:9px;color:var(--green);margin-top:2px">🕐 '+v.watchHours+'h</div>':'';
+      return '<div onclick="openStatsModal('+v.id+')" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s" onmouseover="this.style.borderColor=\'rgba(232,255,71,.4)\';this.style.transform=\'translateY(-3px)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.transform=\'translateY(0)\'">'
+        +'<div style="position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--border)">'+(v.thumbnail?'<img src="'+v.thumbnail+'" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'">':'')+'<span style="position:absolute;top:7px;right:7px;font-family:\'DM Mono\',monospace;font-size:9px;font-weight:700;padding:3px 8px;border-radius:5px;border:1px solid;'+bs+'">'+(isShort?'⚡ Shorts':'📹 Long')+'</span></div>'
+        +'<div style="padding:10px 12px"><div style="font-size:12px;font-weight:700;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+escapeHtml(v.title)+'</div>'
+        +'<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);margin-top:5px">'+fmt(v.views)+' '+(_currentLang==='en'?'views':'просм.')+' · '+formatRelDate(v.published_at)+'</div>'+hoursHtml+'</div></div>';
     }).join('');
   }
 }
@@ -2812,39 +2743,39 @@ function renderStatsVideoGrid(){
 function renderForecastGrid(){
   const videos=getFilteredForecast();
   const container=document.getElementById('forecast-video-container');if(!container)return;
-  if(!videos.length){container.innerHTML=`<div style="text-align:center;padding:40px 0;font-family:'DM Mono',monospace;font-size:13px;color:var(--muted)">${t('no_videos_filter')}</div>`;return;}
+  if(!videos.length){container.innerHTML='<div style="text-align:center;padding:40px 0;font-family:\'DM Mono\',monospace;font-size:13px;color:var(--muted)">'+t('no_videos_filter')+'</div>';return;}
   if(_fcFormat==='table'){
     container.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px">'
       +'<table style="width:100%;border-collapse:collapse;font-family:\'DM Mono\',monospace;font-size:12px">'
       +'<thead><tr style="border-bottom:1px solid var(--border);background:var(--input-bg)">'
-      +`<th style="padding:11px 14px;text-align:left;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">${_currentLang==='en'?'Video':'Видео'}</th>`
-      +`<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">${t('views')}</th>`
-      +`<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">${t('retention')}</th>`
-      +`<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">CTR</th>`
+      +'<th style="padding:11px 14px;text-align:left;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">'+(_currentLang==='en'?'Video':'Видео')+'</th>'
+      +'<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">'+t('views')+'</th>'
+      +'<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">'+t('retention')+'</th>'
+      +'<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">CTR</th>'
       +'</tr></thead><tbody>'
-      +videos.map(v=>{
+      +videos.map(function(v){
         const isShort=v.type==='short';
         const retVal=isShort?(v.retentionShort!=null?v.retentionShort+'%':'—'):(v.retention!=null?v.retention+'%':'—');
         const ctrVal=isShort?(v.swipedRatio!=null?v.swipedRatio+'%':'—'):(v.ctr!=null?v.ctr+'%':'—');
-        return`<tr style="border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s" onclick="openForecastModal(${v.id})" onmouseover="this.style.background='rgba(71,200,255,.04)'" onmouseout="this.style.background='transparent'">
-          <td style="padding:10px 14px"><div style="display:flex;align-items:center;gap:10px">
-            ${v.thumbnail?`<img src="${v.thumbnail}" style="width:56px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">`:'<span style="font-size:20px">'+(isShort?'⚡':'📹')+'</span>'}
-            <div><div style="font-size:12px;font-weight:700;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)">${escapeHtml(v.title)}</div>
-            <div style="font-size:10px;color:var(--muted);margin-top:2px">${isShort?'Shorts':'Long'}</div></div>
-          </div></td>
-          <td style="padding:10px 14px;text-align:right;font-weight:700">${fmt(v.views)}</td>
-          <td style="padding:10px 14px;text-align:right;color:var(--accent2)">${retVal}</td>
-          <td style="padding:10px 14px;text-align:right;color:var(--accent)">${ctrVal}</td>
-        </tr>`;
+        return '<tr style="border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s" onclick="openForecastModal('+v.id+')" onmouseover="this.style.background=\'rgba(71,200,255,.04)\'" onmouseout="this.style.background=\'transparent\'">'
+          +'<td style="padding:10px 14px"><div style="display:flex;align-items:center;gap:10px">'
+          +(v.thumbnail?'<img src="'+v.thumbnail+'" style="width:56px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">':'<span style="font-size:20px">'+(isShort?'⚡':'📹')+'</span>')
+          +'<div><div style="font-size:12px;font-weight:700;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)">'+escapeHtml(v.title)+'</div>'
+          +'<div style="font-size:10px;color:var(--muted);margin-top:2px">'+(isShort?'Shorts':'Long')+'</div></div>'
+          +'</div></td>'
+          +'<td style="padding:10px 14px;text-align:right;font-weight:700">'+fmt(v.views)+'</td>'
+          +'<td style="padding:10px 14px;text-align:right;color:var(--accent2)">'+retVal+'</td>'
+          +'<td style="padding:10px 14px;text-align:right;color:var(--accent)">'+ctrVal+'</td>'
+          +'</tr>';
       }).join('')+'</tbody></table></div>';
   }else{
-    container.innerHTML='<div class="video-list">'+videos.map(v=>
-      `<div class="video-item" onclick="openForecastModal(${v.id})">
-        ${v.thumbnail?`<img src="${v.thumbnail}" class="video-item-thumb" onerror="this.style.display='none'">`:`<span class="video-item-icon">${v.type==='short'?'⚡':'📹'}</span>`}
-        <div class="video-item-info"><div class="video-item-title">${escapeHtml(v.title)}</div><div class="video-item-meta">${v.meta}</div></div>
-        <span class="video-item-badge ${v.type==='short'?'vib-short':'vib-long'}">${v.type==='short'?'Shorts':'Long-form'}</span>
-      </div>`
-    ).join('')+'</div>';
+    container.innerHTML='<div class="video-list">'+videos.map(function(v){
+      return '<div class="video-item" onclick="openForecastModal('+v.id+')">'
+        +(v.thumbnail?'<img src="'+v.thumbnail+'" class="video-item-thumb" onerror="this.style.display=\'none\'">':'<span class="video-item-icon">'+(v.type==='short'?'⚡':'📹')+'</span>')
+        +'<div class="video-item-info"><div class="video-item-title">'+escapeHtml(v.title)+'</div><div class="video-item-meta">'+v.meta+'</div></div>'
+        +'<span class="video-item-badge '+(v.type==='short'?'vib-short':'vib-long')+'">'+(v.type==='short'?'Shorts':'Long-form')+'</span>'
+        +'</div>';
+    }).join('')+'</div>';
   }
 }
 
@@ -2857,7 +2788,7 @@ function toggleVideoPlayer(){
   const iframe=document.getElementById('sm-player-iframe');
   if(_smPlayerVisible){
     wrap.style.display='block';btnText.textContent=t('close_player');
-    const v=_realVideos.find(x=>x.id===_statsCurrentId);
+    const v=_realVideos.find(function(x){return x.id===_statsCurrentId;});
     if(v)iframe.src='https://www.youtube.com/embed/'+(v.video_id||v.id)+'?autoplay=1';
   }else{
     wrap.style.display='none';btnText.textContent=t('watch_here');iframe.src='';
@@ -2865,17 +2796,17 @@ function toggleVideoPlayer(){
 }
 
 function openStatsModal(id){
-  const v=_realVideos.find(x=>x.id===id);if(!v)return;
+  const v=_realVideos.find(function(x){return x.id===id;});if(!v)return;
   _statsCurrentId=id;_currentStatsVideo=v;
   const isShort=v.type==='short';
   _smPlayerVisible=false;
   const wrap=document.getElementById('sm-player-wrap');if(wrap)wrap.style.display='none';
   const iframe=document.getElementById('sm-player-iframe');if(iframe)iframe.src='';
   const btnText=document.getElementById('sm-player-btn-text');if(btnText)btnText.textContent=t('watch_here');
-  ['ai-good-block','ai-bad-block'].forEach(bid=>{const b=document.getElementById(bid);if(b){b.style.display='none';b.innerHTML='';}});
-  document.getElementById('btn-ai-good').innerHTML=`🟢 <span id="ai-good-btn-text">${t('ai_good_btn')}</span>`;
+  ['ai-good-block','ai-bad-block'].forEach(function(bid){const b=document.getElementById(bid);if(b){b.style.display='none';b.innerHTML='';}});
+  document.getElementById('btn-ai-good').innerHTML='🟢 <span id="ai-good-btn-text">'+t('ai_good_btn')+'</span>';
   document.getElementById('btn-ai-good').disabled=false;
-  document.getElementById('btn-ai-bad').innerHTML=`🟡 <span id="ai-bad-btn-text">${t('ai_bad_btn')}</span>`;
+  document.getElementById('btn-ai-bad').innerHTML='🟡 <span id="ai-bad-btn-text">'+t('ai_bad_btn')+'</span>';
   document.getElementById('btn-ai-bad').disabled=false;
   const linkEl=document.getElementById('sm-video-link');if(linkEl)linkEl.href=v.video_url||'#';
   document.getElementById('sm-thumb').src=v.thumbnail||'';
@@ -2935,33 +2866,33 @@ async function askStatsAI(type){
   const blockId=type==='good'?'ai-good-block':'ai-bad-block';
   const btn=document.getElementById(btnId),block=document.getElementById(blockId);
   btn.disabled=true;
-  btn.innerHTML=`<span class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></span> ${t('ai_analyzing')}`;
+  btn.innerHTML='<span class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></span> '+t('ai_analyzing');
   block.style.display='block';block.className='ai-response-block '+(type==='good'?'ai-response-green':'ai-response-yellow');
-  block.innerHTML=`<div class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">${_currentLang==='en'?'Analyzing...':'Анализирую...'}</span></div>`;
+  block.innerHTML='<div class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+(_currentLang==='en'?'Analyzing...':'Анализирую...')+'</span></div>';
   const mt=isShort
-    ?`Type: Shorts. Views: ${v.views}. Likes: ${v.likes}. Comments: ${v.comments}. Shares: ${v.shares}. Retention: ${v.retentionShort!=null?v.retentionShort+'%':'no data (likely low traffic)'}. Swiped: ${v.swipedRatio!=null?v.swipedRatio+'%':'no data'}. Watched: ${v.viewedRatio!=null?v.viewedRatio+'%':'no data'}. Avg duration: ${fmtDuration(v.avgDurationSec)}. Watch hours(30d): ${v.watchHours||'—'}.`
-    :`Type: Long-form. Views: ${v.views}. Likes: ${v.likes}. Comments: ${v.comments}. Shares: ${v.shares}. Retention: ${v.retention!=null?v.retention+'%':'no data (likely low traffic)'}. CTR: ${v.ctr!=null?v.ctr+'%':'no data'}. Avg duration: ${fmtDuration(v.avgDurationSec)}. Watch hours(30d): ${v.watchHours||'—'}.`;
+    ?('Type: Shorts. Views: '+v.views+'. Likes: '+v.likes+'. Comments: '+v.comments+'. Shares: '+v.shares+'. Retention: '+(v.retentionShort!=null?v.retentionShort+'%':'no data (likely low traffic)')+'. Swiped: '+(v.swipedRatio!=null?v.swipedRatio+'%':'no data')+'. Watched: '+(v.viewedRatio!=null?v.viewedRatio+'%':'no data')+'. Avg duration: '+fmtDuration(v.avgDurationSec)+'. Watch hours(30d): '+(v.watchHours||'—')+'.')
+    :('Type: Long-form. Views: '+v.views+'. Likes: '+v.likes+'. Comments: '+v.comments+'. Shares: '+v.shares+'. Retention: '+(v.retention!=null?v.retention+'%':'no data (likely low traffic)')+'. CTR: '+(v.ctr!=null?v.ctr+'%':'no data')+'. Avg duration: '+fmtDuration(v.avgDurationSec)+'. Watch hours(30d): '+(v.watchHours||'—')+'.');
   const lang=_currentLang==='en'?'English':'Russian';
   const prompt=type==='good'
-    ?`Video "${v.title}". Metrics: ${mt}\n\nDescribe 3-4 points WHAT WORKED WELL. If some metrics show "no data", briefly explain this is common for low-traffic videos rather than inventing numbers. Specific, with emoji. Up to 200 words. Answer in ${lang}.`
-    :`Video "${v.title}". Metrics: ${mt}\n\nDescribe 3-4 points WHAT CAN BE IMPROVED. If some metrics show "no data", briefly explain this is common for low-traffic videos rather than inventing numbers. Specific, with emoji. Up to 200 words. Answer in ${lang}.`;
+    ?('Video "'+v.title+'". Metrics: '+mt+'\n\nDescribe 3-4 points WHAT WORKED WELL. If some metrics show "no data", briefly explain this is common for low-traffic videos rather than inventing numbers. Specific, with emoji. Up to 200 words. Answer in '+lang+'.')
+    :('Video "'+v.title+'". Metrics: '+mt+'\n\nDescribe 3-4 points WHAT CAN BE IMPROVED. If some metrics show "no data", briefly explain this is common for low-traffic videos rather than inventing numbers. Specific, with emoji. Up to 200 words. Answer in '+lang+'.');
   try{
     const answer=await callAI([{role:'user',content:prompt}]);
     block.innerHTML=answer.replace(/\n/g,'<br>');
-    btn.innerHTML=type==='good'?`🟢 <span>${t('ai_good_btn')}</span> ✓`:`🟡 <span>${t('ai_bad_btn')}</span> ✓`;
+    btn.innerHTML=type==='good'?('🟢 <span>'+t('ai_good_btn')+'</span> ✓'):('🟡 <span>'+t('ai_bad_btn')+'</span> ✓');
   }catch(e){
     block.className='ai-error-block';block.innerHTML='⚠️ '+e.message;
-    btn.innerHTML=type==='good'?`🟢 <span>${t('ai_good_btn')}</span>`:`🟡 <span>${t('ai_bad_btn')}</span>`;
+    btn.innerHTML=type==='good'?('🟢 <span>'+t('ai_good_btn')+'</span>'):('🟡 <span>'+t('ai_bad_btn')+'</span>');
   }
   btn.disabled=false;
 }
 
 let _currentForecastVideo=null;
 function openForecastModal(id){
-  const v=_realVideos.find(x=>x.id===id);if(!v)return;
+  const v=_realVideos.find(function(x){return x.id===id;});if(!v)return;
   _currentForecastVideo=v;const isShort=v.type==='short';
   const ab=document.getElementById('ai-forecast-block');ab.style.display='none';ab.innerHTML='';ab.className='ai-response-block ai-response-blue';
-  document.getElementById('btn-ai-forecast').innerHTML=`📈 <span id="ai-forecast-btn-text">${t('ai_forecast_btn')}</span>`;
+  document.getElementById('btn-ai-forecast').innerHTML='📈 <span id="ai-forecast-btn-text">'+t('ai_forecast_btn')+'</span>';
   document.getElementById('btn-ai-forecast').disabled=false;
   document.getElementById('fm-thumb').src=v.thumbnail||'';
   document.getElementById('fm-title').textContent=v.title;
@@ -3016,21 +2947,21 @@ async function askForecastAI(){
   const isShort=v.type==='short';
   const btn=document.getElementById('btn-ai-forecast'),block=document.getElementById('ai-forecast-block');
   btn.disabled=true;
-  btn.innerHTML=`<span class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></span> ${t('ai_building')}`;
+  btn.innerHTML='<span class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></span> '+t('ai_building');
   block.style.display='block';block.className='ai-response-block ai-response-blue';
-  block.innerHTML=`<div class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">${_currentLang==='en'?'Analyzing algorithms...':'Анализирую алгоритмы...'}</span></div>`;
+  block.innerHTML='<div class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+(_currentLang==='en'?'Analyzing algorithms...':'Анализирую алгоритмы...')+'</span></div>';
   const mt=isShort
-    ?`Type: Shorts. Views: ${v.views}. Retention: ${v.retentionShort!=null?v.retentionShort+'%':'no data (likely low traffic)'}. Swiped: ${v.swipedRatio!=null?v.swipedRatio+'%':'no data'}. Avg duration: ${fmtDuration(v.avgDurationSec)}. Watch hours(30d): ${v.watchHours||'—'}.`
-    :`Type: Long-form. Views: ${v.views}. Retention: ${v.retention!=null?v.retention+'%':'no data (likely low traffic)'}. CTR: ${v.ctr!=null?v.ctr+'%':'no data'}. Avg duration: ${fmtDuration(v.avgDurationSec)}. Watch hours(30d): ${v.watchHours||'—'}.`;
+    ?('Type: Shorts. Views: '+v.views+'. Retention: '+(v.retentionShort!=null?v.retentionShort+'%':'no data (likely low traffic)')+'. Swiped: '+(v.swipedRatio!=null?v.swipedRatio+'%':'no data')+'. Avg duration: '+fmtDuration(v.avgDurationSec)+'. Watch hours(30d): '+(v.watchHours||'—')+'.')
+    :('Type: Long-form. Views: '+v.views+'. Retention: '+(v.retention!=null?v.retention+'%':'no data (likely low traffic)')+'. CTR: '+(v.ctr!=null?v.ctr+'%':'no data')+'. Avg duration: '+fmtDuration(v.avgDurationSec)+'. Watch hours(30d): '+(v.watchHours||'—')+'.');
   const lang=_currentLang==='en'?'English':'Russian';
-  const prompt=`Video "${v.title}". Metrics: ${mt}\n\n1) How the YouTube algorithm behaves with this video. 2) What can drive more views. 3) What to do for more exposure. If metrics show "no data", briefly explain why instead of inventing numbers. With emoji, up to 250 words. Answer in ${lang}.`;
+  const prompt='Video "'+v.title+'". Metrics: '+mt+'\n\n1) How the YouTube algorithm behaves with this video. 2) What can drive more views. 3) What to do for more exposure. If metrics show "no data", briefly explain why instead of inventing numbers. With emoji, up to 250 words. Answer in '+lang+'.';
   try{
     const answer=await callAI([{role:'user',content:prompt}]);
     block.innerHTML=answer.replace(/\n/g,'<br>');
-    btn.innerHTML=`📈 <span>${t('ai_forecast_btn')}</span> ✓`;
+    btn.innerHTML='📈 <span>'+t('ai_forecast_btn')+'</span> ✓';
   }catch(e){
     block.className='ai-error-block';block.innerHTML='⚠️ '+e.message;
-    btn.innerHTML=`📈 <span>${t('ai_forecast_btn')}</span>`;
+    btn.innerHTML='📈 <span>'+t('ai_forecast_btn')+'</span>';
   }
   btn.disabled=false;
 }
@@ -3058,8 +2989,8 @@ function syncModalLabels(type){
 function onModalSimChange(){
   const v=_currentForecastVideo;if(!v)return;
   const type=v.type;syncModalLabels(type);let lines=[];
-  if(type==='long'){const ctr=parseFloat(document.getElementById('msli-ctr').value)||5,ret=parseFloat(document.getElementById('msli-ret').value)||50,views=parseFloat(document.getElementById('msli-tempo').value)||10000;lines=['📹 <span style="color:var(--muted)">Type:</span> Long-form',`🎯 <span style="color:var(--muted)">CTR:</span> <span style="color:var(--accent)">${ctr.toFixed(1)}%</span>`,`⏱ <span style="color:var(--muted)">${t('retention_label')}:</span> <span style="color:var(--accent2)">${ret}%</span>`,`👁 <span style="color:var(--muted)">${t('views_label')}:</span> <span style="color:var(--text)">${fmt(views)}</span>`];}
-  else{const sret=parseInt(document.getElementById('msli-sret').value)||80,sint=parseFloat(document.getElementById('msli-sint').value)||70,swipe=parseFloat(document.getElementById('msli-swipe').value)||30,swave=parseFloat(document.getElementById('msli-swave').value)||5000;lines=['⚡ <span style="color:var(--muted)">Type:</span> Shorts',`🔄 <span style="color:var(--muted)">${t('shorts_ret_label')}:</span> <span style="color:var(--accent)">${sret>=200?'200%+':sret+'%'}</span>`,`👁 <span style="color:var(--muted)">${t('watched_pct')}:</span> <span style="color:var(--accent2)">${sint}%</span>`,`↕ <span style="color:var(--muted)">${t('swiped_pct')}:</span> <span style="color:var(--red)">${swipe}%</span>`,`📊 <span style="color:var(--muted)">${t('views_label')}:</span> <span style="color:var(--text)">${fmt(swave)}</span>`];}
+  if(type==='long'){const ctr=parseFloat(document.getElementById('msli-ctr').value)||5,ret=parseFloat(document.getElementById('msli-ret').value)||50,views=parseFloat(document.getElementById('msli-tempo').value)||10000;lines=['📹 <span style="color:var(--muted)">Type:</span> Long-form','🎯 <span style="color:var(--muted)">CTR:</span> <span style="color:var(--accent)">'+ctr.toFixed(1)+'%</span>','⏱ <span style="color:var(--muted)">'+t('retention_label')+':</span> <span style="color:var(--accent2)">'+ret+'%</span>','👁 <span style="color:var(--muted)">'+t('views_label')+':</span> <span style="color:var(--text)">'+fmt(views)+'</span>'];}
+  else{const sret=parseInt(document.getElementById('msli-sret').value)||80,sint=parseFloat(document.getElementById('msli-sint').value)||70,swipe=parseFloat(document.getElementById('msli-swipe').value)||30,swave=parseFloat(document.getElementById('msli-swave').value)||5000;lines=['⚡ <span style="color:var(--muted)">Type:</span> Shorts','🔄 <span style="color:var(--muted)">'+t('shorts_ret_label')+':</span> <span style="color:var(--accent)">'+(sret>=200?'200%+':sret+'%')+'</span>','👁 <span style="color:var(--muted)">'+t('watched_pct')+':</span> <span style="color:var(--accent2)">'+sint+'%</span>','↕ <span style="color:var(--muted)">'+t('swiped_pct')+':</span> <span style="color:var(--red)">'+swipe+'%</span>','📊 <span style="color:var(--muted)">'+t('views_label')+':</span> <span style="color:var(--text)">'+fmt(swave)+'</span>'];}
   document.getElementById('msim-result-content').innerHTML=lines.join('<br>');
 }
 
@@ -3083,8 +3014,8 @@ function syncNewSimLabels(){
 }
 function onNewSimChange(){
   syncNewSimLabels();const type=newSimType;let lines=[];
-  if(type==='long'){const ctr=parseFloat(document.getElementById('nsli-ctr').value)||5,ret=parseFloat(document.getElementById('nsli-ret').value)||50,views=parseFloat(document.getElementById('nsli-tempo').value)||10000;lines=['📹 <span style="color:var(--muted)">Type:</span> Long-form',`🎯 <span style="color:var(--muted)">CTR:</span> <span style="color:var(--accent)">${ctr.toFixed(1)}%</span>`,`⏱ <span style="color:var(--muted)">${t('retention_label')}:</span> <span style="color:var(--accent2)">${ret}%</span>`,`👁 <span style="color:var(--muted)">${t('views_label')}:</span> <span style="color:var(--text)">${fmt(views)}</span>`];}
-  else{const sret=parseInt(document.getElementById('nsli-sret').value)||80,sint=parseFloat(document.getElementById('nsli-sint').value)||50,swipe=parseFloat(document.getElementById('nsli-swipe').value)||30,swave=parseFloat(document.getElementById('nsli-swave').value)||50000;lines=['⚡ <span style="color:var(--muted)">Type:</span> Shorts',`🔄 <span style="color:var(--muted)">${t('shorts_ret_label')}:</span> <span style="color:var(--accent)">${sret>=200?'200%+':sret+'%'}</span>`,`👁 <span style="color:var(--muted)">${t('watched_pct')}:</span> <span style="color:var(--accent2)">${sint}%</span>`,`↕ <span style="color:var(--muted)">${t('swiped_pct')}:</span> <span style="color:var(--red)">${swipe}%</span>`,`📊 <span style="color:var(--muted)">${t('views_label')}:</span> <span style="color:var(--text)">${fmt(swave)}</span>`];}
+  if(type==='long'){const ctr=parseFloat(document.getElementById('nsli-ctr').value)||5,ret=parseFloat(document.getElementById('nsli-ret').value)||50,views=parseFloat(document.getElementById('nsli-tempo').value)||10000;lines=['📹 <span style="color:var(--muted)">Type:</span> Long-form','🎯 <span style="color:var(--muted)">CTR:</span> <span style="color:var(--accent)">'+ctr.toFixed(1)+'%</span>','⏱ <span style="color:var(--muted)">'+t('retention_label')+':</span> <span style="color:var(--accent2)">'+ret+'%</span>','👁 <span style="color:var(--muted)">'+t('views_label')+':</span> <span style="color:var(--text)">'+fmt(views)+'</span>'];}
+  else{const sret=parseInt(document.getElementById('nsli-sret').value)||80,sint=parseFloat(document.getElementById('nsli-sint').value)||50,swipe=parseFloat(document.getElementById('nsli-swipe').value)||30,swave=parseFloat(document.getElementById('nsli-swave').value)||50000;lines=['⚡ <span style="color:var(--muted)">Type:</span> Shorts','🔄 <span style="color:var(--muted)">'+t('shorts_ret_label')+':</span> <span style="color:var(--accent)">'+(sret>=200?'200%+':sret+'%')+'</span>','👁 <span style="color:var(--muted)">'+t('watched_pct')+':</span> <span style="color:var(--accent2)">'+sint+'%</span>','↕ <span style="color:var(--muted)">'+t('swiped_pct')+':</span> <span style="color:var(--red)">'+swipe+'%</span>','📊 <span style="color:var(--muted)">'+t('views_label')+':</span> <span style="color:var(--text)">'+fmt(swave)+'</span>'];}
   document.getElementById('new-sim-result-content').innerHTML=lines.join('<br>');
 }
 
@@ -3101,7 +3032,7 @@ function calcSwipeReverse(){
   const el=document.getElementById('cr-swipe'),h=document.getElementById('cr-swipe-hint');
   if(!total||!vp){el.innerHTML='—';h.textContent=t('enter_data');return;}
   const sp=Math.max(0,100-vp);
-  el.innerHTML=`👁 ${_currentLang==='en'?'Watched: ':'Посмотрело: '}<span style="color:var(--accent2)">${fmtFull(Math.round(total*vp/100))}</span><br>↕ ${_currentLang==='en'?'Swiped: ':'Свайпнуло: '}<span style="color:var(--red)">${fmtFull(Math.round(total*sp/100))}</span>`;
+  el.innerHTML='👁 '+(_currentLang==='en'?'Watched: ':'Посмотрело: ')+'<span style="color:var(--accent2)">'+fmtFull(Math.round(total*vp/100))+'</span><br>↕ '+(_currentLang==='en'?'Swiped: ':'Свайпнуло: ')+'<span style="color:var(--red)">'+fmtFull(Math.round(total*sp/100))+'</span>';
   el.style.color='var(--text)';
   h.textContent=vp>=80?(_currentLang==='en'?'🚀 Algorithm promotes':'🚀 Алгоритм продвигает'):vp>=65?(_currentLang==='en'?'✓ Good':'✓ Хорошо'):vp>=50?(_currentLang==='en'?'⚠ Need a hook':'⚠ Нужен крючок'):(_currentLang==='en'?'❌ Too many swipes':'❌ Много свайпов');
 }
@@ -3131,24 +3062,24 @@ function showDashboard(channelData){
   document.getElementById('user-display-email').textContent=channelData.email||channelData.channel_id||'';
   const avatarUrl=channelData.avatar_url||channelData.picture||null;
   const avatarEl=document.getElementById('user-avatar-placeholder');
-  if(avatarUrl){const img=document.createElement('img');img.src=avatarUrl;img.className='user-avatar';img.alt='';img.onerror=()=>{img.style.display='none';};if(avatarEl.tagName==='DIV')avatarEl.replaceWith(img);else avatarEl.src=avatarUrl;}
+  if(avatarUrl){const img=document.createElement('img');img.src=avatarUrl;img.className='user-avatar';img.alt='';img.onerror=function(){img.style.display='none';};if(avatarEl.tagName==='DIV')avatarEl.replaceWith(img);else avatarEl.src=avatarUrl;}
   else{avatarEl.textContent=(channelData.channel_name||channelData.email||'Y')[0].toUpperCase();}
   fetchAndRenderLimits();loadChatHistory();loadDisplayFormat();initInstallTab();
   _realVideos=[];
   const ctxBtn=document.getElementById('send-video-context-btn');if(ctxBtn)ctxBtn.style.display='none';
   const badge=document.getElementById('context-sent-badge');if(badge)badge.style.display='none';
-  loadRealVideos(channelData).then(()=>{renderForecastGrid();showVideoList();});
+  loadRealVideos(channelData).then(function(){renderForecastGrid();showVideoList();});
 }
 
-document.querySelectorAll('.nav-item').forEach(item=>{
-  item.addEventListener('click',()=>{
+document.querySelectorAll('.nav-item').forEach(function(item){
+  item.addEventListener('click',function(){
     const tab=item.dataset.tab;
-    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
     item.classList.add('active');
-    document.querySelectorAll('.tab-panel').forEach(p=>{p.classList.remove('active');p.style.animation='none';});
+    document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');p.style.animation='none';});
     const panel=document.getElementById('tab-'+tab);if(!panel)return;
     panel.classList.add('active');
-    requestAnimationFrame(()=>{panel.style.animation='';panel.classList.add('fade-up');});
+    requestAnimationFrame(function(){panel.style.animation='';panel.classList.add('fade-up');});
     if(tab==='forecast'){renderForecastGrid();showVideoList();}
     if(tab==='stats'&&_currentUser&&!_realVideos.length)loadRealVideos(_currentUser);
     if(tab==='ai')fetchAndRenderLimits();
@@ -3159,24 +3090,22 @@ document.querySelectorAll('.nav-item').forEach(item=>{
   });
 });
 
-// ════════ ИНИЦИАЛИЗАЦИЯ ════════
 (async function init(){
   loadTheme();
   loadLanguage();
   document.getElementById('dashboard').style.display='none';
   document.getElementById('channel-select-screen').style.display='none';
 
-  // Регистрируем service worker для PWA (без него браузер не предложит установку)
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
   }
 
   const urlResult=checkTokenInURL();
-  if(urlResult?.banned){
+  if(urlResult&&urlResult.banned){
     document.getElementById('landing-screen').style.display='none';
     document.getElementById('ban-screen').style.display='flex';return;
   }
-  if(urlResult?.token){
+  if(urlResult&&urlResult.token){
     try{
       const res=await apiFetch('/api/auth/me');
       if(res.status===403){document.getElementById('landing-screen').style.display='none';document.getElementById('ban-screen').style.display='flex';return;}
@@ -3190,10 +3119,10 @@ document.querySelectorAll('.nav-item').forEach(item=>{
   if(cached&&(cached.email||cached.channel_id)){
     if(cached.channels&&cached.channels.length>1&&!cached.channel_id)showChannelSelect(cached);
     else showDashboard(cached);
-    apiFetch('/api/auth/me').then(r=>{
+    apiFetch('/api/auth/me').then(function(r){
       if(r.status===403){handleBanFromResponse();return;}
-      if(r.ok)r.json().then(u=>{if(u.fresh_token)saveToken(u.fresh_token);if(u.is_admin)enableAdminMode();}).catch(()=>{});
-    }).catch(()=>{});
+      if(r.ok)r.json().then(function(u){if(u.fresh_token)saveToken(u.fresh_token);if(u.is_admin)enableAdminMode();}).catch(function(){});
+    }).catch(function(){});
     return;
   }
   try{
