@@ -10,7 +10,7 @@ const JWT_SECRET           = process.env.JWT_SECRET           || 'ytm_session_se
 const SUPABASE_URL         = process.env.SUPABASE_URL         || '';
 const SUPABASE_KEY         = process.env.SUPABASE_KEY         || '';
 const APP_URL              = process.env.APP_URL              || 'https://jakjuk523.github.io/youtube-analytics';
-const REDIRECT_URI         = 'https://youtube-analytics-ruddy.vercel.app/api/auth/callback';
+const REDIRECT_URI         = process.env.REDIRECT_URI         || 'https://youtube-analytics-ruddy.vercel.app/api/auth/callback';
 const GEMINI_API_KEY       = process.env.GEMINI_API_KEY       || '';
 
 const USER_DAILY_LIMIT     = 25;
@@ -39,8 +39,11 @@ const DEFAULT_PERMISSIONS = {
   remove_admins: false,
 };
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-const genAI    = new GoogleGenerativeAI(GEMINI_API_KEY);
+const supabase = createClient(
+  SUPABASE_URL || 'https://placeholder-please-set-supabase-url.supabase.co',
+  SUPABASE_KEY || 'placeholder-key'
+);
+const genAI    = new GoogleGenerativeAI(GEMINI_API_KEY || 'placeholder-gemini-key');
 
 // ════════════════════════════════════════════════════════
 // СИСТЕМНЫЕ ПРОМПТЫ
