@@ -97,9 +97,14 @@ const MODERATION_SYSTEM_PROMPT = `Ты — модератор платформы
 1. Нецензурная лексика в названии или описании
 2. Оскорбительный или дискриминационный контент
 3. Контент 18+ (сексуальный, жестокий, шокирующий)
-4. Мошеннический контент (казино, схемы заработка)
+4. Мошеннический контент (казино, схемы заработка, фишинг)
 5. Пропаганда насилия, экстремизма
 6. Спам, накрутка, вводящие в заблуждение названия
+
+ВАЖНЫЕ ИСКЛЮЧЕНИЯ (ЭТО НЕ НАРУШЕНИЕ):
+- Разрешены ссылки на социальные сети (Telegram, VK, Discord, Instagram, TikTok и др.).
+- Разрешены ссылки на саму платформу YTMetrics (любые домены ytmetrics, github.io, vercel.app).
+- Наличие ссылок в описании — стандартная практика для YouTube-видео. Флагуй как спам только мошеннические, вредоносные ссылки или сервисы накрутки.
 
 Отвечай ТОЛЬКО в JSON:
 {
@@ -248,6 +253,19 @@ async function hasPermission(email, permKey) {
 }
 function isSupremeAdmin(email){ return email===SUPREME_ADMIN_EMAIL; }
 
+async function isUserBannedOrWarned(email) {
+  try {
+    const { data:userData }=await supabase.from('users').select('banned, banned_reason').eq('email',email).single();
+    if(userData?.banned){
+      if(userData.banned_reason && userData.banned_reason.startsWith('WARNING:')){
+        return { banned: true, warned: true, reason: userData.banned_reason.replace('WARNING:', '').trim() };
+      }
+      return { banned: true, warned: false };
+    }
+  } catch(e) {}
+  return { banned: false };
+}
+
 // ════════════════════════════════════════════════════════
 // AI ЛИМИТЫ
 // ════════════════════════════════════════════════════════
@@ -360,10 +378,11 @@ async function requireSupreme(req, res) {
 app.get('/api/ai/limits', async (req,res)=>{
   const payload=await requireAuth(req,res); if(!payload)return;
   const email=payload.email||'';
-  try{
-    const { data:userData }=await supabase.from('users').select('banned').eq('email',email).single();
-    if(userData?.banned)return res.status(403).json({ error:'BANNED' });
-  }catch(e){}
+  const banStatus = await isUserBannedOrWarned(email);
+  if(banStatus.banned){
+    if(banStatus.warned) return res.status(403).json({ error:'WARNED', reason: banStatus.reason });
+    return res.status(403).json({ error:'BANNED' });
+  }
   const isAdmin=await isAdminEmail(email);
   if(isAdmin){
     const globalUsed=await getGlobalUsageToday();
@@ -376,10 +395,11 @@ app.get('/api/ai/limits', async (req,res)=>{
 app.post('/api/ai', async (req,res)=>{
   const payload=await requireAuth(req,res); if(!payload)return;
   const email=payload.email||'';
-  try{
-    const { data:userData }=await supabase.from('users').select('banned').eq('email',email).single();
-    if(userData?.banned)return res.status(403).json({ error:'BANNED' });
-  }catch(e){}
+  const banStatus = await isUserBannedOrWarned(email);
+  if(banStatus.banned){
+    if(banStatus.warned) return res.status(403).json({ error:'WARNED', reason: banStatus.reason });
+    return res.status(403).json({ error:'BANNED' });
+  }
   const isAdmin=await isAdminEmail(email);
   if(!isAdmin){
     const userUsed=await getUserUsageToday(email);
@@ -419,10 +439,11 @@ app.post('/api/ai', async (req,res)=>{
 app.post('/api/ai/analyze-videos', async (req,res)=>{
   const payload=await requireAuth(req,res); if(!payload)return;
   const email=payload.email||'';
-  try{
-    const { data:userData }=await supabase.from('users').select('banned').eq('email',email).single();
-    if(userData?.banned)return res.status(403).json({ error:'BANNED' });
-  }catch(e){}
+  const banStatus = await isUserBannedOrWarned(email);
+  if(banStatus.banned){
+    if(banStatus.warned) return res.status(403).json({ error:'WARNED', reason: banStatus.reason });
+    return res.status(403).json({ error:'BANNED' });
+  }
   const isAdmin=await isAdminEmail(email);
   if(!isAdmin){
     const userUsed=await getUserUsageToday(email);
@@ -751,10 +772,11 @@ app.delete('/api/admin/notifications/:id', async (req,res)=>{
 app.post('/api/feedback', async (req,res)=>{
   const payload=await requireAuth(req,res); if(!payload)return;
   const email=payload.email||'';
-  try{
-    const { data:userData }=await supabase.from('users').select('banned').eq('email',email).single();
-    if(userData?.banned)return res.status(403).json({ error:'BANNED' });
-  }catch(e){}
+  const banStatus = await isUserBannedOrWarned(email);
+  if(banStatus.banned){
+    if(banStatus.warned) return res.status(403).json({ error:'WARNED', reason: banStatus.reason });
+    return res.status(403).json({ error:'BANNED' });
+  }
   const { rating, text }=req.body;
   if(!rating||typeof rating!=='number'||rating<1||rating>5)return res.status(400).json({ error:'rating required (1–5)' });
   if(!text||typeof text!=='string'||!text.trim())return res.status(400).json({ error:'text required' });
@@ -974,8 +996,15 @@ app.get('/api/auth/me', async (req,res)=>{
     }catch(refreshErr){ res.setHeader('Set-Cookie', buildClearCookie()); return res.status(401).json({ error:'Session expired' }); }
   }
   try{
-    const { data:userData }=await supabase.from('users').select('banned').eq('id',payload.sub).single();
-    if(userData?.banned){ res.setHeader('Set-Cookie', buildClearCookie()); return res.status(403).json({ error:'BANNED' }); }
+    const { data:userData }=await supabase.from('users').select('banned, banned_reason').eq('id',payload.sub).single();
+    if(userData?.banned){
+      if(userData.banned_reason && userData.banned_reason.startsWith('WARNING:')){
+        const warningReason = userData.banned_reason.replace('WARNING:', '').trim();
+        return res.status(403).json({ error:'WARNED', reason: warningReason });
+      }
+      res.setHeader('Set-Cookie', buildClearCookie());
+      return res.status(403).json({ error:'BANNED' });
+    }
   }catch(e){}
   let isAdmin=false, isPrimary=false, isSupreme=false;
   try{
@@ -1006,6 +1035,19 @@ app.get('/api/auth/me', async (req,res)=>{
 app.post('/api/auth/logout', (req,res)=>{
   res.setHeader('Set-Cookie', buildClearCookie());
   res.json({ ok:true });
+});
+
+app.post('/api/auth/clear-warning', async (req,res)=>{
+  const token=extractToken(req);
+  if(!token)return res.status(401).json({ error:'No session' });
+  let payload;
+  try{ payload=jwt.verify(token, JWT_SECRET); }
+  catch(e){ return res.status(401).json({ error:'Invalid session' }); }
+  try{
+    const { error }=await supabase.from('users').update({ banned:false, banned_at:null, banned_reason:null }).eq('id',payload.sub);
+    if(error)return res.status(500).json({ error:'Database error' });
+    return res.json({ ok:true });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
 });
 
 // ════════════════════════════════════════════════════════
