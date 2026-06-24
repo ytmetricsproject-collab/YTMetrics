@@ -37,7 +37,7 @@
     body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");opacity:.35;}
     [data-theme="light"] body::before{opacity:.1;}
 
-    #ban-screen{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:var(--bg);padding:20px;}
+    #ban-screen,#warning-screen{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:var(--bg);padding:20px;}
     .ban-card{background:var(--surface);border:1px solid rgba(255,71,87,.3);border-radius:20px;padding:48px 44px;width:100%;max-width:500px;text-align:center;}
     .ban-icon{font-size:52px;margin-bottom:20px;}
     .ban-title{font-size:22px;font-weight:800;color:var(--red);margin-bottom:12px;}
@@ -511,6 +511,11 @@
 </head>
 <body>
 
+<div id="global-ai-limit-badge" style="position: fixed; top: 16px; right: 16px; z-index: 100; display: none; align-items: center; gap: 8px; background: rgba(14, 19, 24, 0.85); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; backdrop-filter: blur(8px); font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); box-shadow: 0 4px 12px var(--shadow);">
+  <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block;" id="global-limit-dot"></span>
+  <span id="global-limit-text">AI: 25/25</span>
+</div>
+
 <div id="ban-screen">
   <div class="ban-card">
     <div class="ban-icon">🚫</div>
@@ -523,6 +528,16 @@
     <div style="margin-top:16px">
       <button id="ban-back-btn" onclick="clearToken();clearUser();document.getElementById('ban-screen').style.display='none';document.getElementById('landing-screen').style.display='flex';" style="padding:8px 18px;border-radius:8px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);border:1px solid var(--border);background:transparent;cursor:pointer">← Вернуться на главную</button>
     </div>
+  </div>
+</div>
+
+<!-- WARNING SCREEN -->
+<div id="warning-screen" style="display:none">
+  <div class="ban-card" style="border-color: rgba(255,159,71,.3);">
+    <div class="ban-icon">⚠️</div>
+    <div class="ban-title" style="color: var(--orange);">Вы нарушили правила!</div>
+    <div class="ban-text" id="warning-reason-text" style="background: rgba(255,159,71,.04); border: 1px dashed rgba(255,159,71,.2); padding: 16px; border-radius: 10px; margin-bottom: 24px; font-family: 'DM Mono', monospace; font-size: 13px;">Причина жалобы</div>
+    <button class="ban-btn" style="background: var(--orange);" id="clear-warning-btn" onclick="clearUserWarning()">Я больше не буду нарушать правила, и удалю нарушающий правила контент</button>
   </div>
 </div>
 
@@ -977,6 +992,17 @@
         </div>
         <div class="notif-list" id="admin-notif-list">
           <div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px" id="loading-text-notif">Загрузка...</span></div>
+        </div>
+      </div>
+
+      <!-- Блок Нарушений -->
+      <div class="notif-block" id="admin-violations-block" style="margin-top:24px;">
+        <div class="notif-block-header">
+          <div class="notif-block-title">⚠️ <span id="violations-block-title-text">Нарушения и жалобы</span> <span id="admin-violations-unread-badge" style="display:none;background:var(--red);color:#fff;font-size:9px;padding:2px 6px;border-radius:5px;margin-left:4px">0</span></div>
+          <button class="notif-read-all-btn" onclick="markAllViolationsRead()" id="read-all-violations-btn-text">✓ Прочитать все</button>
+        </div>
+        <div class="notif-list" id="admin-violations-list">
+          <div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">Загрузка...</span></div>
         </div>
       </div>
       <div class="admin-grid">
@@ -1979,14 +2005,14 @@ function showPrivacyPolicy(){openModal('privacy-modal');}
 function showTerms(){openModal('terms-modal');}
 function saveToken(tok){try{localStorage.setItem(LS_TOK,tok);}catch(e){}}
 function getToken(){try{return localStorage.getItem(LS_TOK)||null;}catch(e){return null;}}
-function clearToken(){try{localStorage.removeItem(LS_TOK);}catch(e){}}
+function clearToken(){try{localStorage.removeItem(LS_TOK); const b=document.getElementById('global-ai-limit-badge'); if(b)b.style.display='none';}catch(e){}}
 function authHeaders(){const tok=getToken();return tok?{'Authorization':'Bearer '+tok}:{};}
 async function apiFetch(path,opts={}){
   return fetch(API_URL+path,{credentials:'include',...opts,headers:{'Content-Type':'application/json',...authHeaders(),...(opts.headers||{})}});
 }
 function saveUser(u){try{localStorage.setItem(LS_KEY,JSON.stringify(u));}catch(e){}}
 function getUser(){try{const r=localStorage.getItem(LS_KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
-function clearUser(){try{localStorage.removeItem(LS_KEY);}catch(e){}}
+function clearUser(){try{localStorage.removeItem(LS_KEY); const b=document.getElementById('global-ai-limit-badge'); if(b)b.style.display='none';}catch(e){}}
 
 async function submitAppeal(){
   const comment=document.getElementById('ban-appeal-text').value.trim();
@@ -2012,16 +2038,55 @@ async function fetchAndRenderLimits(){
 }
 function renderCounter(data){
   const el=document.getElementById('ai-counter-text'),dot=document.getElementById('ai-counter-dot');
-  if(!el||!data)return;
+  const gBadge=document.getElementById('global-ai-limit-badge');
+  const gText=document.getElementById('global-limit-text');
+  const gDot=document.getElementById('global-limit-dot');
+  if(!data)return;
+  let left=0,total=25,isVIP=false;
   if(data.role==='admin'){
     enableAdminMode();
-    const left=data.totalRequestsLeft??0,total=data.totalLimit??250;
-    el.innerHTML='<span class="hi">VIP</span> · API: <span class="hi">'+left+'/'+total+'</span>';
-    dot.style.background='var(--accent)';
+    left=data.totalRequestsLeft??0;
+    total=data.totalLimit??250;
+    isVIP=true;
+    if(el)el.innerHTML='<span class="hi">VIP</span> · API: <span class="hi">'+left+'/'+total+'</span>';
+    if(dot)dot.style.background='var(--accent)';
   }else{
-    const left=data.userRequestsLeft??0,total=data.userLimit??25;
-    el.innerHTML=t('left')+': <span class="hi">'+left+'/'+total+'</span>';
-    dot.style.background=left<=3?'var(--red)':left<=8?'var(--orange)':'var(--green)';
+    left=data.userRequestsLeft??0;
+    total=data.userLimit??25;
+    if(el)el.innerHTML=t('left')+': <span class="hi">'+left+'/'+total+'</span>';
+    if(dot)dot.style.background=left<=3?'var(--red)':left<=8?'var(--orange)':'var(--green)';
+  }
+  if(gBadge&&gText&&gDot){
+    gBadge.style.display='flex';
+    gText.innerHTML=isVIP?'VIP: '+left+'/'+total:'AI: '+left+'/'+total;
+    gDot.style.background=isVIP?'var(--accent)':(left<=3?'var(--red)':left<=8?'var(--orange)':'var(--green)');
+  }
+}
+
+async function clearUserWarning(){
+  const btn=document.getElementById('clear-warning-btn');
+  btn.disabled=true;
+  btn.textContent='...';
+  try{
+    const res=await apiFetch('/api/auth/clear-warning',{method:'POST'});
+    if(res.ok){
+      document.getElementById('warning-screen').style.display='none';
+      const meRes=await apiFetch('/api/auth/me');
+      if(meRes.ok){
+        const user=await meRes.json();
+        showDashboard(user);
+      }else{
+        window.location.reload();
+      }
+    }else{
+      alert('Ошибка снятия предупреждения');
+      btn.disabled=false;
+      btn.textContent='Я больше не буду нарушать правила, и удалю нарушающий правила контент';
+    }
+  }catch(e){
+    alert('Ошибка соединения');
+    btn.disabled=false;
+    btn.textContent='Я больше не буду нарушать правила, и удалю нарушающий правила контент';
   }
 }
 function updateCounterFromResponse(data){if(!data)return;_limitsCache={..._limitsCache,...data};renderCounter(_limitsCache);}
@@ -2194,66 +2259,139 @@ document.querySelectorAll('.modal-overlay').forEach(function(el){el.addEventList
 const NOTIF_ICONS={new_user:'👤',appeal:'📩',feedback:'💬',content_violation:'⚠️',new_admin:'⭐',user_banned:'🚫',user_deleted:'🗑️',default:'🔔'};
 
 async function loadAdminNotifications(){
-  const list=document.getElementById('admin-notif-list');if(!list)return;
+  const list=document.getElementById('admin-notif-list');
+  const vList=document.getElementById('admin-violations-list');
+  if(!list||!vList)return;
   list.innerHTML='<div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+t('loading')+'</span></div>';
+  vList.innerHTML='<div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+t('loading')+'</span></div>';
   try{
     const res=await apiFetch('/api/admin/notifications');
     if(res.status===403){
-      list.innerHTML='<div class="admin-empty">'+(_currentLang==='en'?'No permission to view notifications':'Нет прав на просмотр уведомлений')+'</div>';
-      updateNotifBadge([]);
+      const errText=_currentLang==='en'?'No permission to view notifications':'Нет прав на просмотр уведомлений';
+      list.innerHTML='<div class="admin-empty">'+errText+'</div>';
+      vList.innerHTML='<div class="admin-empty">'+errText+'</div>';
+      updateNotifBadges([],[],[]);
       return;
     }
-    if(!res.ok){list.innerHTML='<div class="admin-empty">Ошибка загрузки</div>';return;}
+    if(!res.ok){list.innerHTML='<div class="admin-empty">Ошибка загрузки</div>';vList.innerHTML='<div class="admin-empty">Ошибка загрузки</div>';return;}
     const data=await res.json();const notifs=data.notifications||[];
-    updateNotifBadge(notifs);
-    if(!notifs.length){
+    const violations=notifs.filter(n=>n.type==='content_violation');
+    const messages=notifs.filter(n=>n.type!=='content_violation');
+    updateNotifBadges(notifs,messages,violations);
+    if(!messages.length){
       list.innerHTML='<div class="notif-empty"><div class="notif-empty-icon">🔔</div><div>'+t('notif_empty')+'</div></div>';
-      return;
+    }else{
+      list.innerHTML=messages.map(function(n){
+        const icon=NOTIF_ICONS[n.type]||NOTIF_ICONS.default;
+        const iconClass='notif-icon-'+(NOTIF_ICONS[n.type]?n.type:'default');
+        return '<div class="notif-item'+(n.is_read?'':' unread')+'" id="notif-item-'+n.id+'">'
+          +'<div class="notif-icon-wrap '+iconClass+'">'+icon+'</div>'
+          +'<div class="notif-content">'
+          +'<div class="notif-title">'+escapeHtml(n.title)+'</div>'
+          +'<div class="notif-body">'+escapeHtml(n.body||'')+'</div>'
+          +'<div class="notif-time">'+formatNotifDate(n.created_at)+'</div>'
+          +'</div>'
+          +'<div class="notif-actions">'
+          +(!n.is_read?'<button class="notif-read-btn" title="Прочитано" onclick="markNotifRead(\''+n.id+'\')">✓</button>':'')
+          +'<button class="notif-del-btn" title="Удалить" onclick="deleteNotif(\''+n.id+'\')">✕</button>'
+          +'</div>'
+          +'</div>';
+      }).join('');
     }
-    list.innerHTML=notifs.map(function(n){
-      const icon=NOTIF_ICONS[n.type]||NOTIF_ICONS.default;
-      const iconClass='notif-icon-'+(NOTIF_ICONS[n.type]?n.type:'default');
-      return '<div class="notif-item'+(n.is_read?'':' unread')+'" id="notif-item-'+n.id+'">'
-        +'<div class="notif-icon-wrap '+iconClass+'">'+icon+'</div>'
-        +'<div class="notif-content">'
-        +'<div class="notif-title">'+escapeHtml(n.title)+'</div>'
-        +'<div class="notif-body">'+escapeHtml(n.body||'')+'</div>'
-        +'<div class="notif-time">'+formatNotifDate(n.created_at)+'</div>'
-        +'</div>'
-        +'<div class="notif-actions">'
-        +(!n.is_read?'<button class="notif-read-btn" title="Прочитано" onclick="markNotifRead(\''+n.id+'\')">✓</button>':'')
-        +'<button class="notif-del-btn" title="Удалить" onclick="deleteNotif(\''+n.id+'\')">✕</button>'
-        +'</div>'
-        +'</div>';
-    }).join('');
-  }catch(e){list.innerHTML='<div class="admin-empty">Error: '+e.message+'</div>';}
+    if(!violations.length){
+      vList.innerHTML='<div class="notif-empty"><div class="notif-empty-icon">🛡️</div><div>Нет нарушений</div></div>';
+    }else{
+      vList.innerHTML=violations.map(function(n){
+        const icon=NOTIF_ICONS[n.type]||NOTIF_ICONS.default;
+        const iconClass='notif-icon-'+(NOTIF_ICONS[n.type]?n.type:'default');
+        const videoUrlMatch=(n.body||'').match(/Ссылка:\s*(https?:\/\/[^\s\n]+)/);
+        const videoUrl=videoUrlMatch?videoUrlMatch[1]:null;
+        let channelUrl=null;
+        const user=window._adminUsersData?window._adminUsersData.find(u=>u.id===n.related_id):null;
+        if(user&&user.channel_url)channelUrl=user.channel_url;
+        let actionButtons='';
+        if(videoUrl){
+          actionButtons+='<a href="'+videoUrl+'" target="_blank" rel="noopener" class="vib-long" style="display:inline-block; margin-right:8px; padding:6px 12px; border-radius:6px; font-size:11px; text-decoration:none; font-weight:600;">📺 Видео</a>';
+        }
+        if(channelUrl){
+          actionButtons+='<a href="'+channelUrl+'" target="_blank" rel="noopener" class="vib-short" style="display:inline-block; margin-right:8px; padding:6px 12px; border-radius:6px; font-size:11px; text-decoration:none; font-weight:600;">👤 Канал</a>';
+        }else if(n.related_id){
+          actionButtons+='<button onclick="openAdminUserModalByUserId(\''+n.related_id+'\')" class="vib-short" style="display:inline-block; margin-right:8px; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer;">👤 Канал</button>';
+        }
+        if(n.related_id){
+          actionButtons+='<button onclick="takeViolationAction(\''+n.related_id+'\',\''+n.id+'\')" style="background:var(--red); color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer;">⚖️ Меры</button>';
+        }
+        return '<div class="notif-item'+(n.is_read?'':' unread')+'" id="notif-item-'+n.id+'">'
+          +'<div class="notif-icon-wrap '+iconClass+'">'+icon+'</div>'
+          +'<div class="notif-content">'
+          +'<div class="notif-title">'+escapeHtml(n.title)+'</div>'
+          +'<div class="notif-body">'+escapeHtml(n.body||'')+'</div>'
+          +'<div style="margin-top:10px; display:flex; align-items:center; flex-wrap:wrap; gap:6px;">'+actionButtons+'</div>'
+          +'<div class="notif-time">'+formatNotifDate(n.created_at)+'</div>'
+          +'</div>'
+          +'<div class="notif-actions">'
+          +(!n.is_read?'<button class="notif-read-btn" title="Прочитано" onclick="markNotifRead(\''+n.id+'\')">✓</button>':'')
+          +'<button class="notif-del-btn" title="Удалить" onclick="deleteNotif(\''+n.id+'\')">✕</button>'
+          +'</div>'
+          +'</div>';
+      }).join('');
+    }
+  }catch(e){
+    list.innerHTML='<div class="admin-empty">Error: '+e.message+'</div>';
+    vList.innerHTML='<div class="admin-empty">Error: '+e.message+'</div>';
+  }
 }
 
-function updateNotifBadge(notifs){
-  const unread=(notifs||[]).filter(function(n){return !n.is_read;}).length;
+function updateNotifBadges(allNotifs,messages,violations){
+  const unreadMessages=messages.filter(n=>!n.is_read).length;
+  const unreadViolations=violations.filter(n=>!n.is_read).length;
+  const totalUnread=unreadMessages+unreadViolations;
   const badge=document.getElementById('nav-admin-badge');
+  if(badge){badge.textContent=totalUnread;badge.style.display=totalUnread>0?'flex':'none';}
   const unreadBadge=document.getElementById('admin-notif-unread-badge');
-  if(badge){badge.textContent=unread;badge.style.display=unread>0?'flex':'none';}
-  if(unreadBadge){unreadBadge.textContent=unread;unreadBadge.style.display=unread>0?'inline':'none';}
+  if(unreadBadge){unreadBadge.textContent=unreadMessages;unreadBadge.style.display=unreadMessages>0?'inline':'none';}
+  const vUnreadBadge=document.getElementById('admin-violations-unread-badge');
+  if(vUnreadBadge){vUnreadBadge.textContent=unreadViolations;vUnreadBadge.style.display=unreadViolations>0?'inline':'none';}
 }
 
 async function markNotifRead(id){
   try{
     await apiFetch('/api/admin/notifications/read',{method:'POST',body:JSON.stringify({notificationId:id})});
     const item=document.getElementById('notif-item-'+id);
-    if(item){item.classList.remove('unread');const btn=item.querySelector('.notif-read-btn');if(btn)btn.remove();}
-    const unread=document.querySelectorAll('.notif-item.unread').length;
-    updateNotifBadge(Array(unread).fill({is_read:false}));
+    if(item){
+      item.classList.remove('unread');
+      const btn=item.querySelector('.notif-read-btn');
+      if(btn)btn.remove();
+    }
+    loadAdminNotifications();
   }catch(e){}
 }
 
 async function markAllNotificationsRead(){
   try{
-    await apiFetch('/api/admin/notifications/read-all',{method:'POST',body:JSON.stringify({})});
-    document.querySelectorAll('.notif-item').forEach(function(item){
-      item.classList.remove('unread');const btn=item.querySelector('.notif-read-btn');if(btn)btn.remove();
-    });
-    updateNotifBadge([]);
+    const res=await apiFetch('/api/admin/notifications');
+    if(res.ok){
+      const data=await res.json();
+      const unreadMsg=(data.notifications||[]).filter(n=>n.type!=='content_violation'&&!n.is_read);
+      await Promise.all(unreadMsg.map(n=>
+        apiFetch('/api/admin/notifications/read',{method:'POST',body:JSON.stringify({notificationId:n.id})})
+      ));
+      loadAdminNotifications();
+    }
+  }catch(e){}
+}
+
+async function markAllViolationsRead(){
+  try{
+    const res=await apiFetch('/api/admin/notifications');
+    if(res.ok){
+      const data=await res.json();
+      const unreadViolations=(data.notifications||[]).filter(n=>n.type==='content_violation'&&!n.is_read);
+      await Promise.all(unreadViolations.map(n=>
+        apiFetch('/api/admin/notifications/read',{method:'POST',body:JSON.stringify({notificationId:n.id})})
+      ));
+      loadAdminNotifications();
+    }
   }catch(e){}
 }
 
@@ -2261,12 +2399,63 @@ async function deleteNotif(id){
   try{
     await apiFetch('/api/admin/notifications/'+id,{method:'DELETE'});
     const item=document.getElementById('notif-item-'+id);if(item)item.remove();
-    if(!document.querySelectorAll('.notif-item').length){
-      document.getElementById('admin-notif-list').innerHTML='<div class="notif-empty"><div class="notif-empty-icon">🔔</div><div>'+t('notif_empty')+'</div></div>';
-    }
-    const unread=document.querySelectorAll('.notif-item.unread').length;
-    updateNotifBadge(Array(unread).fill({is_read:false}));
+    loadAdminNotifications();
   }catch(e){}
+}
+
+function openAdminUserModalByUserId(userId){
+  const idx=window._adminUsersData?window._adminUsersData.findIndex(u=>u.id===userId):-1;
+  if(idx!==-1){
+    openAdminUserModal(idx);
+  }else{
+    alert('Пользователь не найден в списке');
+  }
+}
+
+async function takeViolationAction(userId,notificationId){
+  const choice=prompt(
+    "Выберите меру воздействия:\n"
+    +"1. Отправить предупреждение (блокирует до согласия с правилами)\n"
+    +"2. Заблокировать пользователя (полный бан)\n"
+    +"3. Навсегда удалить аккаунт и данные пользователя\n\n"
+    +"Введите номер действия (1, 2 или 3):"
+  );
+  if(!choice)return;
+  if(choice==='1'){
+    const reason=prompt("Укажите причину предупреждения (пользователь увидит её при входе):");
+    if(!reason||!reason.trim()){alert("Причина обязательна.");return;}
+    try{
+      const res=await apiFetch('/api/admin/ban',{method:'POST',body:JSON.stringify({userId,reason:'WARNING: '+reason.trim()})});
+      const data=await res.json().catch(()=>({}));
+      if(res.ok){
+        alert("Предупреждение отправлено!");
+        if(notificationId)markNotifRead(notificationId);
+        loadAdminUsers();
+      }else alert("Ошибка: "+(data.error||"Не удалось отправить"));
+    }catch(e){alert("Ошибка соединения");}
+  }else if(choice==='2'){
+    const reason=prompt("Укажите причину блокировки:");
+    try{
+      const res=await apiFetch('/api/admin/ban',{method:'POST',body:JSON.stringify({userId,reason:reason?reason.trim():null})});
+      const data=await res.json().catch(()=>({}));
+      if(res.ok){
+        alert("Пользователь заблокирован!");
+        if(notificationId)markNotifRead(notificationId);
+        loadAdminUsers();
+      }else alert("Ошибка: "+(data.error||"Не удалось заблокировать"));
+    }catch(e){alert("Ошибка соединения");}
+  }else if(choice==='3'){
+    if(!confirm("Удалить этого пользователя НАВСЕГДА? Это действие сотрет все его данные и не может быть отменено."))return;
+    try{
+      const res=await apiFetch('/api/admin/users/'+userId,{method:'DELETE'});
+      const data=await res.json().catch(()=>({}));
+      if(res.ok){
+        alert("Пользователь удален!");
+        if(notificationId)markNotifRead(notificationId);
+        loadAdminUsers();
+      }else alert("Ошибка: "+(data.error||"Не удалось удалить"));
+    }catch(e){alert("Ошибка соединения");}
+  }else alert("Неверный выбор.");
 }
 
 async function pollNotifCount(){
@@ -3147,6 +3336,27 @@ document.querySelectorAll('.nav-item').forEach(function(item){
   });
 });
 
+function handleWarnedFromResponse(reason) {
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('landing-screen').style.display='none';
+  document.getElementById('warning-reason-text').textContent = reason;
+  document.getElementById('warning-screen').style.display='flex';
+}
+
+async function handleInitAuthMeResponse(res) {
+  if (res.status === 403) {
+    const data = await res.json().catch(function(){return {};});
+    if (data.error === 'WARNED') {
+      handleWarnedFromResponse(data.reason);
+      return true;
+    }
+    document.getElementById('landing-screen').style.display='none';
+    document.getElementById('ban-screen').style.display='flex';
+    return true;
+  }
+  return false;
+}
+
 (async function init(){
   loadTheme();
   loadLanguage();
@@ -3165,7 +3375,8 @@ document.querySelectorAll('.nav-item').forEach(function(item){
   if(urlResult&&urlResult.token){
     try{
       const res=await apiFetch('/api/auth/me');
-      if(res.status===403){document.getElementById('landing-screen').style.display='none';document.getElementById('ban-screen').style.display='flex';return;}
+      const handled = await handleInitAuthMeResponse(res);
+      if(handled) return;
       if(res.ok){const user=await res.json();if(user.fresh_token)saveToken(user.fresh_token);if(user.is_admin)enableAdminMode();if(user.channels&&user.channels.length>1){saveUser(user);showChannelSelect(user);}else showDashboard(user);return;}
     }catch(e){}
     clearToken();
@@ -3176,15 +3387,17 @@ document.querySelectorAll('.nav-item').forEach(function(item){
   if(cached&&(cached.email||cached.channel_id)){
     if(cached.channels&&cached.channels.length>1&&!cached.channel_id)showChannelSelect(cached);
     else showDashboard(cached);
-    apiFetch('/api/auth/me').then(function(r){
-      if(r.status===403){handleBanFromResponse();return;}
+    apiFetch('/api/auth/me').then(async function(r){
+      const handled = await handleInitAuthMeResponse(r);
+      if(handled) return;
       if(r.ok)r.json().then(function(u){if(u.fresh_token)saveToken(u.fresh_token);if(u.is_admin)enableAdminMode();}).catch(function(){});
     }).catch(function(){});
     return;
   }
   try{
     const res=await apiFetch('/api/auth/me');
-    if(res.status===403){document.getElementById('landing-screen').style.display='none';document.getElementById('ban-screen').style.display='flex';return;}
+    const handled = await handleInitAuthMeResponse(res);
+    if(handled) return;
     if(res.ok){const user=await res.json();if(user.fresh_token)saveToken(user.fresh_token);if(user.is_admin)enableAdminMode();if(user.channels&&user.channels.length>1){saveUser(user);showChannelSelect(user);}else showDashboard(user);return;}
   }catch(e){}
   document.getElementById('landing-screen').style.display='flex';
