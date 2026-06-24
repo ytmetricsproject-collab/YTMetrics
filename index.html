@@ -516,6 +516,55 @@
   <span id="global-limit-text">AI: 25/25</span>
 </div>
 
+<!-- UPDATE BANNER (Top-Left) -->
+<div id="global-update-banner" style="position: fixed; top: 16px; left: 16px; z-index: 100; display: none; align-items: center; gap: 8px; background: rgba(255, 159, 71, 0.95); border: 1px solid rgba(255, 159, 71, 0.4); border-radius: 20px; padding: 8px 16px; backdrop-filter: blur(8px); font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: #000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); cursor: pointer; animation: pulse-update 2s infinite;">
+  ✨ Доступно обновление
+</div>
+
+<style>
+@keyframes pulse-update {
+  0% { transform: scale(1); box-shadow: 0 4px 12px rgba(255, 159, 71, 0.3); }
+  50% { transform: scale(1.03); box-shadow: 0 4px 20px rgba(255, 159, 71, 0.6); }
+  100% { transform: scale(1); box-shadow: 0 4px 12px rgba(255, 159, 71, 0.3); }
+}
+@keyframes spin-update {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+</style>
+
+<!-- UPDATE MODAL (Overlay) -->
+<div class="modal-overlay" id="update-modal">
+  <div class="modal-box modal-sm" style="border-color: var(--accent);">
+    <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+      <div class="modal-title" style="font-size: 18px; color: var(--accent);">✨ Новая версия готова!</div>
+      <button class="modal-close" onclick="closeModal('update-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top: 14px;">
+      <p style="font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 20px;">
+        Мы добавили новые функции, улучшили панель администрирования (разделение сообщений и нарушений) и повысили производительность приложения.<br><br>
+        Размер обновления: <strong>12.4 MB</strong>
+      </p>
+      <button class="btn-cta-main" style="width: 100%; justify-content: center; height: auto;" onclick="startAppUpdate()">Установить обновление</button>
+    </div>
+  </div>
+</div>
+
+<!-- FULLSCREEN UPDATE SCREEN -->
+<div id="update-screen" style="position: fixed; inset: 0; z-index: 999; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: #fff;">
+  <div style="text-align: center; max-width: 400px; width: 100%;">
+    <div style="font-size: 40px; margin-bottom: 24px; animation: spin-update 3s linear infinite; display: inline-block;">⚙️</div>
+    <div style="font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; margin-bottom: 8px;" id="update-status-title">Обновление приложения...</div>
+    <div style="font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); margin-bottom: 32px;" id="update-status-desc">Загрузка ресурсов (Размер: 12.4 MB)</div>
+    
+    <!-- Progress Bar -->
+    <div style="width: 100%; height: 6px; background: #1a2230; border-radius: 3px; overflow: hidden; margin-bottom: 12px;">
+      <div id="update-progress-bar" style="width: 0%; height: 100%; background: var(--accent); transition: width 0.1s ease-out; border-radius: 3px;"></div>
+    </div>
+    <div style="font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700; color: var(--accent);" id="update-progress-text">0%</div>
+  </div>
+</div>
+
 <div id="ban-screen">
   <div class="ban-card">
     <div class="ban-icon">🚫</div>
@@ -1486,6 +1535,7 @@ function loadDisplayFormat(){
   syncFormatButtons(); applyCalcFormat();
 }
 
+let _newServiceWorker = null;
 let _currentLang='ru';
 
 const T={
@@ -2088,6 +2138,54 @@ async function clearUserWarning(){
     btn.disabled=false;
     btn.textContent='Я больше не буду нарушать правила, и удалю нарушающий правила контент';
   }
+}
+
+function startAppUpdate() {
+  closeModal('update-modal');
+  const screen = document.getElementById('update-screen');
+  const bar = document.getElementById('update-progress-bar');
+  const text = document.getElementById('update-progress-text');
+  const title = document.getElementById('update-status-title');
+  const desc = document.getElementById('update-status-desc');
+  if (!screen || !bar || !text) {
+    if (_newServiceWorker) {
+      _newServiceWorker.postMessage({ type: 'SKIP_WAITING' });
+    } else {
+      window.location.reload();
+    }
+    return;
+  }
+  screen.style.display = 'flex';
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += Math.floor(Math.random() * 5) + 2;
+    if (progress > 100) progress = 100;
+    bar.style.width = progress + '%';
+    text.textContent = progress + '%';
+    if (progress < 30) {
+      title.textContent = 'Подготовка файлов обновления...';
+      desc.textContent = 'Инициализация загрузки (Размер: 12.4 MB)';
+    } else if (progress < 70) {
+      title.textContent = 'Загрузка новых ресурсов...';
+      desc.textContent = 'Скачивание пакета обновлений: ' + Math.min(12.4, (progress * 0.124).toFixed(1)) + ' MB / 12.4 MB';
+    } else if (progress < 95) {
+      title.textContent = 'Установка обновления...';
+      desc.textContent = 'Замена локальных файлов в кэше';
+    } else {
+      title.textContent = 'Перезапуск приложения...';
+      desc.textContent = 'Активация новой версии';
+    }
+    if (progress === 100) {
+      clearInterval(interval);
+      setTimeout(() => {
+        if (_newServiceWorker) {
+          _newServiceWorker.postMessage({ type: 'SKIP_WAITING' });
+        } else {
+          window.location.reload();
+        }
+      }, 800);
+    }
+  }, 120);
 }
 function updateCounterFromResponse(data){if(!data)return;_limitsCache={..._limitsCache,...data};renderCounter(_limitsCache);}
 function handleBanFromResponse(){
@@ -3364,7 +3462,32 @@ async function handleInitAuthMeResponse(res) {
   document.getElementById('channel-select-screen').style.display='none';
 
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js').catch(function(){});
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      if (reg.waiting) {
+        _newServiceWorker = reg.waiting;
+        document.getElementById('global-update-banner').style.display = 'flex';
+      }
+      reg.addEventListener('updatefound', () => {
+        const installingWorker = reg.installing;
+        installingWorker.addEventListener('statechange', () => {
+          if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            _newServiceWorker = installingWorker;
+            document.getElementById('global-update-banner').style.display = 'flex';
+          }
+        });
+      });
+    }).catch(function(){});
+    
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    });
+  }
+
+  const updateBanner = document.getElementById('global-update-banner');
+  if (updateBanner) {
+    updateBanner.addEventListener('click', () => {
+      openModal('update-modal');
+    });
   }
 
   const urlResult=checkTokenInURL();
