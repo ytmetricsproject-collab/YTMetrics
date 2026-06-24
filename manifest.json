@@ -1,0 +1,22 @@
+{
+  "name": "YTMetrics",
+  "short_name": "YTMetrics",
+  "description": "YouTube Analytics & Simulation Tool",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0d0f12",
+  "theme_color": "#e2ff33",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
