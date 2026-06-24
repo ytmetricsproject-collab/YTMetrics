@@ -801,10 +801,6 @@
       <div class="page-header">
         <div><h2 class="page-title" id="calc-page-title">Калькулятор метрик</h2><p class="page-sub" id="calc-sub">Конвертер данных Творческой студии YouTube</p></div>
         <div style="display:flex;align-items:center;gap:8px">
-          <div style="display:flex;gap:6px">
-            <button class="period-tab active" id="fmt-calc-blocks" onclick="setCalcFormat('blocks')" title="Блоки">⬛</button>
-            <button class="period-tab" id="fmt-calc-table" onclick="setCalcFormat('table')" title="Таблица">📋</button>
-          </div>
           <div class="badge-live" style="background:rgba(57,255,154,.08);border-color:rgba(57,255,154,.25);color:var(--green)">🧮 AUTO CALC</div>
         </div>
       </div>
@@ -1483,36 +1479,23 @@ function applyTheme(isDark){
 function toggleTheme(isDark){applyTheme(isDark);}
 function loadTheme(){applyTheme((localStorage.getItem(LS_THEME)||'dark')==='dark');}
 
-let _statsFormat='blocks', _fcFormat='blocks', _calcFormat='blocks';
+let _statsFormat='blocks', _fcFormat='blocks';
 function setDisplayFormat(fmt){
-  _statsFormat=fmt; _fcFormat=fmt; _calcFormat=fmt;
+  _statsFormat=fmt; _fcFormat=fmt;
   try{localStorage.setItem(LS_FORMAT,fmt);}catch(e){}
   document.getElementById('fmt-blocks').classList.toggle('active',fmt==='blocks');
   document.getElementById('fmt-table').classList.toggle('active',fmt==='table');
   syncFormatButtons();
   if(_realVideos.length){renderStatsVideoGrid();renderForecastGrid();}
-  applyCalcFormat();
 }
 function setStatsFormat(fmt){
-  _statsFormat=fmt;
-  document.getElementById('fmt-stats-blocks').classList.toggle('active',fmt==='blocks');
-  document.getElementById('fmt-stats-table').classList.toggle('active',fmt==='table');
-  if(_realVideos.length)renderStatsVideoGrid();
+  setDisplayFormat(fmt);
 }
 function setForecastFormat(fmt){
-  _fcFormat=fmt;
-  document.getElementById('fmt-fc-blocks').classList.toggle('active',fmt==='blocks');
-  document.getElementById('fmt-fc-table').classList.toggle('active',fmt==='table');
-  if(_realVideos.length)renderForecastGrid();
-}
-function setCalcFormat(fmt){
-  _calcFormat=fmt;
-  document.getElementById('fmt-calc-blocks').classList.toggle('active',fmt==='blocks');
-  document.getElementById('fmt-calc-table').classList.toggle('active',fmt==='table');
-  applyCalcFormat();
+  setDisplayFormat(fmt);
 }
 function syncFormatButtons(){
-  const fmts={stats:_statsFormat,fc:_fcFormat,calc:_calcFormat};
+  const fmts={stats:_statsFormat,fc:_fcFormat};
   Object.entries(fmts).forEach(([sec,fmt])=>{
     const b=document.getElementById('fmt-'+sec+'-blocks');
     const t=document.getElementById('fmt-'+sec+'-table');
@@ -1520,19 +1503,12 @@ function syncFormatButtons(){
     if(t)t.classList.toggle('active',fmt==='table');
   });
 }
-function applyCalcFormat(){
-  const sg=document.getElementById('calc-shorts-grid');
-  const lg=document.getElementById('calc-long-grid');
-  if(!sg||!lg)return;
-  sg.style.gridTemplateColumns=_calcFormat==='table'?'1fr':'';
-  lg.style.gridTemplateColumns=_calcFormat==='table'?'1fr':'';
-}
 function loadDisplayFormat(){
   const fmt=localStorage.getItem(LS_FORMAT)||'blocks';
-  _statsFormat=fmt; _fcFormat=fmt; _calcFormat=fmt;
+  _statsFormat=fmt; _fcFormat=fmt;
   document.getElementById('fmt-blocks').classList.toggle('active',fmt==='blocks');
   document.getElementById('fmt-table').classList.toggle('active',fmt==='table');
-  syncFormatButtons(); applyCalcFormat();
+  syncFormatButtons();
 }
 
 let _newServiceWorker = null;
@@ -3087,8 +3063,9 @@ function renderStatsVideoGrid(){
 function renderForecastGrid(){
   const videos=getFilteredForecast();
   const container=document.getElementById('forecast-video-container');if(!container)return;
-  if(!videos.length){container.innerHTML='<div style="text-align:center;padding:40px 0;font-family:\'DM Mono\',monospace;font-size:13px;color:var(--muted)">'+t('no_videos_filter')+'</div>';return;}
+  if(!videos.length){container.style.display='block';container.innerHTML='<div style="text-align:center;padding:40px 0;font-family:\'DM Mono\',monospace;font-size:13px;color:var(--muted)">'+t('no_videos_filter')+'</div>';return;}
   if(_fcFormat==='table'){
+    container.style.display='block';
     container.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px">'
       +'<table style="width:100%;border-collapse:collapse;font-family:\'DM Mono\',monospace;font-size:12px">'
       +'<thead><tr style="border-bottom:1px solid var(--border);background:var(--input-bg)">'
@@ -3113,13 +3090,19 @@ function renderForecastGrid(){
           +'</tr>';
       }).join('')+'</tbody></table></div>';
   }else{
-    container.innerHTML='<div class="video-list">'+videos.map(function(v){
-      return '<div class="video-item" onclick="openForecastModal('+v.id+')">'
-        +(v.thumbnail?'<img src="'+v.thumbnail+'" class="video-item-thumb" onerror="this.style.display=\'none\'">':'<span class="video-item-icon">'+(v.type==='short'?'⚡':'📹')+'</span>')
-        +'<div class="video-item-info"><div class="video-item-title">'+escapeHtml(v.title)+'</div><div class="video-item-meta">'+v.meta+'</div></div>'
-        +'<span class="video-item-badge '+(v.type==='short'?'vib-short':'vib-long')+'">'+(v.type==='short'?'Shorts':'Long-form')+'</span>'
-        +'</div>';
-    }).join('')+'</div>';
+    container.style.display='grid';
+    container.style.gridTemplateColumns='repeat(auto-fill,minmax(200px,1fr))';
+    container.style.gap='14px';
+    container.style.marginBottom='28px';
+    container.innerHTML=videos.map(function(v){
+      const isShort=v.type==='short';
+      const bs=isShort?'color:var(--accent2);border-color:rgba(71,200,255,.3);background:rgba(71,200,255,.06)':'color:var(--accent);border-color:rgba(232,255,71,.3);background:rgba(232,255,71,.06)';
+      const hoursHtml=v.watchHours?'<div style="font-family:\'DM Mono\',monospace;font-size:9px;color:var(--green);margin-top:2px">🕐 '+v.watchHours+'h</div>':'';
+      return '<div onclick="openForecastModal('+v.id+')" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s" onmouseover="this.style.borderColor=\'rgba(232,255,71,.4)\';this.style.transform=\'translateY(-3px)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.transform=\'translateY(0)\'">'
+        +'<div style="position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--border)">'+(v.thumbnail?'<img src="'+v.thumbnail+'" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'">':'')+'<span style="position:absolute;top:7px;right:7px;font-family:\'DM Mono\',monospace;font-size:9px;font-weight:700;padding:3px 8px;border-radius:5px;border:1px solid;'+bs+'">'+(isShort?'⚡ Shorts':'📹 Long')+'</span></div>'
+        +'<div style="padding:10px 12px"><div style="font-size:12px;font-weight:700;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+escapeHtml(v.title)+'</div>'
+        +'<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);margin-top:5px">'+fmt(v.views)+' '+(_currentLang==='en'?'views':'просм.')+' · '+formatRelDate(v.published_at)+'</div>'+hoursHtml+'</div></div>';
+    }).join('');
   }
 }
 
@@ -3463,6 +3446,7 @@ async function handleInitAuthMeResponse(res) {
 
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./sw.js').then(reg => {
+      reg.update().catch(function(){});
       if (reg.waiting) {
         _newServiceWorker = reg.waiting;
         document.getElementById('global-update-banner').style.display = 'flex';
