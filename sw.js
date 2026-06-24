@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ytmetrics-cache-v1';
+const CACHE_NAME = 'ytmetrics-cache-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -30,14 +30,40 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // Пропускаем запросы к API и внешним сервисам, кэшируем только статические ресурсы приложения
-  if (event.request.url.includes('/api/') || !event.request.url.startsWith(self.location.origin)) {
+  const url = event.request.url;
+
+  // Пропускаем запросы к API и авторизации
+  if (url.includes('/api/')) {
     return;
   }
+
+  // Определяем, нужно ли кэшировать ресурс
+  const isLocal = url.startsWith(self.location.origin);
+  const isExternalAsset = url.includes('cdn.tailwindcss.com') ||
+                          url.includes('fonts.googleapis.com') ||
+                          url.includes('fonts.gstatic.com');
+
+  if (!isLocal && !isExternalAsset) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
-      return cachedResponse || fetch(event.request).catch(() => {
-        // Оффлайн-заглушка или просто пропуск
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      return fetch(event.request).then(response => {
+        // Кэшируем только успешные ответы
+        if (response && response.status === 200) {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return response;
+      }).catch(() => {
+        // Игнорируем ошибки сети (например, оффлайн)
       });
     })
   );

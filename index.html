@@ -2653,9 +2653,52 @@ function noDataReasonText(reason){
 }
 
 async function loadRealVideos(user){
-  document.getElementById('stats-loading').style.display='block';
+  const cacheKey = 'ytmetrics_videos_' + (user.channel_id || user.email || 'default');
+  let hasCached = false;
+  
+  try {
+    const cachedDataRaw = localStorage.getItem(cacheKey);
+    if (cachedDataRaw) {
+      const cachedData = JSON.parse(cachedDataRaw);
+      const raw = cachedData.videos || [];
+      if (raw.length) {
+        _realVideos = raw.map(normalizeVideo);
+        // Render from cache immediately
+        setTimeout(() => {
+          renderStatsVideoGrid();
+          renderForecastGrid();
+        }, 0);
+        
+        document.getElementById('stats-loading').style.display='none';
+        hasCached = true;
+        
+        if (cachedData.subscriber_count) {
+          const badge = document.getElementById('channel-subs-badge');
+          const countEl = document.getElementById('channel-subs-count');
+          if (badge && countEl) { countEl.textContent = fmtSubs(cachedData.subscriber_count); badge.style.display = 'flex'; }
+        }
+        if (cachedData.channel_total_views) {
+          const badge = document.getElementById('channel-views-badge');
+          const countEl = document.getElementById('channel-views-count');
+          if (badge && countEl) { countEl.textContent = fmt(cachedData.channel_total_views); badge.style.display = 'flex'; }
+        }
+        if (cachedData.channel_watch_hours != null) {
+          const badge = document.getElementById('channel-hours-badge');
+          const countEl = document.getElementById('channel-hours-count');
+          if (badge && countEl) { countEl.textContent = cachedData.channel_watch_hours + 'h'; badge.style.display = 'flex'; }
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load cached videos:', e);
+  }
+
+  if (!hasCached) {
+    document.getElementById('stats-loading').style.display='block';
+    document.getElementById('stats-video-grid').innerHTML='';
+  }
   document.getElementById('stats-error').style.display='none';
-  document.getElementById('stats-video-grid').innerHTML='';
+
   try{
     const url='/api/youtube/videos?max_results=20'+(user.channel_id?'&channel_id='+encodeURIComponent(user.channel_id):'');
     const res=await apiFetch(url);
@@ -2663,6 +2706,12 @@ async function loadRealVideos(user){
     if(res.status===403){handleBanFromResponse();return;}
     if(!res.ok){const err=await res.json().catch(function(){return {};});throw new Error(err.error||'HTTP '+res.status);}
     const data=await res.json(),raw=data.videos||[];
+    
+    // Save to cache
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify(data));
+    } catch(e) {}
+
     document.getElementById('stats-loading').style.display='none';
     if(data.subscriber_count){
       const badge=document.getElementById('channel-subs-badge');
@@ -2679,14 +2728,22 @@ async function loadRealVideos(user){
       const countEl=document.getElementById('channel-hours-count');
       if(badge&&countEl){countEl.textContent=data.channel_watch_hours+'h';badge.style.display='flex';}
     }
-    if(!raw.length){document.getElementById('stats-video-grid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px 0;font-family:\'DM Mono\',monospace;font-size:13px;color:var(--muted)">'+t('no_videos')+'</div>';return;}
+    if(!raw.length){
+      document.getElementById('stats-video-grid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px 0;font-family:\'DM Mono\',monospace;font-size:13px;color:var(--muted)">'+t('no_videos')+'</div>';
+      _realVideos=[];
+      return;
+    }
     _realVideos=raw.map(normalizeVideo);
     const ctxBtn=document.getElementById('send-video-context-btn');if(ctxBtn)ctxBtn.style.display='flex';
     renderStatsVideoGrid();renderForecastGrid();
   }catch(e){
-    document.getElementById('stats-loading').style.display='none';
-    document.getElementById('stats-error').style.display='block';
-    document.getElementById('stats-error-msg').textContent=e.message;
+    if (!hasCached) {
+      document.getElementById('stats-loading').style.display='none';
+      document.getElementById('stats-error').style.display='block';
+      document.getElementById('stats-error-msg').textContent=e.message;
+    } else {
+      console.warn('Background update failed:', e);
+    }
   }
 }
 
