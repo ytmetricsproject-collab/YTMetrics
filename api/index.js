@@ -39,10 +39,24 @@ const DEFAULT_PERMISSIONS = {
   remove_admins: false,
 };
 
-const supabase = createClient(
-  SUPABASE_URL || 'https://placeholder-please-set-supabase-url.supabase.co',
-  SUPABASE_KEY || 'placeholder-key'
-);
+let supabase;
+try {
+  let url = (SUPABASE_URL || '').trim();
+  if (url.endsWith('/')) url = url.slice(0, -1);
+  if (url.endsWith('/rest/v1')) url = url.slice(0, -8);
+  if (!url) url = 'https://placeholder-please-set-supabase-url.supabase.co';
+
+  supabase = createClient(
+    url,
+    SUPABASE_KEY || 'placeholder-key'
+  );
+} catch (e) {
+  console.error('Failed to initialize Supabase client:', e.message);
+  supabase = createClient(
+    'https://placeholder-please-set-supabase-url.supabase.co',
+    'placeholder-key'
+  );
+}
 const genAI    = new GoogleGenerativeAI(GEMINI_API_KEY || 'placeholder-gemini-key');
 
 // ════════════════════════════════════════════════════════
