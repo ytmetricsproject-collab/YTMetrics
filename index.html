@@ -7,9 +7,8 @@
 
   <!-- ══ PWA: МАНИФЕСТ И ИКОНКИ ══ -->
   <link rel="manifest" href="./manifest.json">
-  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16.png">
-  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="./icon-512.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
   <meta name="theme-color" content="#080c10">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -52,7 +51,7 @@
     #landing-screen{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;}
     .landing-nav{display:flex;align-items:center;justify-content:space-between;padding:22px 60px;border-bottom:1px solid var(--border);}
     .landing-logo{display:flex;align-items:center;gap:10px;}
-    .landing-logo-mark{width:36px;height:36px;border-radius:9px;background:var(--accent);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;}
+    .landing-logo-mark{width:36px;height:36px;border-radius:9px;object-fit:cover;}
     .landing-logo-name{font-size:18px;font-weight:800;letter-spacing:-.3px;}
     .landing-logo-name span{color:var(--accent);}
     .btn-analyze{display:flex;align-items:center;gap:10px;padding:12px 26px;background:var(--accent);color:var(--bg);border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s;}
@@ -108,7 +107,7 @@
     #dashboard{display:flex;min-height:100vh;position:relative;z-index:1;}
     #sidebar{width:240px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:28px 0;position:sticky;top:0;height:100vh;}
     .sidebar-logo{display:flex;align-items:center;gap:10px;padding:0 24px 28px;border-bottom:1px solid var(--border);}
-    .sidebar-logo-mark{width:34px;height:34px;border-radius:8px;background:var(--accent);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;}
+    .sidebar-logo-mark{width:34px;height:34px;border-radius:8px;object-fit:cover;}
     .sidebar-logo-name{font-size:16px;font-weight:800;letter-spacing:-.3px;}
     .sidebar-logo-name span{color:var(--accent);}
     nav{padding:24px 12px;flex:1;overflow-y:auto;}
@@ -434,7 +433,7 @@
     .perm-save-btn:hover{opacity:.85;}
     .perm-supreme-note{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.6;}
 
-    .news-create-card{background:var(--surface);border:1px solid rgba(232,255,71,.2);border-radius:16px;padding:20px 22px;margin-bottom:20px;}
+    .news-create-card{background:var(--surface);border:1px solid rgba(232,255,71,.2);border-radius:16px;padding:20px 22px;margin:0 auto 20px auto;max-width:680px;}
     .news-create-title{font-size:14px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
     .news-input{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:11px 16px;color:var(--text);font-family:'Syne',sans-serif;font-size:14px;outline:none;margin-bottom:10px;}
     .news-input:focus{border-color:var(--accent);}
@@ -446,7 +445,7 @@
     .news-file-preview{font-family:'DM Mono',monospace;font-size:11px;color:var(--green);}
     .news-submit-btn{padding:11px 26px;background:var(--accent);color:var(--bg);border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
     .news-submit-btn:disabled{opacity:.5;cursor:not-allowed;}
-    .news-post{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px 24px;margin-bottom:18px;}
+    .news-post{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px 24px;margin:0 auto 18px auto;max-width:680px;}
     .news-post-title{font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px;}
     .news-post-meta{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:12px;}
     .news-post-content{font-size:14px;line-height:1.7;color:var(--text);margin-bottom:14px;white-space:pre-line;}
@@ -590,10 +589,46 @@
   </div>
 </div>
 
+<!-- FULLSCREEN PIN LOCK SCREEN -->
+<div id="pin-lock-screen" style="display:none; position:fixed; inset:0; background:#0b0e11; z-index:9999; flex-direction:column; align-items:center; justify-content:center; padding:20px; font-family:'DM Mono',monospace; color:var(--text);">
+  <div style="font-size:40px; margin-bottom:20px;">🔒</div>
+  <div style="font-size:18px; font-weight:800; margin-bottom:8px;" id="pin-lock-title-text">Доступ ограничен</div>
+  <div style="font-size:12px; color:var(--muted); margin-bottom:24px; text-align:center; line-height:1.6;">
+    <span id="pin-lock-desc-text">Введите PIN-код для аккаунта:</span><br>
+    <span id="pin-lock-email" style="color:var(--accent); font-weight:700;"></span>
+  </div>
+  
+  <div style="display:flex; gap:16px; margin-bottom:30px;">
+    <div class="pin-dot" id="pin-dot-1" style="width:16px; height:16px; border-radius:50%; border:2px solid var(--border); transition:all 0.15s;"></div>
+    <div class="pin-dot" id="pin-dot-2" style="width:16px; height:16px; border-radius:50%; border:2px solid var(--border); transition:all 0.15s;"></div>
+    <div class="pin-dot" id="pin-dot-3" style="width:16px; height:16px; border-radius:50%; border:2px solid var(--border); transition:all 0.15s;"></div>
+    <div class="pin-dot" id="pin-dot-4" style="width:16px; height:16px; border-radius:50%; border:2px solid var(--border); transition:all 0.15s;"></div>
+  </div>
+
+  <div id="pin-lock-error" style="color:var(--red); font-size:12px; min-height:18px; margin-bottom:20px; font-weight:700;"></div>
+
+  <div style="display:grid; grid-template-columns:repeat(3, 80px); gap:16px; margin-bottom:40px;">
+    <button class="pin-btn" onclick="pressPinKey('1')" style="width:80px; height:80px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text); font-size:24px; font-weight:700; cursor:pointer; outline:none; transition:all 0.1s;" onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface)'">1</button>
+    <button class="pin-btn" onclick="pressPinKey('2')" style="width:80px; height:80px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text); font-size:24px; font-weight:700; cursor:pointer; outline:none; transition:all 0.1s;" onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface)'">2</button>
+    <button class="pin-btn" onclick="pressPinKey('3')" style="width:80px; height:80px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text); font-size:24px; font-weight:700; cursor:pointer; outline:none; transition:all 0.1s;" onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface)'">3</button>
+    <button class="pin-btn" onclick="pressPinKey('4')" style="width:80px; height:80px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text); font-size:24px; font-weight:700; cursor:pointer; outline:none; transition:all 0.1s;" onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface)'">4</button>
+    <button class="pin-btn" onclick="pressPinKey('5')" style="width:80px; height:80px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text); font-size:24px; font-weight:700; cursor:pointer; outline:none; transition:all 0.1s;" onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface)'">5</button>
+    <button class="pin-btn" onclick="pressPinKey('6')" style="width:80px; height:80px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text); font-size:24px; font-weight:700; cursor:pointer; outline:none; transition:all 0.1s;" onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface)'">6</button>
+    <button class="pin-btn" onclick="pressPinKey('7')" style="width:80px; height:80px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text); font-size:24px; font-weight:700; cursor:pointer; outline:none; transition:all 0.1s;" onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface)'">7</button>
+    <button class="pin-btn" onclick="pressPinKey('8')" style="width:80px; height:80px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text); font-size:24px; font-weight:700; cursor:pointer; outline:none; transition:all 0.1s;" onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface)'">8</button>
+    <button class="pin-btn" onclick="pressPinKey('9')" style="width:80px; height:80px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text); font-size:24px; font-weight:700; cursor:pointer; outline:none; transition:all 0.1s;" onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface)'">9</button>
+    <button class="pin-btn" onclick="pressPinKey('clear')" id="pin-clear-btn-text" style="width:80px; height:80px; border-radius:50%; background:transparent; border:none; color:var(--red); font-size:14px; font-weight:700; cursor:pointer; outline:none;">Сброс</button>
+    <button class="pin-btn" onclick="pressPinKey('0')" style="width:80px; height:80px; border-radius:50%; background:var(--surface); border:1px solid var(--border); color:var(--text); font-size:24px; font-weight:700; cursor:pointer; outline:none; transition:all 0.1s;" onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--surface)'">0</button>
+    <button class="pin-btn" onclick="pressPinKey('backspace')" style="width:80px; height:80px; border-radius:50%; background:transparent; border:none; color:var(--muted); font-size:24px; font-weight:700; cursor:pointer; outline:none;">⌫</button>
+  </div>
+
+  <button onclick="logoutFromPinScreen()" style="padding:10px 20px; border-radius:8px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; font-family:inherit; font-size:12px; transition:all 0.15s;" onmouseover="this.style.borderColor='var(--red)'; this.style.color='var(--red)';" id="pin-logout-btn-text">Выйти из аккаунта</button>
+</div>
+
 <div id="landing-screen" style="display:none">
   <nav class="landing-nav">
     <div class="landing-logo">
-      <div class="landing-logo-mark">▶</div>
+      <img src="./icon-512.png" alt="Logo" class="landing-logo-mark">
       <div class="landing-logo-name">YT<span>Metrics</span></div>
     </div>
     <button class="btn-analyze" onclick="startLogin()"><span>📈</span> <span id="nav-login-btn-text">Сделать анализ</span></button>
@@ -662,7 +697,7 @@
 
 <div id="channel-select-screen">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px 44px;width:500px;max-height:85vh;overflow-y:auto;text-align:center">
-    <div style="display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:14px;background:var(--accent);color:var(--bg);font-size:22px;font-weight:800;margin-bottom:20px">▶</div>
+    <img src="./icon-512.png" alt="Logo" style="display:inline-block;width:52px;height:52px;border-radius:14px;margin-bottom:20px;object-fit:cover;">
     <div style="font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:8px" id="ch-select-title">Выберите YouTube-канал</div>
     <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:28px;line-height:1.6" id="ch-select-sub">У вашего аккаунта несколько каналов.</div>
     <div id="channel-list-items" style="display:flex;flex-direction:column;gap:10px;text-align:left"></div>
@@ -673,7 +708,7 @@
 <div id="dashboard" style="display:none">
   <aside id="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-mark">▶</div>
+      <img src="./icon-512.png" alt="Logo" class="sidebar-logo-mark">
       <div class="sidebar-logo-name">YT<span>Metrics</span></div>
     </div>
     <nav>
@@ -728,10 +763,6 @@
           <button class="type-tab" data-type="long" onclick="setStatsFilter('long')" id="filter-long-btn">📹 Видео</button>
           <button class="type-tab" data-type="short" onclick="setStatsFilter('short')">⚡ Shorts</button>
         </div>
-        <div style="display:flex;gap:6px">
-          <button class="period-tab active" id="fmt-stats-blocks" onclick="setStatsFormat('blocks')" title="Блоки">⬛</button>
-          <button class="period-tab" id="fmt-stats-table" onclick="setStatsFormat('table')" title="Таблица">📋</button>
-        </div>
       </div>
       <div id="stats-loading" style="display:none;text-align:center;padding:60px 0">
         <div style="font-size:32px;margin-bottom:14px;animation:pulse 1.5s infinite">⏳</div>
@@ -747,13 +778,6 @@
     <div class="tab-panel" id="tab-forecast">
       <div class="page-header">
         <div><h2 class="page-title" id="forecast-page-title">Прогноз ролика</h2><p class="page-sub" id="forecast-sub">Симулятор параметров видео</p></div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <div style="display:flex;gap:6px">
-            <button class="period-tab active" id="fmt-fc-blocks" onclick="setForecastFormat('blocks')" title="Блоки">⬛</button>
-            <button class="period-tab" id="fmt-fc-table" onclick="setForecastFormat('table')" title="Таблица">📋</button>
-          </div>
-          <div class="badge-live" style="background:rgba(71,200,255,.08);border-color:rgba(71,200,255,.25);color:var(--accent2)">✦ SIMULATOR</div>
-        </div>
       </div>
       <div id="fc-video-list">
         <div class="type-filter">
@@ -762,38 +786,6 @@
           <button class="type-tab" data-ftype="short" onclick="setForecastFilter('short')">⚡ Shorts</button>
         </div>
         <div id="forecast-video-container"></div>
-        <div class="sim-new-btn" onclick="openNewSim()"><span>＋</span> <span id="sim-new-btn-text">Симулировать новое видео</span></div>
-      </div>
-      <div id="fc-new-sim-screen" style="display:none">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
-          <button style="padding:7px 14px;border-radius:8px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);border:1px solid var(--border);background:transparent;cursor:pointer" onclick="showVideoList()" id="back-btn-text">← Назад</button>
-          <div><div style="font-size:15px;font-weight:800" id="new-sim-title-text">Симулятор нового видео</div><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:2px" id="new-sim-sub-text">Задайте параметры</div></div>
-        </div>
-        <div style="display:flex;gap:8px;margin-bottom:14px">
-          <button class="period-tab active" id="new-sim-btn-long" onclick="setNewSimType('long')">📹 Long-form</button>
-          <button class="period-tab" id="new-sim-btn-short" onclick="setNewSimType('short')">⚡ Shorts</button>
-        </div>
-        <div class="sliders-card" id="new-sim-long" style="background:var(--surface)">
-          <div style="font-size:12px;font-weight:800;margin-bottom:14px;color:var(--accent);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em">📹 Long-form</div>
-          <div class="sliders-grid">
-            <div class="sl-field"><div class="sl-row"><span class="sl-name">CTR</span><span class="sl-val" id="nslv-ctr">5.0%</span></div><div class="sl-hint">1%–100%</div><input type="range" class="sl-input" id="nsli-ctr" min="1" max="100" step="0.1" value="5" oninput="onNewSimChange()"></div>
-            <div class="sl-field"><div class="sl-row"><span class="sl-name" id="sl-ret-label">Удержание</span><span class="sl-val" id="nslv-ret">50%</span></div><div class="sl-hint">1%–100%</div><input type="range" class="sl-input" id="nsli-ret" min="1" max="100" step="1" value="50" oninput="onNewSimChange()"></div>
-            <div class="sl-field" style="grid-column:1/-1"><div class="sl-row"><span class="sl-name" id="sl-views-label">Просмотров</span><span class="sl-val" id="nslv-tempo">10 000</span></div><div class="sl-hint" id="sl-reach-hint">Суммарный охват</div><input type="range" class="sl-input" id="nsli-tempo" min="100" max="10000000" step="100" value="10000" oninput="onNewSimChange()"></div>
-          </div>
-        </div>
-        <div class="sliders-card" id="new-sim-short" style="display:none;background:var(--surface)">
-          <div style="font-size:12px;font-weight:800;margin-bottom:14px;color:var(--accent2);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em">⚡ Shorts</div>
-          <div class="sliders-grid">
-            <div class="sl-field"><div class="sl-row"><span class="sl-name" id="sl-sret-label">Удержание Shorts</span><span class="sl-val" id="nslv-sret">80%</span></div><div class="sl-hint">1%–200%+</div><input type="range" class="sl-input" id="nsli-sret" min="1" max="200" step="1" value="80" oninput="onNewSimChange()"></div>
-            <div class="sl-field"><div class="sl-row"><span class="sl-name" id="sl-sint-label">Заинтересованные</span><span class="sl-val" id="nslv-sint">50%</span></div><div class="sl-hint">1%–100%</div><input type="range" class="sl-input" id="nsli-sint" min="1" max="100" step="1" value="50" oninput="onNewSimChange()"></div>
-            <div class="sl-field"><div class="sl-row"><span class="sl-name" id="sl-swipe-label">% Свайпнули</span><span class="sl-val" id="nslv-swipe">30%</span></div><div class="sl-hint">1%–100%</div><input type="range" class="sl-input" id="nsli-swipe" min="1" max="100" step="1" value="30" oninput="onNewSimChange()"></div>
-            <div class="sl-field"><div class="sl-row"><span class="sl-name" id="sl-sviews-label">Просмотров</span><span class="sl-val" id="nslv-swave">50 000</span></div><div class="sl-hint" id="sl-sreach-hint">Суммарный охват</div><input type="range" class="sl-input" id="nsli-swave" min="100" max="10000000" step="100" value="50000" oninput="onNewSimChange()"></div>
-          </div>
-        </div>
-        <div id="new-sim-result" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;margin-top:4px">
-          <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px" id="video-params-label">Параметры видео</div>
-          <div id="new-sim-result-content" style="font-family:'DM Mono',monospace;font-size:13px;color:var(--text);line-height:2"><span style="color:var(--muted)" id="move-sliders-hint">Двигайте ползунки</span></div>
-        </div>
       </div>
     </div>
 
@@ -974,54 +966,128 @@
 
     <div class="tab-panel" id="tab-settings">
       <div class="page-header"><div><h2 class="page-title" id="settings-page-title">Настройки</h2><p class="page-sub" id="settings-sub">Персонализация</p></div></div>
-      <div class="settings-tabs">
-        <button class="settings-tab-btn active" onclick="switchSettingsTab('appearance')" id="stab-btn-appearance">🎨 Внешний вид</button>
-        <button class="settings-tab-btn" onclick="switchSettingsTab('language')" id="stab-btn-language">🌐 Язык</button>
-        <button class="settings-tab-btn" onclick="switchSettingsTab('feedback')" id="stab-btn-feedback">💬 Отзыв</button>
-        <button class="settings-tab-btn" onclick="switchSettingsTab('about')" id="stab-btn-about">👥 О нас</button>
+      
+      <div class="settings-table-card" style="background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden;">
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:20px 24px; font-weight:700; color:var(--text); width:45%;">
+                <div class="settings-row-title" id="dark-theme-title">🌙 Тёмная тема</div>
+                <div class="settings-row-sub" id="dark-theme-sub">Переключить между тёмной и светлой темой</div>
+              </td>
+              <td style="padding:20px 24px; text-align:right;">
+                <label class="theme-switch" style="display:inline-block; vertical-align:middle;"><input type="checkbox" id="theme-toggle-check" checked onchange="toggleTheme(this.checked)"><span class="theme-switch-slider"></span></label>
+              </td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:20px 24px; font-weight:700; color:var(--text);">
+                <div class="settings-row-title" id="lang-title">🌐 Язык интерфейса</div>
+                <div class="settings-row-sub" id="lang-auto-note">Автоопределение: русский для RU/СНГ, английский для остальных.</div>
+              </td>
+              <td style="padding:20px 24px; text-align:right;">
+                <div class="lang-option-grid" style="display:inline-grid; grid-template-columns:repeat(3,1fr); gap:10px; width:100%; max-width:320px; float:right;">
+                  <div class="lang-option" id="lang-auto" onclick="setLanguage('auto')" style="padding:10px 14px; border-radius:10px; font-size:12px; justify-content:center; gap:6px;"><span class="lang-flag">🌐</span> <span class="lang-name" id="lang-auto-name">Авто</span></div>
+                  <div class="lang-option" id="lang-ru" onclick="setLanguage('ru')" style="padding:10px 14px; border-radius:10px; font-size:12px; justify-content:center; gap:6px;"><span class="lang-flag">🇷🇺</span> <span class="lang-name">Русский</span></div>
+                  <div class="lang-option" id="lang-en" onclick="setLanguage('en')" style="padding:10px 14px; border-radius:10px; font-size:12px; justify-content:center; gap:6px;"><span class="lang-flag">🇬🇧</span> <span class="lang-name">English</span></div>
+                </div>
+              </td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:20px 24px; font-weight:700; color:var(--text);">
+                <div class="settings-row-title" id="pin-lock-title">🔒 PIN-код защиты</div>
+                <div class="settings-row-sub" id="pin-lock-sub">Блокировка входа на сайт под текущим аккаунтом</div>
+              </td>
+              <td style="padding:20px 24px; text-align:right;">
+                <div style="display:inline-flex; align-items:center; gap:10px;">
+                  <span id="pin-status-badge" style="font-family:'DM Mono',monospace; font-size:10px; font-weight:700; padding:4px 8px; border-radius:6px; text-transform:uppercase; border:1px solid var(--border); background:var(--input-bg); color:var(--muted);">Отключен</span>
+                  <button onclick="openPinSetupModal()" class="feedback-submit-btn" id="pin-control-btn-text" style="padding:6px 14px; font-size:11px; margin-top:0;">Включить</button>
+                </div>
+              </td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:20px 24px; font-weight:700; color:var(--text); vertical-align:top;">
+                <div class="settings-row-title" id="feedback-title">💬 Оставить отзыв</div>
+                <div class="settings-row-sub" id="feedback-sub">Расскажите, что вам нравится или что можно улучшить. Лимит: 2 отзыва в 24 часа.</div>
+              </td>
+              <td style="padding:20px 24px;">
+                <div class="feedback-card" style="border:none; padding:0; background:transparent; max-width:none; margin-bottom:0; box-shadow:none;">
+                  <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em" id="rating-label">Оценка</div>
+                  <div class="star-rating" id="star-rating" style="margin-bottom:14px;">
+                    <span class="star-btn" data-star="1" onclick="setFeedbackRating(1)">★</span>
+                    <span class="star-btn" data-star="2" onclick="setFeedbackRating(2)">★</span>
+                    <span class="star-btn" data-star="3" onclick="setFeedbackRating(3)">★</span>
+                    <span class="star-btn" data-star="4" onclick="setFeedbackRating(4)">★</span>
+                    <span class="star-btn" data-star="5" onclick="setFeedbackRating(5)">★</span>
+                  </div>
+                  <textarea class="feedback-textarea" id="feedback-text" placeholder="Ваш отзыв..." maxlength="2000" style="margin-bottom:12px;"></textarea>
+                  <button class="feedback-submit-btn" id="feedback-submit-btn" onclick="submitFeedback()" style="margin-top:0;">Отправить отзыв</button>
+                  <div class="feedback-error" id="feedback-error"></div>
+                  <div class="feedback-success" id="feedback-success">✅ Спасибо! Ваш отзыв получен.</div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 24px; font-weight:700; color:var(--text); vertical-align:top;">
+                <div class="settings-row-title" id="about-us-title">👥 О проекте</div>
+                <div class="settings-row-sub" id="about-us-sub">Информация и документы</div>
+              </td>
+              <td style="padding:20px 24px;">
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                  <div class="settings-row" onclick="openAuthorsModal()" style="margin-bottom:0; padding:12px 16px;"><div><div class="settings-row-title" id="authors-row-title" style="font-size:13px;">👥 Авторы</div><div class="settings-row-sub" id="authors-row-sub" style="font-size:10px;">Команда, создавшая YTMetrics</div></div><span style="font-size:16px;color:var(--muted)">›</span></div>
+                  <div class="settings-row" onclick="showPrivacyPolicy()" style="margin-bottom:0; padding:12px 16px;"><div><div class="settings-row-title" id="privacy-row-title" style="font-size:13px;">🔒 Политика конфиденциальности</div><div class="settings-row-sub" id="privacy-row-sub" style="font-size:10px;">Как мы используем ваши данные</div></div><span style="font-size:16px;color:var(--muted)">›</span></div>
+                  <div class="settings-row" onclick="showTerms()" style="margin-bottom:0; padding:12px 16px;"><div><div class="settings-row-title" id="terms-row-title" style="font-size:13px;">📄 Условия использования</div><div class="settings-row-sub" id="terms-row-sub" style="font-size:10px;">Правила использования сервиса</div></div><span style="font-size:16px;color:var(--muted)">›</span></div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <div class="settings-tab-panel active" id="stab-appearance">
-        <div class="theme-toggle-row">
-          <div><div class="settings-row-title" id="dark-theme-title">🌙 Тёмная тема</div><div class="settings-row-sub" id="dark-theme-sub">Переключить между тёмной и светлой темой</div></div>
-          <label class="theme-switch"><input type="checkbox" id="theme-toggle-check" checked onchange="toggleTheme(this.checked)"><span class="theme-switch-slider"></span></label>
+    </div>
+
+    <!-- PIN CODE SETUP MODAL -->
+    <div class="modal-overlay" id="pin-setup-modal" style="display:none;">
+      <div class="modal-box" style="max-width:400px;">
+        <div class="modal-header">
+          <div class="modal-title" id="pin-setup-modal-title">Настройка PIN-кода</div>
+          <button class="modal-close" onclick="closeModal('pin-setup-modal')">✕</button>
         </div>
-        <div style="font-size:14px;font-weight:800;margin-bottom:12px;margin-top:8px" id="display-format-title">Формат отображения</div>
-        <div class="format-option-grid">
-          <div class="format-option active" id="fmt-blocks" onclick="setDisplayFormat('blocks')"><div class="format-option-icon">⬛</div><div class="format-option-name" id="fmt-blocks-name">Блоки</div><div class="format-option-desc" id="fmt-blocks-desc">Карточки с превью. Удобно для быстрого просмотра.</div></div>
-          <div class="format-option" id="fmt-table" onclick="setDisplayFormat('table')"><div class="format-option-icon">📋</div><div class="format-option-name" id="fmt-table-name">Таблица</div><div class="format-option-desc" id="fmt-table-desc">Список с метриками. Удобно для сравнения.</div></div>
-        </div>
-      </div>
-      <div class="settings-tab-panel" id="stab-language">
-        <div style="font-size:14px;font-weight:800;margin-bottom:6px" id="lang-title">Язык интерфейса</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.6" id="lang-auto-note">Автоопределение: русский для RU/СНГ, английский для остальных.</div>
-        <div class="lang-option-grid">
-          <div class="lang-option" id="lang-auto" onclick="setLanguage('auto')"><div class="lang-flag">🌐</div><div class="lang-name" id="lang-auto-name">Авто</div><div class="lang-auto-note" id="lang-auto-det">определяется</div></div>
-          <div class="lang-option" id="lang-ru" onclick="setLanguage('ru')"><div class="lang-flag">🇷🇺</div><div class="lang-name">Русский</div></div>
-          <div class="lang-option" id="lang-en" onclick="setLanguage('en')"><div class="lang-flag">🇬🇧</div><div class="lang-name">English</div></div>
-        </div>
-      </div>
-      <div class="settings-tab-panel" id="stab-feedback">
-        <div class="feedback-card">
-          <div class="feedback-title" id="feedback-title">💬 Оставить отзыв</div>
-          <div class="feedback-sub" id="feedback-sub">Расскажите, что вам нравится или что можно улучшить. Лимит: 2 отзыва в 24 часа.</div>
-          <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em" id="rating-label">Оценка</div>
-          <div class="star-rating" id="star-rating">
-            <span class="star-btn" data-star="1" onclick="setFeedbackRating(1)">★</span>
-            <span class="star-btn" data-star="2" onclick="setFeedbackRating(2)">★</span>
-            <span class="star-btn" data-star="3" onclick="setFeedbackRating(3)">★</span>
-            <span class="star-btn" data-star="4" onclick="setFeedbackRating(4)">★</span>
-            <span class="star-btn" data-star="5" onclick="setFeedbackRating(5)">★</span>
+        <div class="modal-body" style="padding-top:10px;">
+          <div id="pin-setup-error" style="color:var(--red); font-size:12px; margin-bottom:12px; min-height:18px; font-weight:700;"></div>
+          
+          <!-- Form 1: Create PIN -->
+          <div id="pin-form-create" style="display:none; flex-direction:column; gap:12px;">
+            <div class="calc-field">
+              <label id="pin-setup-label-new">Новый 4-значный PIN-код</label>
+              <input type="password" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="calc-input" id="pin-setup-new1" placeholder="••••" style="-webkit-text-security: disc; text-align:center; font-size:20px; letter-spacing:6px; background:var(--input-bg); border:1px solid var(--border); color:var(--text); outline:none;">
+            </div>
+            <div class="calc-field">
+              <label id="pin-setup-label-confirm">Подтвердите PIN-код</label>
+              <input type="password" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="calc-input" id="pin-setup-new2" placeholder="••••" style="-webkit-text-security: disc; text-align:center; font-size:20px; letter-spacing:6px; background:var(--input-bg); border:1px solid var(--border); color:var(--text); outline:none;">
+            </div>
+            <button class="feedback-submit-btn" onclick="saveNewPin()" id="pin-setup-btn-set" style="width:100%; margin-top:8px;">Установить PIN-код</button>
           </div>
-          <textarea class="feedback-textarea" id="feedback-text" placeholder="Ваш отзыв..." maxlength="2000"></textarea>
-          <button class="feedback-submit-btn" id="feedback-submit-btn" onclick="submitFeedback()">Отправить отзыв</button>
-          <div class="feedback-error" id="feedback-error"></div>
-          <div class="feedback-success" id="feedback-success">✅ Спасибо! Ваш отзыв получен.</div>
+
+          <!-- Form 2: Change/Disable PIN -->
+          <div id="pin-form-manage" style="display:none; flex-direction:column; gap:12px;">
+            <div class="calc-field">
+              <label id="pin-setup-label-current">Текущий PIN-код</label>
+              <input type="password" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="calc-input" id="pin-setup-current" placeholder="••••" style="-webkit-text-security: disc; text-align:center; font-size:20px; letter-spacing:6px; background:var(--input-bg); border:1px solid var(--border); color:var(--text); outline:none;">
+            </div>
+            <div style="border-top:1px dashed var(--border); margin:8px 0;"></div>
+            <div class="calc-field">
+              <label id="pin-setup-label-change-new">Новый PIN-код (оставьте пустым для отключения)</label>
+              <input type="password" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="calc-input" id="pin-setup-change1" placeholder="••••" style="-webkit-text-security: disc; text-align:center; font-size:20px; letter-spacing:6px; background:var(--input-bg); border:1px solid var(--border); color:var(--text); outline:none;">
+            </div>
+            <div class="calc-field">
+              <label id="pin-setup-label-change-confirm">Подтвердите новый PIN-код</label>
+              <input type="password" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="calc-input" id="pin-setup-change2" placeholder="••••" style="-webkit-text-security: disc; text-align:center; font-size:20px; letter-spacing:6px; background:var(--input-bg); border:1px solid var(--border); color:var(--text); outline:none;">
+            </div>
+            <div style="display:flex; gap:10px; margin-top:8px;">
+              <button class="feedback-submit-btn" onclick="disableCurrentPin()" id="pin-setup-btn-disable" style="flex:1; background:transparent; border:1px solid var(--red); color:var(--red);">Отключить</button>
+              <button class="feedback-submit-btn" onclick="changeCurrentPin()" id="pin-setup-btn-change" style="flex:1;">Изменить</button>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="settings-tab-panel" id="stab-about">
-        <div class="settings-row" onclick="openAuthorsModal()"><div><div class="settings-row-title" id="authors-row-title">👥 Авторы</div><div class="settings-row-sub" id="authors-row-sub">Команда, создавшая YTMetrics</div></div><span style="font-size:20px;color:var(--muted)">›</span></div>
-        <div class="settings-row" onclick="showPrivacyPolicy()"><div><div class="settings-row-title" id="privacy-row-title">🔒 Политика конфиденциальности</div><div class="settings-row-sub" id="privacy-row-sub">Как мы используем ваши данные</div></div><span style="font-size:20px;color:var(--muted)">›</span></div>
-        <div class="settings-row" onclick="showTerms()"><div><div class="settings-row-title" id="terms-row-title">📄 Условия использования</div><div class="settings-row-sub" id="terms-row-sub">Правила использования сервиса</div></div><span style="font-size:20px;color:var(--muted)">›</span></div>
       </div>
     </div>
 
@@ -1136,67 +1202,19 @@
       <button class="modal-close" onclick="closeModal('forecast-modal')">✕</button>
     </div>
     <div class="modal-body">
-      <div style="margin-bottom:14px">
-        <a id="fm-video-link" href="#" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:rgba(255,0,0,.1);border:1px solid rgba(255,0,0,.25);border-radius:8px;font-family:'DM Mono',monospace;font-size:12px;color:#ff4444;text-decoration:none;font-weight:600;">
+      <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap">
+        <a id="fm-video-link" href="#" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:rgba(255,0,0,.1);border:1px solid rgba(255,0,0,.25);border-radius:8px;font-family:'DM Mono',monospace;font-size:12px;color:#ff4444;text-decoration:none;font-weight:600;">
           ▶ <span id="open-yt-text2">Открыть на YouTube</span>
         </a>
+        <button class="video-player-toggle" id="fm-toggle-player" onclick="toggleForecastVideoPlayer()" style="width:auto;padding:8px 16px;margin-bottom:0">
+          📺 <span id="fm-player-btn-text">Смотреть здесь</span>
+        </button>
       </div>
-      <div class="facts-grid">
-        <div class="fact-card"><div class="fact-icon">👁</div><div class="fact-label" id="ff-views-label">ПРОСМОТРОВ</div><div class="fact-value" id="ff-views">—</div><div class="fact-sub" id="ff-views-sub-text">суммарно</div></div>
-        <div class="fact-card"><div class="fact-icon">👍</div><div class="fact-label" id="ff-likes-label">ЛАЙКИ</div><div class="fact-value" id="ff-likes">—</div><div class="fact-sub" id="ff-likes-sub">—</div></div>
-        <div class="fact-card"><div class="fact-icon">💬</div><div class="fact-label" id="ff-comments-label">КОММЕНТАРИИ</div><div class="fact-value" id="ff-comments">—</div><div class="fact-sub" id="ff-comments-sub">—</div></div>
-        <div class="fact-card"><div class="fact-icon">↗</div><div class="fact-label" id="ff-shares-label">РЕПОСТЫ</div><div class="fact-value" id="ff-shares">—</div><div class="fact-sub" id="ff-shared-text">поделились</div></div>
-      </div>
-      <div id="ff-long-extra" class="facts-extra" style="display:none">
-        <div class="facts-extra-card"><div class="fe-label">CTR</div><div class="fe-value" id="ff-ctr" style="color:var(--accent)">—</div><div class="fe-bar-track"><div class="fe-bar-fill" id="ff-ctr-bar" style="background:linear-gradient(90deg,var(--accent),#c8d400);width:0%"></div></div></div>
-        <div class="facts-extra-card"><div class="fe-label" id="ff-ret-label">УДЕРЖАНИЕ</div><div class="fe-value" id="ff-ret" style="color:var(--accent2)">—</div><div class="fe-bar-track"><div class="fe-bar-fill" id="ff-ret-bar" style="background:linear-gradient(90deg,var(--accent2),#0088cc);width:0%"></div></div></div>
-      </div>
-      <div id="ff-nodata-banner" style="display:none;background:rgba(255,159,71,.06);border:1px solid rgba(255,159,71,.2);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-family:'DM Mono',monospace;font-size:11px;color:var(--orange);line-height:1.6"></div>
-      <div class="swipe-card" id="ff-swipe-block" style="display:none">
-        <div class="swipe-hd"><div><div class="swipe-title" id="ff-swipe-title">Просмотрено vs Свайпнуто</div></div><div class="swipe-pct-txt" id="ff-swipe-txt">—</div></div>
-        <div class="swipe-track"><div class="swipe-viewed-bar" id="ff-swipe-viewed" style="width:70%"></div><div class="swipe-swiped-bar" id="ff-swipe-swiped" style="width:30%"></div></div>
-        <div class="swipe-labels"><span class="swipe-lbl" style="color:var(--accent2)" id="ff-watched-text">👁 Досмотрели</span><span class="swipe-lbl" style="color:var(--red)" id="ff-swiped-text">↕ Свайпнули</span></div>
+      <div id="fm-player-wrap" class="video-player-wrap" style="display:none">
+        <iframe id="fm-player-iframe" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
       </div>
       <button class="ai-btn ai-btn-blue" onclick="askForecastAI()" id="btn-ai-forecast">📈 <span id="ai-forecast-btn-text">ИИ: Разбор алгоритмов и прогноз роста</span></button>
       <div id="ai-forecast-block" style="display:none" class="ai-response-block ai-response-blue"></div>
-      <button class="open-sim-btn" onclick="openSimModal()" id="open-sim-btn-text">🎛️ Симулировать параметры этого видео</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="sim-modal-overlay">
-  <div class="modal-box">
-    <div class="modal-header">
-      <span style="font-size:22px">🎛️</span>
-      <div><div class="modal-title" id="sim-modal-title">Симулятор параметров</div><div class="modal-sub" id="sim-modal-sub">Двигайте ползунки — пересчитывается мгновенно</div></div>
-      <button class="modal-close" onclick="closeModal('sim-modal-overlay')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div id="modal-sliders-long" style="display:none">
-        <div class="sliders-card">
-          <div style="font-size:12px;font-weight:800;margin-bottom:14px;color:var(--accent);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em">📹 Long-form</div>
-          <div class="sliders-grid">
-            <div class="sl-field"><div class="sl-row"><span class="sl-name">CTR</span><span class="sl-val" id="mslv-ctr">5.0%</span></div><div class="sl-hint">1%–100%</div><input type="range" class="sl-input" id="msli-ctr" min="1" max="100" step="0.1" value="5" oninput="onModalSimChange()"></div>
-            <div class="sl-field"><div class="sl-row"><span class="sl-name" id="msim-ret-label">Удержание</span><span class="sl-val" id="mslv-ret">50%</span></div><div class="sl-hint">1%–100%</div><input type="range" class="sl-input" id="msli-ret" min="1" max="100" step="1" value="50" oninput="onModalSimChange()"></div>
-            <div class="sl-field" style="grid-column:1/-1"><div class="sl-row"><span class="sl-name" id="msim-views-label">Просмотров</span><span class="sl-val" id="mslv-tempo">10 000</span></div><div class="sl-hint" id="msim-reach-hint">Суммарный охват</div><input type="range" class="sl-input" id="msli-tempo" min="100" max="10000000" step="100" value="10000" oninput="onModalSimChange()"></div>
-          </div>
-        </div>
-      </div>
-      <div id="modal-sliders-short" style="display:none">
-        <div class="sliders-card">
-          <div style="font-size:12px;font-weight:800;margin-bottom:14px;color:var(--accent2);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em">⚡ Shorts</div>
-          <div class="sliders-grid">
-            <div class="sl-field"><div class="sl-row"><span class="sl-name" id="msim-sret-label">Удержание Shorts</span><span class="sl-val" id="mslv-sret">80%</span></div><div class="sl-hint">1%–200%+</div><input type="range" class="sl-input" id="msli-sret" min="1" max="200" step="1" value="80" oninput="onModalSimChange()"></div>
-            <div class="sl-field"><div class="sl-row"><span class="sl-name" id="msim-sint-label">Заинтересованные</span><span class="sl-val" id="mslv-sint">50%</span></div><div class="sl-hint">1%–100%</div><input type="range" class="sl-input" id="msli-sint" min="1" max="100" step="1" value="50" oninput="onModalSimChange()"></div>
-            <div class="sl-field"><div class="sl-row"><span class="sl-name" id="msim-swipe-label">% Свайпнули</span><span class="sl-val" id="mslv-swipe">30%</span></div><div class="sl-hint">1%–100%</div><input type="range" class="sl-input" id="msli-swipe" min="1" max="100" step="1" value="30" oninput="onModalSimChange()"></div>
-            <div class="sl-field"><div class="sl-row"><span class="sl-name" id="msim-sviews-label">Просмотров</span><span class="sl-val" id="mslv-swave">5 000</span></div><div class="sl-hint" id="msim-sreach-hint">Суммарный охват</div><input type="range" class="sl-input" id="msli-swave" min="100" max="10000000" step="100" value="5000" oninput="onModalSimChange()"></div>
-          </div>
-        </div>
-      </div>
-      <div style="background:var(--input-bg);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-top:4px">
-        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px" id="sim-params-label">Параметры видео</div>
-        <div id="msim-result-content" style="font-family:'DM Mono',monospace;font-size:13px;color:var(--text);line-height:2"><span style="color:var(--muted)" id="sim-move-sliders">Двигайте ползунки</span></div>
-      </div>
     </div>
   </div>
 </div>
@@ -1479,37 +1497,7 @@ function applyTheme(isDark){
 function toggleTheme(isDark){applyTheme(isDark);}
 function loadTheme(){applyTheme((localStorage.getItem(LS_THEME)||'dark')==='dark');}
 
-let _statsFormat='blocks', _fcFormat='blocks';
-function setDisplayFormat(fmt){
-  _statsFormat=fmt; _fcFormat=fmt;
-  try{localStorage.setItem(LS_FORMAT,fmt);}catch(e){}
-  document.getElementById('fmt-blocks').classList.toggle('active',fmt==='blocks');
-  document.getElementById('fmt-table').classList.toggle('active',fmt==='table');
-  syncFormatButtons();
-  if(_realVideos.length){renderStatsVideoGrid();renderForecastGrid();}
-}
-function setStatsFormat(fmt){
-  setDisplayFormat(fmt);
-}
-function setForecastFormat(fmt){
-  setDisplayFormat(fmt);
-}
-function syncFormatButtons(){
-  const fmts={stats:_statsFormat,fc:_fcFormat};
-  Object.entries(fmts).forEach(([sec,fmt])=>{
-    const b=document.getElementById('fmt-'+sec+'-blocks');
-    const t=document.getElementById('fmt-'+sec+'-table');
-    if(b)b.classList.toggle('active',fmt==='blocks');
-    if(t)t.classList.toggle('active',fmt==='table');
-  });
-}
-function loadDisplayFormat(){
-  const fmt=localStorage.getItem(LS_FORMAT)||'blocks';
-  _statsFormat=fmt; _fcFormat=fmt;
-  document.getElementById('fmt-blocks').classList.toggle('active',fmt==='blocks');
-  document.getElementById('fmt-table').classList.toggle('active',fmt==='table');
-  syncFormatButtons();
-}
+const _statsFormat='blocks', _fcFormat='table';
 
 let _newServiceWorker = null;
 let _currentLang='ru';
@@ -1522,7 +1510,7 @@ const T={
     stats_title:'Статистика канала', stats_sub:'Выберите видео для анализа',
     subs_label:'подписчиков', views_total_label:'просмотров', hours_label:'ч просмотрено (30д)',
     filter_all:'Все', filter_long:'Видео', loading_videos:'Загружаем видео с YouTube...',
-    stats_error_title:'⚠ Не удалось загрузить видео', no_videos:'На канале пока нет видео.', no_videos_filter:'Нет видео',
+    stats_error_title:'⚠ Не удалось загрузить видео', no_videos:'Нет видео на канале.', no_videos_filter:'Нет видео',
     views:'ПРОСМОТРЫ', likes:'ЛАЙКИ', comments:'КОММЕНТАРИИ', shares:'РЕПОСТЫ',
     retention:'УДЕРЖАНИЕ', avg_duration:'СРЕДНЕЕ ВРЕМЯ', watch_hours:'ЧАСОВ ПРОСМОТРЕНО (30д)',
     total:'суммарно', of_views:'от просмотров', of_likes:'от лайков', sharing:'делятся', channel:'канал', avg_view:'среднее',
@@ -1584,8 +1572,24 @@ const T={
     stab_appearance:'🎨 Внешний вид', stab_language:'🌐 Язык',
     stab_feedback:'💬 Отзыв', stab_about:'👥 О нас',
     dark_theme:'🌙 Тёмная тема', dark_theme_sub:'Переключить между тёмной и светлой темой',
-    display_format:'Формат отображения', fmt_blocks:'Блоки', fmt_blocks_desc:'Карточки с превью. Удобно для быстрого просмотра.',
-    fmt_table:'Таблица', fmt_table_desc:'Список с метриками. Удобно для сравнения.',
+    pin_locked_title:'Доступ ограничен',
+    pin_enter_desc:'Введите PIN-код для аккаунта:',
+    pin_clear_btn:'Сброс',
+    pin_logout_btn:'Выйти из аккаунта',
+    pin_wrong:'Неверный PIN-код!',
+    pin_status_on:'Включен',
+    pin_status_off:'Отключен',
+    pin_setup_title:'Настройка PIN-кода',
+    pin_label_new:'Новый 4-значный PIN-код',
+    pin_label_confirm:'Подтвердите PIN-код',
+    pin_btn_set:'Установить PIN-код',
+    pin_label_current:'Текущий PIN-код',
+    pin_label_change_new:'Новый PIN-код (оставьте пустым для отключения)',
+    pin_btn_disable:'Отключить',
+    pin_btn_change:'Изменить',
+    pin_error_mismatch:'PIN-коды не совпадают!',
+    pin_error_4digit:'PIN-код должен быть 4-значным числом!',
+    pin_error_current_wrong:'Неверный текущий PIN-код!',
     lang_title:'Язык интерфейса', lang_auto_note:'Автоопределение: русский для RU/СНГ, английский для остальных.',
     lang_auto:'Авто', lang_auto_det:'определяется',
     feedback_title:'💬 Оставить отзыв', feedback_sub:'Расскажите, что вам нравится или что можно улучшить. Лимит: 2 отзыва в 24 часа.',
@@ -1648,7 +1652,7 @@ const T={
     stats_title:'Channel Analytics', stats_sub:'Select a video to analyze',
     subs_label:'subscribers', views_total_label:'views', hours_label:'hrs watched (30d)',
     filter_all:'All', filter_long:'Videos', loading_videos:'Loading videos from YouTube...',
-    stats_error_title:'⚠ Failed to load videos', no_videos:'No videos on this channel yet.', no_videos_filter:'No videos',
+    stats_error_title:'⚠ Failed to load videos', no_videos:'No videos on the channel.', no_videos_filter:'No videos',
     views:'VIEWS', likes:'LIKES', comments:'COMMENTS', shares:'SHARES',
     retention:'RETENTION', avg_duration:'AVG. DURATION', watch_hours:'HOURS WATCHED (30d)',
     total:'total', of_views:'of views', of_likes:'of likes', sharing:'sharing', channel:'channel', avg_view:'average',
@@ -1710,8 +1714,24 @@ const T={
     stab_appearance:'🎨 Appearance', stab_language:'🌐 Language',
     stab_feedback:'💬 Feedback', stab_about:'👥 About',
     dark_theme:'🌙 Dark theme', dark_theme_sub:'Toggle between dark and light theme',
-    display_format:'Display format', fmt_blocks:'Blocks', fmt_blocks_desc:'Cards with thumbnails. Good for quick browsing.',
-    fmt_table:'Table', fmt_table_desc:'List with metrics. Good for comparison.',
+    pin_locked_title:'Access Restricted',
+    pin_enter_desc:'Enter PIN code for account:',
+    pin_clear_btn:'Reset',
+    pin_logout_btn:'Sign out',
+    pin_wrong:'Incorrect PIN code!',
+    pin_status_on:'Enabled',
+    pin_status_off:'Disabled',
+    pin_setup_title:'PIN Code Settings',
+    pin_label_new:'New 4-digit PIN code',
+    pin_label_confirm:'Confirm PIN code',
+    pin_btn_set:'Set PIN code',
+    pin_label_current:'Current PIN code',
+    pin_label_change_new:'New PIN code (leave empty to disable)',
+    pin_btn_disable:'Disable',
+    pin_btn_change:'Change',
+    pin_error_mismatch:'PIN codes do not match!',
+    pin_error_4digit:'PIN must be a 4-digit number!',
+    pin_error_current_wrong:'Incorrect current PIN code!',
     lang_title:'Interface language', lang_auto_note:'Auto-detect: Russian for RU/CIS, English for others.',
     lang_auto:'Auto', lang_auto_det:'detected',
     feedback_title:'💬 Leave feedback', feedback_sub:'Tell us what you like or what can be improved. Limit: 2 per 24h.',
@@ -1870,15 +1890,24 @@ function applyTranslations(){
   setElText('settings-sub',t('settings_sub'));
   setElText('dark-theme-title',t('dark_theme'));
   setElText('dark-theme-sub',t('dark_theme_sub'));
-  setElText('display-format-title',t('display_format'));
-  setElText('fmt-blocks-name',t('fmt_blocks'));
-  setElText('fmt-blocks-desc',t('fmt_blocks_desc'));
-  setElText('fmt-table-name',t('fmt_table'));
-  setElText('fmt-table-desc',t('fmt_table_desc'));
   setElText('lang-title',t('lang_title'));
   setElText('lang-auto-note',t('lang_auto_note'));
   setElText('lang-auto-name',t('lang_auto'));
   setElText('lang-auto-det',t('lang_auto_det'));
+  setElText('pin-lock-title-text',t('pin_locked_title'));
+  setElText('pin-lock-desc-text',t('pin_enter_desc'));
+  setElText('pin-clear-btn-text',t('pin_clear_btn'));
+  setElText('pin-logout-btn-text',t('pin_logout_btn'));
+  setElText('pin-setup-modal-title',t('pin_setup_title'));
+  setElText('pin-setup-label-new',t('pin_label_new'));
+  setElText('pin-setup-label-confirm',t('pin_label_confirm'));
+  setElText('pin-setup-btn-set',t('pin_btn_set'));
+  setElText('pin-setup-label-current',t('pin_label_current'));
+  setElText('pin-setup-label-change-new',t('pin_label_change_new'));
+  setElText('pin-setup-label-change-confirm',t('pin_label_confirm'));
+  setElText('pin-setup-btn-disable',t('pin_btn_disable'));
+  setElText('pin-setup-btn-change',t('pin_btn_change'));
+  updatePinStatusBadge();
   setElText('feedback-title',t('feedback_title'));
   setElText('feedback-sub',t('feedback_sub'));
   setElText('rating-label',t('rating'));
@@ -1907,32 +1936,11 @@ function applyTranslations(){
   setElText('swipe-sub-text',t('swipe_sub'));
   setElText('watched-label-text',t('watched'));
   setElText('swiped-label-text',t('swiped'));
-  setElText('ff-views-label',t('views'));
-  setElText('ff-likes-label',t('likes'));
-  setElText('ff-comments-label',t('comments'));
-  setElText('ff-shares-label',t('shares'));
-  setElText('ff-views-sub-text',t('total'));
-  setElText('ff-shared-text',t('total'));
-  setElText('ff-ret-label',t('retention'));
-  setElText('ff-swipe-title',t('swipe_title'));
-  setElText('ff-watched-text',t('watched'));
-  setElText('ff-swiped-text',t('swiped'));
-  setElText('sim-params-label',t('video_params'));
-  setElText('sim-move-sliders',t('move_sliders'));
-  setElText('msim-ret-label',t('retention_label'));
-  setElText('msim-views-label',t('views_label'));
-  setElText('msim-reach-hint',t('reach_hint'));
-  setElText('msim-sret-label',t('shorts_ret_label'));
-  setElText('msim-sint-label',t('interested_label'));
-  setElText('msim-swipe-label',t('swiped_pct_label'));
-  setElText('msim-sviews-label',t('views_label'));
-  setElText('msim-sreach-hint',t('reach_hint'));
   setElText('open-yt-text',t('open_yt'));
   setElText('open-yt-text2',t('open_yt'));
   setElText('ai-good-btn-text',t('ai_good_btn'));
   setElText('ai-bad-btn-text',t('ai_bad_btn'));
   setElText('ai-forecast-btn-text',t('ai_forecast_btn'));
-  setElText('open-sim-btn-text',t('open_sim'));
   setElText('authors-modal-title',t('authors_modal_title'));
   setElText('authors-modal-sub',t('authors_modal_sub'));
   setElText('privacy-modal-title',t('privacy_title'));
@@ -2100,7 +2108,7 @@ async function clearUserWarning(){
       const meRes=await apiFetch('/api/auth/me');
       if(meRes.ok){
         const user=await meRes.json();
-        showDashboard(user);
+        checkUserAccess(user, function(){ showDashboard(user); });
       }else{
         window.location.reload();
       }
@@ -3018,7 +3026,16 @@ function getFilteredForecast(){return _fcFilter==='all'?_realVideos:_realVideos.
 function renderStatsVideoGrid(){
   const videos=getFilteredStats();
   const grid=document.getElementById('stats-video-grid');
-  if(!videos.length){grid.style.display='block';grid.innerHTML='<div style="text-align:center;padding:40px 0;font-family:\'DM Mono\',monospace;font-size:13px;color:var(--muted)">'+t('no_videos_filter')+'</div>';return;}
+  if(!_realVideos.length){
+    grid.style.display='block';
+    grid.innerHTML='<div style="text-align:center;padding:40px 0;font-family:\'DM Mono\',monospace;font-size:13px;color:var(--muted)">'+t('no_videos')+'</div>';
+    return;
+  }
+  if(!videos.length){
+    grid.style.display='block';
+    grid.innerHTML='<div style="text-align:center;padding:40px 0;font-family:\'DM Mono\',monospace;font-size:13px;color:var(--muted)">'+t('no_videos_filter')+'</div>';
+    return;
+  }
   if(_statsFormat==='table'){
     grid.style.display='block';
     grid.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">'
@@ -3063,7 +3080,16 @@ function renderStatsVideoGrid(){
 function renderForecastGrid(){
   const videos=getFilteredForecast();
   const container=document.getElementById('forecast-video-container');if(!container)return;
-  if(!videos.length){container.style.display='block';container.innerHTML='<div style="text-align:center;padding:40px 0;font-family:\'DM Mono\',monospace;font-size:13px;color:var(--muted)">'+t('no_videos_filter')+'</div>';return;}
+  if(!_realVideos.length){
+    container.style.display='block';
+    container.innerHTML='<div style="text-align:center;padding:40px 0;font-family:\'DM Mono\',monospace;font-size:13px;color:var(--muted)">'+t('no_videos')+'</div>';
+    return;
+  }
+  if(!videos.length){
+    container.style.display='block';
+    container.innerHTML='<div style="text-align:center;padding:40px 0;font-family:\'DM Mono\',monospace;font-size:13px;color:var(--muted)">'+t('no_videos_filter')+'</div>';
+    return;
+  }
   if(_fcFormat==='table'){
     container.style.display='block';
     container.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px">'
@@ -3218,6 +3244,12 @@ let _currentForecastVideo=null;
 function openForecastModal(id){
   const v=_realVideos.find(function(x){return x.id===id;});if(!v)return;
   _currentForecastVideo=v;const isShort=v.type==='short';
+  
+  _fmPlayerVisible=false;
+  const wrap=document.getElementById('fm-player-wrap');if(wrap)wrap.style.display='none';
+  const iframe=document.getElementById('fm-player-iframe');if(iframe)iframe.src='';
+  const btnText=document.getElementById('fm-player-btn-text');if(btnText)btnText.textContent=t('watch_here');
+
   const ab=document.getElementById('ai-forecast-block');ab.style.display='none';ab.innerHTML='';ab.className='ai-response-block ai-response-blue';
   document.getElementById('btn-ai-forecast').innerHTML='📈 <span id="ai-forecast-btn-text">'+t('ai_forecast_btn')+'</span>';
   document.getElementById('btn-ai-forecast').disabled=false;
@@ -3228,44 +3260,10 @@ function openForecastModal(id){
   if(isShort){badge.textContent='⚡ Shorts';badge.style.cssText="font-family:'DM Mono',monospace;font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid;color:var(--accent2);border-color:rgba(71,200,255,.3);background:rgba(71,200,255,.06)";}
   else{badge.textContent='📹 Long-form';badge.style.cssText="font-family:'DM Mono',monospace;font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid;color:var(--accent);border-color:rgba(232,255,71,.3);background:rgba(232,255,71,.06)";}
   const fmLink=document.getElementById('fm-video-link');if(fmLink)fmLink.href=v.video_url||'#';
-  setElText('ff-views-label',t('views'));
-  setElText('ff-likes-label',t('likes'));
-  setElText('ff-comments-label',t('comments'));
-  setElText('ff-shares-label',t('shares'));
-  setElText('ff-views-sub-text',t('total'));
-  setElText('ff-shared-text',t('total'));
-  setElText('ff-ret-label',t('retention'));
-  setElText('ff-swipe-title',t('swipe_title'));
-  setElText('ff-watched-text',t('watched'));
-  setElText('ff-swiped-text',t('swiped'));
+  
   setElText('open-yt-text2',t('open_yt'));
   setElText('ai-forecast-btn-text',t('ai_forecast_btn'));
-  setElText('open-sim-btn-text',t('open_sim'));
-  document.getElementById('ff-views').textContent=fmt(v.views);
-  document.getElementById('ff-likes').textContent=fmt(v.likes);document.getElementById('ff-likes-sub').textContent=pctOf(v.likes,v.views)+' '+t('of_views');
-  document.getElementById('ff-comments').textContent=fmt(v.comments);document.getElementById('ff-comments-sub').textContent=pctOf(v.comments,v.likes)+' '+t('of_likes');
-  document.getElementById('ff-shares').textContent=fmt(v.shares);
-
-  const ffNodata=document.getElementById('ff-nodata-banner');
-  const reasonText=noDataReasonText(v.noDataReason);
-  if(reasonText){ ffNodata.style.display='block'; ffNodata.textContent='ℹ️ '+reasonText; }
-  else{ ffNodata.style.display='none'; }
-
-  if(isShort){
-    document.getElementById('ff-long-extra').style.display='none';
-    document.getElementById('ff-swipe-block').style.display='block';
-    const vr=v.viewedRatio!=null?v.viewedRatio:70,sr=v.swipedRatio!=null?v.swipedRatio:30;
-    document.getElementById('ff-swipe-viewed').style.width=vr+'%';
-    document.getElementById('ff-swipe-swiped').style.width=sr+'%';
-    document.getElementById('ff-swipe-txt').textContent=t('watched_pct')+' '+vr+'% / '+t('swiped_pct')+' '+sr+'%'+(v.swipedRatio==null?' ('+t('no_data')+')':'');
-  }else{
-    document.getElementById('ff-long-extra').style.display='grid';
-    document.getElementById('ff-swipe-block').style.display='none';
-    document.getElementById('ff-ctr').textContent=v.ctr!=null?v.ctr+'%':'—';
-    document.getElementById('ff-ctr-bar').style.width=v.ctr!=null?Math.min(v.ctr/15*100,100)+'%':'0%';
-    document.getElementById('ff-ret').textContent=v.retention!=null?v.retention+'%':'—';
-    document.getElementById('ff-ret-bar').style.width=v.retention!=null?v.retention+'%':'0%';
-  }
+  
   openModal('forecast-modal');
 }
 
@@ -3293,57 +3291,239 @@ async function askForecastAI(){
   btn.disabled=false;
 }
 
-function openSimModal(){
-  const v=_currentForecastVideo;if(!v)return;
-  const type=v.type;
-  setElText('sim-modal-title',t('video_params')+': '+v.title.substring(0,30)+(v.title.length>30?'…':''));
-  setElText('sim-modal-sub',t('move_sliders'));
-  setElText('sim-params-label',t('video_params'));
-  setElText('sim-move-sliders',t('move_sliders'));
-  setElText('msim-ret-label',t('retention_label'));setElText('msim-views-label',t('views_label'));setElText('msim-reach-hint',t('reach_hint'));
-  setElText('msim-sret-label',t('shorts_ret_label'));setElText('msim-sint-label',t('interested_label'));
-  setElText('msim-swipe-label',t('swiped_pct_label'));setElText('msim-sviews-label',t('views_label'));setElText('msim-sreach-hint',t('reach_hint'));
-  document.getElementById('modal-sliders-long').style.display=type==='long'?'block':'none';
-  document.getElementById('modal-sliders-short').style.display=type==='short'?'block':'none';
-  if(type==='long'){document.getElementById('msli-ctr').value=Math.min(v.ctr||5,100);document.getElementById('msli-ret').value=Math.min(v.retention||50,100);document.getElementById('msli-tempo').value=v.views;}
-  else{document.getElementById('msli-sret').value=Math.min(v.retentionShort||80,200);document.getElementById('msli-sint').value=v.viewedRatio||70;document.getElementById('msli-swipe').value=v.swipedRatio||30;document.getElementById('msli-swave').value=v.views;}
-  syncModalLabels(type);openModal('sim-modal-overlay');onModalSimChange();
-}
-function syncModalLabels(type){
-  if(type==='long'){document.getElementById('mslv-ctr').textContent=parseFloat(document.getElementById('msli-ctr').value).toFixed(1)+'%';document.getElementById('mslv-ret').textContent=document.getElementById('msli-ret').value+'%';document.getElementById('mslv-tempo').textContent=fmt(parseFloat(document.getElementById('msli-tempo').value));}
-  else{const sv=parseInt(document.getElementById('msli-sret').value);document.getElementById('mslv-sret').textContent=sv>=200?'200%+':sv+'%';document.getElementById('mslv-sint').textContent=document.getElementById('msli-sint').value+'%';document.getElementById('mslv-swipe').textContent=document.getElementById('msli-swipe').value+'%';document.getElementById('mslv-swave').textContent=fmt(parseFloat(document.getElementById('msli-swave').value));}
-}
-function onModalSimChange(){
-  const v=_currentForecastVideo;if(!v)return;
-  const type=v.type;syncModalLabels(type);let lines=[];
-  if(type==='long'){const ctr=parseFloat(document.getElementById('msli-ctr').value)||5,ret=parseFloat(document.getElementById('msli-ret').value)||50,views=parseFloat(document.getElementById('msli-tempo').value)||10000;lines=['📹 <span style="color:var(--muted)">Type:</span> Long-form','🎯 <span style="color:var(--muted)">CTR:</span> <span style="color:var(--accent)">'+ctr.toFixed(1)+'%</span>','⏱ <span style="color:var(--muted)">'+t('retention_label')+':</span> <span style="color:var(--accent2)">'+ret+'%</span>','👁 <span style="color:var(--muted)">'+t('views_label')+':</span> <span style="color:var(--text)">'+fmt(views)+'</span>'];}
-  else{const sret=parseInt(document.getElementById('msli-sret').value)||80,sint=parseFloat(document.getElementById('msli-sint').value)||70,swipe=parseFloat(document.getElementById('msli-swipe').value)||30,swave=parseFloat(document.getElementById('msli-swave').value)||5000;lines=['⚡ <span style="color:var(--muted)">Type:</span> Shorts','🔄 <span style="color:var(--muted)">'+t('shorts_ret_label')+':</span> <span style="color:var(--accent)">'+(sret>=200?'200%+':sret+'%')+'</span>','👁 <span style="color:var(--muted)">'+t('watched_pct')+':</span> <span style="color:var(--accent2)">'+sint+'%</span>','↕ <span style="color:var(--muted)">'+t('swiped_pct')+':</span> <span style="color:var(--red)">'+swipe+'%</span>','📊 <span style="color:var(--muted)">'+t('views_label')+':</span> <span style="color:var(--text)">'+fmt(swave)+'</span>'];}
-  document.getElementById('msim-result-content').innerHTML=lines.join('<br>');
+let _fmPlayerVisible=false;
+function toggleForecastVideoPlayer(){
+  _fmPlayerVisible=!_fmPlayerVisible;
+  const wrap=document.getElementById('fm-player-wrap');
+  const btnText=document.getElementById('fm-player-btn-text');
+  const iframe=document.getElementById('fm-player-iframe');
+  if(_fmPlayerVisible){
+    wrap.style.display='block';if(btnText)btnText.textContent=t('close_player');
+    const v=_currentForecastVideo;
+    if(v)iframe.src='https://www.youtube.com/embed/'+(v.video_id||v.id)+'?autoplay=1';
+  }else{
+    wrap.style.display='none';if(btnText)btnText.textContent=t('watch_here');iframe.src='';
+  }
 }
 
-let newSimType='long';
-function showVideoList(){document.getElementById('fc-video-list').style.display='block';document.getElementById('fc-new-sim-screen').style.display='none';}
-function openNewSim(){document.getElementById('fc-video-list').style.display='none';document.getElementById('fc-new-sim-screen').style.display='block';newSimType='long';setNewSimType('long');}
-function setNewSimType(type){
-  newSimType=type;
-  document.getElementById('new-sim-btn-long').className='period-tab'+(type==='long'?' active':'');
-  document.getElementById('new-sim-btn-short').className='period-tab'+(type==='short'?' active':'');
-  document.getElementById('new-sim-long').style.display=type==='long'?'block':'none';
-  document.getElementById('new-sim-short').style.display=type==='short'?'block':'none';
-  syncNewSimLabels();onNewSimChange();
+function showVideoList(){
+  const list=document.getElementById('fc-video-list');
+  if(list)list.style.display='block';
 }
-function syncNewSimLabels(){
-  setElText('sl-ret-label',t('retention_label'));setElText('sl-views-label',t('views_label'));setElText('sl-reach-hint',t('reach_hint'));
-  setElText('sl-sret-label',t('shorts_ret_label'));setElText('sl-sint-label',t('interested_label'));
-  setElText('sl-swipe-label',t('swiped_pct_label'));setElText('sl-sviews-label',t('views_label'));setElText('sl-sreach-hint',t('reach_hint'));
-  if(newSimType==='long'){document.getElementById('nslv-ctr').textContent=parseFloat(document.getElementById('nsli-ctr').value).toFixed(1)+'%';document.getElementById('nslv-ret').textContent=document.getElementById('nsli-ret').value+'%';document.getElementById('nslv-tempo').textContent=fmt(parseFloat(document.getElementById('nsli-tempo').value));}
-  else{const sv=parseInt(document.getElementById('nsli-sret').value);document.getElementById('nslv-sret').textContent=sv>=200?'200%+':sv+'%';document.getElementById('nslv-sint').textContent=document.getElementById('nsli-sint').value+'%';document.getElementById('nslv-swipe').textContent=document.getElementById('nsli-swipe').value+'%';document.getElementById('nslv-swave').textContent=fmt(parseFloat(document.getElementById('nsli-swave').value));}
+
+let _onPinSuccess = null;
+let _pinUser = null;
+let _pinInput = '';
+
+function checkUserAccess(user, onSuccess) {
+  if (!user || !user.email) {
+    onSuccess();
+    return;
+  }
+  const pin = localStorage.getItem('ytm_pin_' + user.email);
+  if (pin) {
+    _onPinSuccess = onSuccess;
+    _pinUser = user;
+    _pinInput = '';
+    
+    // Hide other screens
+    document.getElementById('landing-screen').style.display = 'none';
+    document.getElementById('channel-select-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'none';
+    
+    // Show PIN screen
+    document.getElementById('pin-lock-email').textContent = user.email;
+    document.getElementById('pin-lock-screen').style.display = 'flex';
+    document.getElementById('pin-lock-error').textContent = '';
+    
+    updatePinDots();
+  } else {
+    onSuccess();
+  }
 }
-function onNewSimChange(){
-  syncNewSimLabels();const type=newSimType;let lines=[];
-  if(type==='long'){const ctr=parseFloat(document.getElementById('nsli-ctr').value)||5,ret=parseFloat(document.getElementById('nsli-ret').value)||50,views=parseFloat(document.getElementById('nsli-tempo').value)||10000;lines=['📹 <span style="color:var(--muted)">Type:</span> Long-form','🎯 <span style="color:var(--muted)">CTR:</span> <span style="color:var(--accent)">'+ctr.toFixed(1)+'%</span>','⏱ <span style="color:var(--muted)">'+t('retention_label')+':</span> <span style="color:var(--accent2)">'+ret+'%</span>','👁 <span style="color:var(--muted)">'+t('views_label')+':</span> <span style="color:var(--text)">'+fmt(views)+'</span>'];}
-  else{const sret=parseInt(document.getElementById('nsli-sret').value)||80,sint=parseFloat(document.getElementById('nsli-sint').value)||50,swipe=parseFloat(document.getElementById('nsli-swipe').value)||30,swave=parseFloat(document.getElementById('nsli-swave').value)||50000;lines=['⚡ <span style="color:var(--muted)">Type:</span> Shorts','🔄 <span style="color:var(--muted)">'+t('shorts_ret_label')+':</span> <span style="color:var(--accent)">'+(sret>=200?'200%+':sret+'%')+'</span>','👁 <span style="color:var(--muted)">'+t('watched_pct')+':</span> <span style="color:var(--accent2)">'+sint+'%</span>','↕ <span style="color:var(--muted)">'+t('swiped_pct')+':</span> <span style="color:var(--red)">'+swipe+'%</span>','📊 <span style="color:var(--muted)">'+t('views_label')+':</span> <span style="color:var(--text)">'+fmt(swave)+'</span>'];}
-  document.getElementById('new-sim-result-content').innerHTML=lines.join('<br>');
+
+function pressPinKey(key) {
+  const errMsg = document.getElementById('pin-lock-error');
+  if (errMsg) errMsg.textContent = '';
+  
+  if (key === 'clear') {
+    _pinInput = '';
+    updatePinDots();
+    return;
+  }
+  if (key === 'backspace') {
+    if (_pinInput.length > 0) {
+      _pinInput = _pinInput.slice(0, -1);
+    }
+    updatePinDots();
+    return;
+  }
+  
+  if (_pinInput.length < 4) {
+    _pinInput += key;
+    updatePinDots();
+    
+    if (_pinInput.length === 4) {
+      const correctPin = localStorage.getItem('ytm_pin_' + _pinUser.email);
+      if (_pinInput === correctPin) {
+        document.getElementById('pin-lock-screen').style.display = 'none';
+        const next = _onPinSuccess;
+        _onPinSuccess = null;
+        _pinUser = null;
+        _pinInput = '';
+        if (next) next();
+      } else {
+        if (errMsg) errMsg.textContent = t('pin_wrong');
+        // Clear input after a short delay so user sees 4 dots filled
+        setTimeout(function() {
+          _pinInput = '';
+          updatePinDots();
+        }, 300);
+      }
+    }
+  }
+}
+
+function updatePinDots() {
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById('pin-dot-' + i);
+    if (dot) {
+      if (i <= _pinInput.length) {
+        dot.style.background = 'var(--accent)';
+        dot.style.borderColor = 'var(--accent)';
+      } else {
+        dot.style.background = 'transparent';
+        dot.style.borderColor = 'var(--border)';
+      }
+    }
+  }
+}
+
+function logoutFromPinScreen(){
+  clearToken();clearUser();clearChatHistory();_isAdmin=false;
+  const navAdmin=document.getElementById('nav-admin');if(navAdmin)navAdmin.style.display='none';
+  apiFetch('/api/auth/logout',{method:'POST'}).catch(function(){});
+  document.getElementById('pin-lock-screen').style.display='none';
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('channel-select-screen').style.display='none';
+  document.getElementById('landing-screen').style.display='flex';
+  window.scrollTo(0,0);
+}
+
+function updatePinStatusBadge() {
+  const badge = document.getElementById('pin-status-badge');
+  const btn = document.getElementById('pin-control-btn-text');
+  if (!badge || !btn) return;
+  
+  const hasPin = _currentUser && _currentUser.email && localStorage.getItem('ytm_pin_' + _currentUser.email);
+  if (hasPin) {
+    badge.textContent = t('pin_status_on');
+    badge.style.color = 'var(--green)';
+    badge.style.borderColor = 'rgba(46,204,113,.3)';
+    badge.style.background = 'rgba(46,204,113,.06)';
+    btn.textContent = _currentLang === 'en' ? 'Manage' : 'Настроить';
+  } else {
+    badge.textContent = t('pin_status_off');
+    badge.style.color = 'var(--muted)';
+    badge.style.borderColor = 'var(--border)';
+    badge.style.background = 'var(--input-bg)';
+    btn.textContent = _currentLang === 'en' ? 'Enable' : 'Включить';
+  }
+}
+
+function openPinSetupModal() {
+  if (!_currentUser || !_currentUser.email) return;
+  const hasPin = localStorage.getItem('ytm_pin_' + _currentUser.email);
+  const err = document.getElementById('pin-setup-error');
+  if (err) err.textContent = '';
+  
+  if (hasPin) {
+    document.getElementById('pin-form-create').style.display = 'none';
+    document.getElementById('pin-form-manage').style.display = 'flex';
+    document.getElementById('pin-setup-current').value = '';
+    document.getElementById('pin-setup-change1').value = '';
+    document.getElementById('pin-setup-change2').value = '';
+  } else {
+    document.getElementById('pin-form-create').style.display = 'flex';
+    document.getElementById('pin-form-manage').style.display = 'none';
+    document.getElementById('pin-setup-new1').value = '';
+    document.getElementById('pin-setup-new2').value = '';
+  }
+  openModal('pin-setup-modal');
+}
+
+function saveNewPin() {
+  const err = document.getElementById('pin-setup-error');
+  if (err) err.textContent = '';
+  
+  const val1 = document.getElementById('pin-setup-new1').value;
+  const val2 = document.getElementById('pin-setup-new2').value;
+  
+  if (val1 !== val2) {
+    if (err) err.textContent = t('pin_error_mismatch');
+    return;
+  }
+  if (!/^\d{4}$/.test(val1)) {
+    if (err) err.textContent = t('pin_error_4digit');
+    return;
+  }
+  
+  localStorage.setItem('ytm_pin_' + _currentUser.email, val1);
+  updatePinStatusBadge();
+  closeModal('pin-setup-modal');
+}
+
+function disableCurrentPin() {
+  const err = document.getElementById('pin-setup-error');
+  if (err) err.textContent = '';
+  
+  const cur = document.getElementById('pin-setup-current').value;
+  const correct = localStorage.getItem('ytm_pin_' + _currentUser.email);
+  
+  if (cur !== correct) {
+    if (err) err.textContent = t('pin_error_current_wrong');
+    return;
+  }
+  
+  localStorage.removeItem('ytm_pin_' + _currentUser.email);
+  updatePinStatusBadge();
+  closeModal('pin-setup-modal');
+}
+
+function changeCurrentPin() {
+  const err = document.getElementById('pin-setup-error');
+  if (err) err.textContent = '';
+  
+  const cur = document.getElementById('pin-setup-current').value;
+  const correct = localStorage.getItem('ytm_pin_' + _currentUser.email);
+  
+  if (cur !== correct) {
+    if (err) err.textContent = t('pin_error_current_wrong');
+    return;
+  }
+  
+  const val1 = document.getElementById('pin-setup-change1').value;
+  const val2 = document.getElementById('pin-setup-change2').value;
+  
+  if (!val1) {
+    localStorage.removeItem('ytm_pin_' + _currentUser.email);
+    updatePinStatusBadge();
+    closeModal('pin-setup-modal');
+    return;
+  }
+  
+  if (val1 !== val2) {
+    if (err) err.textContent = t('pin_error_mismatch');
+    return;
+  }
+  if (!/^\d{4}$/.test(val1)) {
+    if (err) err.textContent = t('pin_error_4digit');
+    return;
+  }
+  
+  localStorage.setItem('ytm_pin_' + _currentUser.email, val1);
+  updatePinStatusBadge();
+  closeModal('pin-setup-modal');
 }
 
 function calcShortRet(){
@@ -3391,7 +3571,7 @@ function showDashboard(channelData){
   const avatarEl=document.getElementById('user-avatar-placeholder');
   if(avatarUrl){const img=document.createElement('img');img.src=avatarUrl;img.className='user-avatar';img.alt='';img.onerror=function(){img.style.display='none';};if(avatarEl.tagName==='DIV')avatarEl.replaceWith(img);else avatarEl.src=avatarUrl;}
   else{avatarEl.textContent=(channelData.channel_name||channelData.email||'Y')[0].toUpperCase();}
-  fetchAndRenderLimits();loadChatHistory();loadDisplayFormat();initInstallTab();
+  fetchAndRenderLimits();loadChatHistory();updatePinStatusBadge();initInstallTab();
   _realVideos=[];
   const ctxBtn=document.getElementById('send-video-context-btn');if(ctxBtn)ctxBtn.style.display='none';
   const badge=document.getElementById('context-sent-badge');if(badge)badge.style.display='none';
@@ -3413,7 +3593,7 @@ document.querySelectorAll('.nav-item').forEach(function(item){
     if(tab==='news')loadNews();
     if(tab==='install')initInstallTab();
     if(tab==='admin'&&_isAdmin){loadAdminUsers();loadAdminNotifications();}
-    if(tab==='settings'){loadDisplayFormat();}
+    if(tab==='settings'){updatePinStatusBadge();}
   });
 });
 
@@ -3484,7 +3664,18 @@ async function handleInitAuthMeResponse(res) {
       const res=await apiFetch('/api/auth/me');
       const handled = await handleInitAuthMeResponse(res);
       if(handled) return;
-      if(res.ok){const user=await res.json();if(user.fresh_token)saveToken(user.fresh_token);if(user.is_admin)enableAdminMode();if(user.channels&&user.channels.length>1){saveUser(user);showChannelSelect(user);}else showDashboard(user);return;}
+      if(res.ok){
+        const user=await res.json();
+        if(user.fresh_token)saveToken(user.fresh_token);
+        if(user.is_admin)enableAdminMode();
+        if(user.channels&&user.channels.length>1){
+          saveUser(user);
+          checkUserAccess(user, function(){ showChannelSelect(user); });
+        }else{
+          checkUserAccess(user, function(){ showDashboard(user); });
+        }
+        return;
+      }
     }catch(e){}
     clearToken();
     document.getElementById('landing-screen').style.display='flex';
@@ -3492,8 +3683,11 @@ async function handleInitAuthMeResponse(res) {
   }
   const cached=getUser();
   if(cached&&(cached.email||cached.channel_id)){
-    if(cached.channels&&cached.channels.length>1&&!cached.channel_id)showChannelSelect(cached);
-    else showDashboard(cached);
+    if(cached.channels&&cached.channels.length>1&&!cached.channel_id) {
+      checkUserAccess(cached, function(){ showChannelSelect(cached); });
+    } else {
+      checkUserAccess(cached, function(){ showDashboard(cached); });
+    }
     apiFetch('/api/auth/me').then(async function(r){
       const handled = await handleInitAuthMeResponse(r);
       if(handled) return;
@@ -3505,7 +3699,18 @@ async function handleInitAuthMeResponse(res) {
     const res=await apiFetch('/api/auth/me');
     const handled = await handleInitAuthMeResponse(res);
     if(handled) return;
-    if(res.ok){const user=await res.json();if(user.fresh_token)saveToken(user.fresh_token);if(user.is_admin)enableAdminMode();if(user.channels&&user.channels.length>1){saveUser(user);showChannelSelect(user);}else showDashboard(user);return;}
+    if(res.ok){
+      const user=await res.json();
+      if(user.fresh_token)saveToken(user.fresh_token);
+      if(user.is_admin)enableAdminMode();
+      if(user.channels&&user.channels.length>1){
+        saveUser(user);
+        checkUserAccess(user, function(){ showChannelSelect(user); });
+      }else{
+        checkUserAccess(user, function(){ showDashboard(user); });
+      }
+      return;
+    }
   }catch(e){}
   document.getElementById('landing-screen').style.display='flex';
 })();
