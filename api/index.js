@@ -323,7 +323,7 @@ async function moderateVideoContent(video, channelName, userEmail, userId) {
 const app = express();
 app.use(express.json({ limit:'5mb' }));
 app.use(cors({
-  origin:['https://jakjuk523.github.io','https://nightsightr.github.io','http://localhost:3000','http://127.0.0.1:5500'],
+  origin:['https://ytmetricsproject-collab.github.io','https://jakjuk523.github.io','https://nightsightr.github.io','http://localhost:3000','http://127.0.0.1:5500'],
   credentials:true, methods:['GET','POST','PUT','DELETE','OPTIONS'], allowedHeaders:['Content-Type','Authorization'],
 }));
 
