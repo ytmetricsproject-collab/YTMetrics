@@ -3729,8 +3729,11 @@ async function handleInitAuthMeResponse(res) {
 }
 
 (async function init(){
+  console.log('YTMetrics init: starting...');
   loadTheme();
+  console.log('YTMetrics init: theme loaded');
   loadLanguage();
+  console.log('YTMetrics init: language loaded');
   document.getElementById('dashboard').style.display='none';
   document.getElementById('channel-select-screen').style.display='none';
 
@@ -3764,13 +3767,16 @@ async function handleInitAuthMeResponse(res) {
     });
   }
 
+  console.log('YTMetrics init: checking token in URL');
   const urlResult=checkTokenInURL();
+  console.log('YTMetrics init: urlResult =', urlResult);
   if(urlResult&&urlResult.banned){
     document.getElementById('landing-screen').style.display='none';
     document.getElementById('ban-screen').style.display='flex';return;
   }
   if(urlResult&&urlResult.token){
     try{
+      console.log('YTMetrics init: fetching /api/auth/me for url token');
       const res=await apiFetch('/api/auth/me');
       const handled = await handleInitAuthMeResponse(res);
       if(handled) return;
@@ -3786,12 +3792,15 @@ async function handleInitAuthMeResponse(res) {
         }
         return;
       }
-    }catch(e){}
+    }catch(e){
+      console.error('YTMetrics init: url token fetch failed', e);
+    }
     clearToken();
     document.getElementById('landing-screen').style.display='flex';
     return;
   }
   const cached=getUser();
+  console.log('YTMetrics init: cached user =', cached);
   if(cached&&(cached.email||cached.channel_id)){
     if(cached.channels&&cached.channels.length>1&&!cached.channel_id) {
       checkUserAccess(cached, function(){ showChannelSelect(cached); });
@@ -3806,8 +3815,11 @@ async function handleInitAuthMeResponse(res) {
     return;
   }
   try{
+    console.log('YTMetrics init: fetching /api/auth/me (no cached user)');
     const res=await apiFetch('/api/auth/me');
+    console.log('YTMetrics init: /api/auth/me response status =', res.status);
     const handled = await handleInitAuthMeResponse(res);
+    console.log('YTMetrics init: handled =', handled);
     if(handled) return;
     if(res.ok){
       const user=await res.json();
@@ -3821,7 +3833,10 @@ async function handleInitAuthMeResponse(res) {
       }
       return;
     }
-  }catch(e){}
+  }catch(e){
+    console.error('YTMetrics init: /api/auth/me fetch failed', e);
+  }
+  console.log('YTMetrics init: showing landing-screen');
   document.getElementById('landing-screen').style.display='flex';
 })();
 </script>
