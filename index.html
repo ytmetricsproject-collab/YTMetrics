@@ -1558,8 +1558,8 @@ async function triggerInstall(){
       :'Для установки на Android:\n1. Нажмите на три точки (меню) в углу Chrome.\n2. Выберите «Установить приложение» или «Добавить на главный экран».';
   }else{
     msg=lang==='en'
-      ?'To install as app:\n1. Open this website in Google Chrome or Edge.\n2. Click the install icon ⊕ in the address bar (or select "Install YTMetrics" in the browser menu).'
-      :'Для установки как приложение:\n1. Откройте этот сайт в браузере Google Chrome или Microsoft Edge.\n2. Нажмите на иконку установки ⊕ в адресной строке (или выберите «Установить YTMetrics» в меню браузера).';
+      ?'YTMetrics is a Progressive Web App (PWA) and installs directly through your browser (no installer file like .exe/.dmg needed):\n\n1. Click the install icon ⊕ in the Chrome address bar.\n2. Or open the browser menu (three dots) and select "Install YTMetrics".'
+      :'YTMetrics — это PWA-приложение, оно устанавливается мгновенно прямо через браузер (скачивать установочный файл .exe или .dmg не требуется):\n\n1. Нажмите на иконку установки ⊕ в правой части адресной строки браузера.\n2. Либо откройте меню браузера (три точки) и выберите «Установить YTMetrics».';
   }
   alert(msg);
 }
@@ -3734,6 +3734,13 @@ async function handleInitAuthMeResponse(res) {
   console.log('YTMetrics init: theme loaded');
   loadLanguage();
   console.log('YTMetrics init: language loaded');
+  
+  // Скрываем кнопку скачивания в боковом меню, если открыто внутри установленного приложения
+  if(isRunningAsInstalledApp()){
+    const installNav = document.querySelector('[data-tab="install"]');
+    if(installNav) installNav.style.display = 'none';
+  }
+  
   document.getElementById('dashboard').style.display='none';
   document.getElementById('channel-select-screen').style.display='none';
 
