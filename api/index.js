@@ -18,7 +18,7 @@ const ADMIN_DAILY_LIMIT    = 250;
 const FEEDBACK_DAILY_LIMIT = 2;
 
 // Главный (suprem) администратор — единственный, кто может управлять правами других админов
-const SUPREME_ADMIN_EMAIL  = 'isa.murad.ibaanah@gmail.com';
+const SUPREME_ADMIN_EMAIL  = 'ytmetrics.project@gmail.com';
 
 const ALL_PERMISSIONS = {
   read_notifications: true,
