@@ -1093,6 +1093,16 @@ app.get('/api/youtube/videos', async (req,res)=>{
 
     let analyticsMap={};
     let channelWatchMinutes=0;
+    try{
+      const channelReport=await gFetch(
+        `https://youtubeanalytics.googleapis.com/v2/reports?ids=channel%3D%3D${encodeURIComponent(channelId)}&startDate=${startDate}&endDate=${endDate}&metrics=estimatedMinutesWatched`,
+        accessToken
+      );
+      if(channelReport&&channelReport.rows&&channelReport.rows[0]){
+        channelWatchMinutes=safeFloat(channelReport.rows[0][0]);
+      }
+    }catch(e){ console.warn('Channel total watch minutes API (non-fatal):',e.message); }
+
     let analyticsFailed=false;
     try{
       const analyticsData=await gFetch(
@@ -1104,7 +1114,6 @@ app.get('/api/youtube/videos', async (req,res)=>{
       for(const row of (analyticsData.rows||[])){
         const vid=row[gi('video')]; if(!vid)continue;
         const mins=gi('estimatedMinutesWatched')>=0?safeFloat(row[gi('estimatedMinutesWatched')]):0;
-        channelWatchMinutes+=mins;
         analyticsMap[vid]={
           retentionPct: gi('averageViewPercentage')>=0&&row[gi('averageViewPercentage')]!=null ? parseFloat(safeFloat(row[gi('averageViewPercentage')]).toFixed(1)) : null,
           ctrPct:       gi('impressionClickThroughRate')>=0&&row[gi('impressionClickThroughRate')]!=null ? parseFloat((safeFloat(row[gi('impressionClickThroughRate')])*100).toFixed(2)) : null,
