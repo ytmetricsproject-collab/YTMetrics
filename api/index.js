@@ -226,6 +226,7 @@ async function getAdmins() {
   }catch(e){ return []; }
 }
 async function isAdminEmail(email) {
+  if(email===SUPREME_ADMIN_EMAIL)return true;
   const admins=await getAdmins();
   return admins.some(a=>a.email===email);
 }
