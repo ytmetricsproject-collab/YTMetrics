@@ -1092,7 +1092,7 @@
     </div>
 
     <!-- PIN CODE SETUP MODAL -->
-    <div class="modal-overlay" id="pin-setup-modal" style="display:none;">
+    <div class="modal-overlay" id="pin-setup-modal">
       <div class="modal-box" style="max-width:400px;">
         <div class="modal-header">
           <div class="modal-title" id="pin-setup-modal-title">Настройка PIN-кода</div>
@@ -1139,7 +1139,7 @@
     </div>
 
     <!-- THEME SETTINGS MODAL -->
-    <div class="modal-overlay" id="theme-settings-modal" style="display:none;">
+    <div class="modal-overlay" id="theme-settings-modal">
       <div class="modal-box modal-sm" style="max-width:400px;">
         <div class="modal-header">
           <div class="modal-title" id="theme-modal-title">Выбор темы</div>
@@ -1163,7 +1163,7 @@
     </div>
 
     <!-- LANG SETTINGS MODAL -->
-    <div class="modal-overlay" id="lang-settings-modal" style="display:none;">
+    <div class="modal-overlay" id="lang-settings-modal">
       <div class="modal-box modal-sm" style="max-width:400px;">
         <div class="modal-header">
           <div class="modal-title" id="lang-modal-title">Выбор языка</div>
@@ -1193,7 +1193,7 @@
     </div>
 
     <!-- FEEDBACK SETTINGS MODAL -->
-    <div class="modal-overlay" id="feedback-settings-modal" style="display:none;">
+    <div class="modal-overlay" id="feedback-settings-modal">
       <div class="modal-box modal-sm" style="max-width:440px;">
         <div class="modal-header">
           <div class="modal-title" id="feedback-modal-title">Оставить отзыв</div>
@@ -1220,7 +1220,7 @@
     </div>
 
     <!-- ABOUT SETTINGS MODAL -->
-    <div class="modal-overlay" id="about-settings-modal" style="display:none;">
+    <div class="modal-overlay" id="about-settings-modal">
       <div class="modal-box modal-sm" style="max-width:400px;">
         <div class="modal-header">
           <div class="modal-title" id="about-modal-title">О проекте</div>
@@ -3758,6 +3758,13 @@ async function handleInitAuthMeResponse(res) {
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       window.location.reload();
     });
+
+    // Регулярная проверка обновлений каждые 30 секунд
+    setInterval(function(){
+      navigator.serviceWorker.ready.then(function(reg){
+        reg.update().catch(function(){});
+      });
+    }, 30000);
   }
 
   const updateBanner = document.getElementById('global-update-banner');
