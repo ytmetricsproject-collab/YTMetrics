@@ -3680,6 +3680,13 @@ function noDataReasonText(reason){
 }
 
 async function loadRealVideos(user){
+  if (!user || !user.channel_id) {
+    document.getElementById('stats-loading').style.display='none';
+    document.getElementById('stats-error').style.display='none';
+    document.getElementById('stats-video-grid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px 0;font-family:\'DM Mono\',monospace;font-size:13px;color:var(--muted)">'+t('no_videos')+'</div>';
+    _realVideos=[];
+    return;
+  }
   const cacheKey = 'ytmetrics_videos_' + (user.channel_id || user.email || 'default');
   let hasCached = false;
   
