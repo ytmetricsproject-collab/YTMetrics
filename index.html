@@ -17,7 +17,7 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
     :root,[data-theme="dark"]{
       --bg:#080c10;--surface:#0e1318;--border:#1a2230;
@@ -638,21 +638,119 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+/* Toast styles */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+.toast-message {
+  background: rgba(39, 174, 96, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(57, 255, 154, 0.3);
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 8px 32px rgba(39, 174, 96, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transform: translateY(100px);
+  opacity: 0;
+  animation: toast-fade-in 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+             toast-fade-out 0.35s ease forwards 2.65s;
+  pointer-events: auto;
+}
+@keyframes toast-fade-in {
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes toast-fade-out {
+  to { transform: translateY(-20px); opacity: 0; }
+}
+@media (max-width: 480px) {
+  .toast-container {
+    right: 16px;
+    left: 16px;
+    bottom: 16px;
+    align-items: center;
+  }
+  .toast-message {
+    width: 100%;
+    justify-content: center;
+  }
+}
+/* RTL & Arabic styles */
+[dir="rtl"] {
+  text-align: right;
+}
+[dir="rtl"] body, [dir="rtl"] button, [dir="rtl"] input, [dir="rtl"] textarea {
+  font-family: 'Cairo', 'Syne', sans-serif;
+}
+[dir="rtl"] #sidebar {
+  border-right: none;
+  border-left: 1px solid var(--border);
+}
+[dir="rtl"] .sidebar-logo {
+  padding: 0 24px 28px;
+}
+[dir="rtl"] .nav-badge {
+  right: auto;
+  left: 10px;
+}
+[dir="rtl"] .toast-container {
+  right: auto;
+  left: 24px;
+}
+[dir="rtl"] .page-header {
+  text-align: right;
+}
+[dir="rtl"] .ban-appeal-label {
+  text-align: right;
+}
+[dir="rtl"] .rules-section {
+  text-align: right;
+}
+[dir="rtl"] .hero-description {
+  text-align: right;
+}
+[dir="rtl"] .purpose-permissions {
+  text-align: right;
+}
+[dir="rtl"] .perm-item {
+  direction: rtl;
+}
+[dir="rtl"] .video-item-badge {
+  margin-left: 0;
+  margin-right: auto;
+}
+[dir="rtl"] .video-item span, [dir="rtl"] .video-item-icon {
+  margin-right: 0 !important;
+  margin-left: 8px !important;
+}
 </style>
 
 <!-- UPDATE MODAL (Overlay) -->
 <div class="modal-overlay" id="update-modal">
   <div class="modal-box modal-sm" style="border-color: var(--accent);">
     <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
-      <div class="modal-title" style="font-size: 18px; color: var(--accent);">✨ Новая версия готова!</div>
+      <div class="modal-title" id="update-modal-title" style="font-size: 18px; color: var(--accent);">✨ Новая версия готова!</div>
       <button class="modal-close" onclick="closeModal('update-modal')">✕</button>
     </div>
     <div class="modal-body" style="padding-top: 14px;">
-      <p style="font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 20px;">
+      <p id="update-modal-desc" style="font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 20px;">
         Мы добавили новые функции, улучшили панель администрирования (разделение сообщений и нарушений) и повысили производительность приложения.<br><br>
-        Размер обновления: <strong>12.4 MB</strong>
+        <span id="update-size-text">Размер обновления:</span> <strong>12.4 MB</strong>
       </p>
-      <button class="btn-cta-main" style="width: 100%; justify-content: center; height: auto;" onclick="startAppUpdate()">Установить обновление</button>
+      <button class="btn-cta-main" id="update-btn-text" style="width: 100%; justify-content: center; height: auto;" onclick="startAppUpdate()">Установить обновление</button>
     </div>
   </div>
 </div>
@@ -691,7 +789,7 @@
 <div id="warning-screen" style="display:none">
   <div class="ban-card" style="border-color: rgba(255,159,71,.3);">
     <div class="ban-icon">⚠️</div>
-    <div class="ban-title" style="color: var(--orange);">Вы нарушили правила!</div>
+    <div class="ban-title" id="warning-title-el" style="color: var(--orange);">Вы нарушили правила!</div>
     <div class="ban-text" id="warning-reason-text" style="background: rgba(255,159,71,.04); border: 1px dashed rgba(255,159,71,.2); padding: 16px; border-radius: 10px; margin-bottom: 24px; font-family: 'DM Mono', monospace; font-size: 13px;">Причина жалобы</div>
     <button class="ban-btn" style="background: var(--orange);" id="clear-warning-btn" onclick="clearUserWarning()">Я больше не буду нарушать правила, и удалю нарушающий правила контент</button>
   </div>
@@ -742,7 +840,7 @@
     <button class="btn-analyze" onclick="startLogin()"><span>📈</span> <span id="nav-login-btn-text">Сделать анализ</span></button>
   </nav>
   <section class="landing-hero">
-    <div class="hero-badge">✦ YouTube Analytics · ИИ-аналитика · 2026</div>
+    <div class="hero-badge" id="hero-badge-el">✦ YouTube Analytics · ИИ-аналитика · 2026</div>
     <h1 class="hero-title" id="hero-title-el">Аналитика YouTube<br>на уровне <span>профессионала</span></h1>
     <p class="hero-sub" id="hero-sub-el">Просмотры, удержание, CTR, свайпы Shorts — все метрики вашего канала в одном месте.</p>
     <div class="hero-description">
@@ -869,7 +967,7 @@
         <div class="type-filter" style="margin-bottom:0">
           <button class="type-tab active" data-type="all" onclick="setStatsFilter('all')" id="filter-all-btn">📋 Все</button>
           <button class="type-tab" data-type="long" onclick="setStatsFilter('long')" id="filter-long-btn">📹 Видео</button>
-          <button class="type-tab" data-type="short" onclick="setStatsFilter('short')">⚡ Shorts</button>
+          <button class="type-tab" id="filter-shorts-btn" data-type="short" onclick="setStatsFilter('short')">⚡ Shorts</button>
         </div>
       </div>
       <div id="stats-loading" style="display:none;text-align:center;padding:60px 0">
@@ -891,7 +989,7 @@
         <div class="type-filter">
           <button class="type-tab active" data-ftype="all" onclick="setForecastFilter('all')" id="fc-filter-all-btn">📋 Все</button>
           <button class="type-tab" data-ftype="long" onclick="setForecastFilter('long')" id="fc-filter-long-btn">📹 Видео</button>
-          <button class="type-tab" data-ftype="short" onclick="setForecastFilter('short')">⚡ Shorts</button>
+          <button class="type-tab" id="fc-filter-shorts-btn" data-ftype="short" onclick="setForecastFilter('short')">⚡ Shorts</button>
         </div>
         <div id="forecast-video-container"></div>
       </div>
@@ -1186,6 +1284,12 @@
             <span style="font-size:20px; margin-right:8px;">🇬🇧</span>
             <div class="video-item-info">
               <div class="video-item-title">English</div>
+            </div>
+          </div>
+          <div class="video-item" id="lang-ar" onclick="setLanguageAndClose('ar')" style="padding:12px 16px;">
+            <span style="font-size:20px; margin-right:8px;">🇸🇦</span>
+            <div class="video-item-info">
+              <div class="video-item-title">العربية</div>
             </div>
           </div>
         </div>
@@ -1542,24 +1646,15 @@ async function triggerInstall(){
   }
   
   const platform=detectPlatformForInstall();
-  const lang=_currentLang;
   let msg='';
   if(platform==='safari-ios'){
-    msg=lang==='en'
-      ?'To install on iPhone/iPad:\n1. Tap the "Share" button (square with arrow up) in Safari.\n2. Select "Add to Home Screen".'
-      :'Для установки на iPhone/iPad:\n1. Нажмите кнопку «Поделиться» (квадрат со стрелкой вверх) в нижней панели Safari.\n2. Выберите «На экран «Домой»».';
+    msg=t('install_safari_ios');
   }else if(platform==='safari-mac'){
-    msg=lang==='en'
-      ?'To install on Mac Safari:\n1. Open the "File" menu at the top.\n2. Select "Add to Dock".'
-      :'Для установки в Safari на Mac:\n1. Откройте меню «Файл» в верхней панели Safari.\n2. Выберите «Добавить в Dock».';
+    msg=t('install_safari_mac');
   }else if(platform==='android'){
-    msg=lang==='en'
-      ?'To install on Android:\n1. Tap the three dots menu button in Chrome.\n2. Select "Install app" or "Add to Home screen".'
-      :'Для установки на Android:\n1. Нажмите на три точки (меню) в углу Chrome.\n2. Выберите «Установить приложение» или «Добавить на главный экран».';
+    msg=t('install_android');
   }else{
-    msg=lang==='en'
-      ?'YTMetrics is a Progressive Web App (PWA) and installs directly through your browser (no installer file like .exe/.dmg needed):\n\n1. Click the install icon ⊕ in the Chrome address bar.\n2. Or open the browser menu (three dots) and select "Install YTMetrics".'
-      :'YTMetrics — это PWA-приложение, оно устанавливается мгновенно прямо через браузер (скачивать установочный файл .exe или .dmg не требуется):\n\n1. Нажмите на иконку установки ⊕ в правой части адресной строки браузера.\n2. Либо откройте меню браузера (три точки) и выберите «Установить YTMetrics».';
+    msg=t('install_other');
   }
   alert(msg);
 }
@@ -1650,6 +1745,10 @@ const T={
     install_hero_title:'Установите YTMetrics на устройство',
     install_hero_sub:'Запускайте YTMetrics прямо с рабочего стола или главного экрана — без браузера, быстрее и удобнее, как обычное приложение.',
     install_btn_text:'Установить приложение',
+    install_safari_ios:'Для установки на iPhone/iPad:\n1. Нажмите кнопку «Поделиться» (квадрат со стрелкой вверх) в нижней панели Safari.\n2. Выберите «На экран «Домой»».',
+    install_safari_mac:'Для установки в Safari на Mac:\n1. Откройте меню «Файл» в верхней панели Safari.\n2. Выберите «Добавить в Dock».',
+    install_android:'Для установки на Android:\n1. Нажмите на три точки (меню) в углу Chrome.\n2. Выберите «Установить приложение» или «Добавить на главный экран».',
+    install_other:'YTMetrics — это PWA-приложение, оно устанавливается мгновенно прямо через браузер (скачивать установочный файл .exe или .dmg не требуется):\n\n1. Нажмите на иконку установки ⊕ в правой части адресной строки браузера.\n2. Либо откройте меню браузера (три точки) и выберите «Установить YTMetrics».',
     already_installed_title:'Приложение уже установлено',
     already_installed_sub:'Вы используете YTMetrics как приложение прямо сейчас.',
     step1_title:'Нажмите установить', step1_text:'Кнопка выше или меню браузера предложит установить приложение.',
@@ -1733,6 +1832,121 @@ const T={
     perms_saved:'Права сохранены!', all_perms_granted:'Переданы ВСЕ права!',
     grant_all_confirm:'Передать ВСЕ права этому администратору без ограничений?',
     manage_perms_btn:'🔐 Права',
+    hero_badge_val:'✦ YouTube Analytics · ИИ-аналитика · 2026',
+    hero_title:'Аналитика YouTube<br>на уровне <span>профессионала</span>',
+    hero_sub:'Просмотры, удержание, CTR, свайпы Shorts — все метрики вашего канала в одном месте.',
+    hero_desc_title:'Что делает YTMetrics:',
+    hero_desc_body:'YTMetrics — аналитический инструмент для авторов YouTube-контента. Подключается к вашему каналу через безопасную авторизацию. Мы запрашиваем доступ только для чтения.',
+    rules_title:'Правила платформы YTMetrics',
+    rule1:'Запрещено использование нецензурной лексики в названиях и описаниях канала.',
+    rule2:'Запрещена публикация оскорбительного или дискриминационного контента.',
+    rule3:'Запрещено автоматизированное сбор данных и нарушение условий YouTube/Google.',
+    rule4:'Администрация вправе заблокировать доступ без предупреждения.',
+    rule5:'Используя YTMetrics, вы соглашаетесь с правилами и <span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="showPrivacyPolicy()">Политикой конфиденциальности</span>.',
+    features_label:'Возможности',
+    features_title:'Всё для роста вашего канала',
+    features_sub:'Реальные данные из YouTube Analytics + ИИ-анализ алгоритмов.',
+    f1_title:'Статистика в реальном времени',
+    f1_text:'Просмотры, лайки, комментарии, репосты и удержание по каждому видео.',
+    f2_title:'Аналитика Shorts',
+    f2_text:'Реальный процент свайпов и удержание — именно те метрики, которые смотрит алгоритм.',
+    f3_title:'Чат с ИИ',
+    f3_text:'ИИ-продюсер анализирует метрики и даёт конкретные рекомендации прямо в чате.',
+    f4_title:'Прогноз и симулятор',
+    f4_text:'Задайте CTR и удержание — симулятор покажет прогноз роста.',
+    f5_title:'Калькулятор метрик',
+    f5_text:'Конвертер данных Творческой студии YouTube.',
+    f6_title:'Безопасность данных',
+    f6_text:'Только чтение. Данные не передаются.',
+    purpose_title:'Зачем приложению доступ к YouTube',
+    purpose_text:'YTMetrics использует YouTube Data API v3 и YouTube Analytics API исключительно для получения статистики. Режим только чтение.',
+    perm1_title:'Чтение данных канала',
+    perm1_text:'Список каналов, видео и метаданных.',
+    perm2_title:'Аналитика',
+    perm2_text:'Чтение аналитических данных для дашборда.',
+    perm3_title:'Не публикуем',
+    perm3_text:'Не загружаем видео, не меняем настройки.',
+    perm4_title:'Данные в безопасности',
+    perm4_text:'Не передаются третьим лицам.',
+    warn_title:'Вы нарушили правила!',
+    warn_btn:'Я больше не буду нарушать правила, и удалю нарушающий правила контент',
+    update_available:'✨ Доступно обновление',
+    update_title:'✨ Новая версия готова!',
+    update_desc:'Мы добавили новые функции, улучшили панель администрирования (разделение сообщений и нарушений) и повысили производительность приложения.',
+    update_size:'Размер обновления:',
+    update_btn:'Установить обновление',
+    update_progress_title:'Обновление приложения...',
+    update_progress_desc:'Загрузка ресурсов',
+    update_p1:'Подготовка файлов обновления...',
+    update_p1_sub:'Инициализация загрузки',
+    update_p2:'Загрузка новых ресурсов...',
+    update_p2_sub:'Скачивание пакета обновлений:',
+    update_p3:'Установка обновления...',
+    update_p3_sub:'Замена локальных файлов в кэше',
+    update_p4:'Перезапуск приложения...',
+    update_p4_sub:'Активация новой версии',
+    settings_changed:'Настройки успешно изменены.',
+    theme_light_badge:'Светлая',
+    theme_dark_badge:'Темная',
+    theme_modal_title:'Выбор темы',
+    theme_light:'Светлая тема',
+    theme_dark:'Тёмная тема',
+    about_us_title:'О проекте',
+    about_us_sub:'Информация об авторах и юридические документы',
+    about_modal_title:'О проекте',
+    feedback_modal_title:'Оставить отзыв',
+    feedback_modal_sub:'Расскажите, что вам нравится или что можно улучшить. Лимит: 2 отзыва в 24 часа.',
+    filter_shorts:'Shorts',
+    chat_placeholder:'Спроси про алгоритмы, метрики, стратегию...',
+    feedback_select_rating:'Выберите оценку.',
+    feedback_write_text:'Напишите текст отзыва.',
+    error_try_later:'Ошибка. Попробуйте позже.',
+    network_error:'Ошибка сети.',
+    write_comment_alert:'Напишите комментарий.',
+    ban_data_error:'Ошибка: данные не найдены.',
+    limit_reached:'Дневной лимит исчерпан.',
+    access_blocked:'Доступ заблокирован.',
+    ai_unavailable:'ИИ недоступен.',
+    analyze_prompt_text:'Проанализируй видео моего канала',
+    video_count_format:'видео',
+    unknown:'неизвестно',
+    no_permission_notif:'Нет прав на просмотр уведомлений',
+    file_too_large:'Файл слишком большой (макс. 3MB)',
+    fill_title_content:'Заполните заголовок и текст.',
+    delete_post_confirm:'Удалить эту новость?',
+    delete_comment_confirm:'Удалить комментарий?',
+    no_permission_users:'Нет прав на просмотр пользователей',
+    no_permission:'Нет прав',
+    no_permission_admins:'Нет прав на просмотр админов',
+    banned:'Заблокирован.',
+    admin_rights_removed:'Права сняты.',
+    video_label:'Видео',
+    swipe_label:'Свайп',
+    views_label_short:'просм.',
+    watch_hours_days:'за 30 дней',
+    shorts_retention:'УДЕРЖАНИЕ SHORTS',
+    pct_swiped:'% СВАЙПНУЛИ',
+    audience:'аудитории',
+    analyzing_dots:'Анализирую...',
+    analyzing_algorithms:'Анализирую алгоритмы...',
+    calc_loop:'🔄 Зацикливание',
+    calc_looping:'✅ Досматривают',
+    calc_most:'✓ Большинство',
+    calc_some_leave:'⚠ Часть уходит',
+    calc_watched:'Посмотрело',
+    calc_swiped:'Свайпнуло',
+    calc_alg_promotes:'🚀 Алгоритм продвигает',
+    calc_good:'✓ Хорошо',
+    calc_need_hook:'⚠ Нужен крючок',
+    calc_too_many_swipes:'❌ Много свайпов',
+    calc_high:'🎯 Высокая',
+    calc_more_half:'✓ Больше половины',
+    calc_losing_viewers:'⚠ Теряет зрителей',
+    calc_impressions_val:' показов',
+    calc_excellent_ctr:'🚀 Отличный CTR',
+    calc_good_ctr:'✓ Хороший CTR',
+    calc_average:'⚠ Средний',
+    calc_low_ctr:'❌ Низкий — смените превью'
   },
   en:{
     nav_stats:'Analytics', nav_forecast:'Video Forecast', nav_calc:'Calculator',
@@ -1792,6 +2006,10 @@ const T={
     install_hero_title:'Install YTMetrics on your device',
     install_hero_sub:'Launch YTMetrics right from your desktop or home screen — no browser needed, faster and more convenient, just like a regular app.',
     install_btn_text:'Install App',
+    install_safari_ios:'To install on iPhone/iPad:\n1. Tap the "Share" button (square with arrow up) in Safari.\n2. Select "Add to Home Screen".',
+    install_safari_mac:'To install on Mac Safari:\n1. Open the "File" menu at the top.\n2. Select "Add to Dock".',
+    install_android:'To install on Android:\n1. Tap the three dots menu button in Chrome.\n2. Select "Install app" or "Add to Home screen".',
+    install_other:'YTMetrics is a Progressive Web App (PWA) and installs directly through your browser (no installer file like .exe/.dmg needed):\n\n1. Click the install icon ⊕ in the Chrome address bar.\n2. Or open the browser menu (three dots) and select "Install YTMetrics".',
     already_installed_title:'App already installed',
     already_installed_sub:'You are using YTMetrics as an app right now.',
     step1_title:'Click install', step1_text:'The button above or browser menu will offer to install the app.',
@@ -1875,10 +2093,402 @@ const T={
     perms_saved:'Permissions saved!', all_perms_granted:'ALL permissions granted!',
     grant_all_confirm:'Grant this admin ALL permissions without restriction?',
     manage_perms_btn:'🔐 Permissions',
+    hero_badge_val:'✦ YouTube Analytics · AI Analytics · 2026',
+    hero_title:'YouTube Analytics<br>at a <span>professional</span> level',
+    hero_sub:'Views, retention, CTR, Shorts swipes — all your channel metrics in one place.',
+    hero_desc_title:'What YTMetrics does:',
+    hero_desc_body:'YTMetrics is an analytical tool for YouTube content creators. Connects to your channel via secure authorization. We request read-only access.',
+    rules_title:'YTMetrics Platform Rules',
+    rule1:'Using profanity in channel titles and descriptions is prohibited.',
+    rule2:'Publishing offensive or discriminatory content is prohibited.',
+    rule3:'Automated data collection and violation of YouTube/Google terms are prohibited.',
+    rule4:'The administration reserves the right to block access without warning.',
+    rule5:'By using YTMetrics, you agree to the rules and the <span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="showPrivacyPolicy()">Privacy Policy</span>.',
+    features_label:'Features',
+    features_title:'Everything to grow your channel',
+    features_sub:'Real data from YouTube Analytics + AI algorithm analysis.',
+    f1_title:'Real-time Statistics',
+    f1_text:'Views, likes, comments, shares, and retention for each video.',
+    f2_title:'Shorts Analytics',
+    f2_text:'Real swipe percentage and retention — exactly the metrics the algorithm tracks.',
+    f3_title:'AI Chat',
+    f3_text:'An AI producer analyzes metrics and provides actionable recommendations in chat.',
+    f4_title:'Forecast & Simulator',
+    f4_text:'Set CTR and retention — the simulator will show growth forecast.',
+    f5_title:'Metrics Calculator',
+    f5_text:'YouTube Studio data converter.',
+    f6_title:'Data Security',
+    f6_text:'Read-only access. Data is not shared.',
+    purpose_title:'Why the app needs access to YouTube',
+    purpose_text:'YTMetrics uses YouTube Data API v3 and YouTube Analytics API exclusively to retrieve statistics. Read-only mode.',
+    perm1_title:'Read channel data',
+    perm1_text:'List of channels, videos, and metadata.',
+    perm2_title:'Analytics',
+    perm2_text:'Read analytics data for the dashboard.',
+    perm3_title:'We don\'t publish',
+    perm3_text:'We do not upload videos or change settings.',
+    perm4_title:'Data is safe',
+    perm4_text:'Not shared with third parties.',
+    warn_title:'You have violated the rules!',
+    warn_btn:'I will not violate the rules anymore and will delete the offending content',
+    update_available:'✨ Update available',
+    update_title:'✨ New version ready!',
+    update_desc:'We have added new features, improved the administration panel (separating messages and violations), and enhanced app performance.',
+    update_size:'Update size:',
+    update_btn:'Install update',
+    update_progress_title:'Updating application...',
+    update_progress_desc:'Downloading resources',
+    update_p1:'Preparing update files...',
+    update_p1_sub:'Initializing download',
+    update_p2:'Downloading new resources...',
+    update_p2_sub:'Downloading update package:',
+    update_p3:'Installing update...',
+    update_p3_sub:'Replacing local files in cache',
+    update_p4:'Restarting application...',
+    update_p4_sub:'Activating new version',
+    settings_changed:'Settings changed successfully.',
+    theme_light_badge:'Light',
+    theme_dark_badge:'Dark',
+    theme_modal_title:'Select Theme',
+    theme_light:'Light theme',
+    theme_dark:'Dark theme',
+    about_us_title:'About',
+    about_us_sub:'Author info and legal documents',
+    about_modal_title:'About',
+    feedback_modal_title:'Leave feedback',
+    feedback_modal_sub:'Tell us what you like or what can be improved. Limit: 2 feedback entries in 24 hours.',
+    filter_shorts:'Shorts',
+    chat_placeholder:'Ask about algorithms, metrics, strategy...',
+    feedback_select_rating:'Please select a rating.',
+    feedback_write_text:'Please write your feedback.',
+    error_try_later:'Error. Try later.',
+    network_error:'Network error.',
+    write_comment_alert:'Please write a comment.',
+    ban_data_error:'Error: data not found.',
+    limit_reached:'Daily limit reached.',
+    access_blocked:'Access blocked.',
+    ai_unavailable:'AI unavailable.',
+    analyze_prompt_text:'Analyze my channel videos',
+    video_count_format:'videos',
+    unknown:'unknown',
+    no_permission_notif:'No permission to view notifications',
+    file_too_large:'File too large (max 3MB)',
+    fill_title_content:'Fill in title and content.',
+    delete_post_confirm:'Delete this post?',
+    delete_comment_confirm:'Delete comment?',
+    no_permission_users:'No permission to view users',
+    no_permission:'No permission',
+    no_permission_admins:'No permission to view admins',
+    banned:'Banned.',
+    admin_rights_removed:'Admin rights removed.',
+    video_label:'Video',
+    swipe_label:'Swipe',
+    views_label_short:'views',
+    watch_hours_days:'30 days',
+    shorts_retention:'SHORTS RETENTION',
+    pct_swiped:'% SWIPED',
+    audience:'audience',
+    analyzing_dots:'Analyzing...',
+    analyzing_algorithms:'Analyzing algorithms...',
+    calc_loop:'🔄 Loop',
+    calc_looping:'✅ Looping',
+    calc_most:'✓ Most',
+    calc_some_leave:'⚠ Some leave',
+    calc_watched:'Watched',
+    calc_swiped:'Swiped',
+    calc_alg_promotes:'🚀 Algorithm promotes',
+    calc_good:'✓ Good',
+    calc_need_hook:'⚠ Need a hook',
+    calc_too_many_swipes:'❌ Too many swipes',
+    calc_high:'🎯 High',
+    calc_more_half:'✓ More than half',
+    calc_losing_viewers:'⚠ Losing viewers',
+    calc_impressions_val:' impressions',
+    calc_excellent_ctr:'🚀 Excellent CTR',
+    calc_good_ctr:'✓ Good CTR',
+    calc_average:'Average',
+    calc_low_ctr:'❌ Low — change thumbnail'
+  },
+  ar:{
+    nav_stats:'التحليلات', nav_forecast:'توقعات الفيديو', nav_calc:'الحاسبة',
+    nav_news:'الأخبار', nav_ai:'الدردشة بالذكاء الاصطناعي', nav_install:'تنزيل التطبيق', nav_settings:'الإعدادات',
+    nav_admin:'لوحة المسؤول', nav_logout:'تسجيل الخروج',
+    stats_title:'تحليلات القناة', stats_sub:'اختر مقطع فيديو للتحليل',
+    subs_label:'مشترك', views_total_label:'مشاهدة', hours_label:'ساعة مشاهدة (30 يوم)',
+    filter_all:'الكل', filter_long:'الفيديوهات', loading_videos:'جاري تحميل مقاطع الفيديو من يوتيوب...',
+    stats_error_title:'⚠ فشل تحميل مقاطع الفيديو', no_videos:'لا توجد مقاطع فيديو في القناة.', no_videos_filter:'لا توجد مقاطع فيديو',
+    views:'المشاهدات', likes:'الإعجابات', comments:'التعليقات', shares:'المشاركات',
+    retention:'الاحتفاظ بالجمهور', avg_duration:'متوسط مدة المشاهدة', watch_hours:'ساعات المشاهدة (30 يوم)',
+    total:'الإجمالي', of_views:'من المشاهدات', of_likes:'من الإعجابات', sharing:'مشاركة', channel:'القناة', avg_view:'المعدل',
+    no_data:'لا توجد بيانات', real_data:'بيانات حقيقية', swipe_away:'تخطي بالفيديو', clickthrough:'نسبة النقر إلى الظهور',
+    no_data_low_views:'لا توجد مشاهدات كافية بعد للحصول على إحصاءات تحليلات يوتيوب التفصيلية (تحتاج إلى المزيد من حركة المرور على مدار 30 يومًا).',
+    no_data_insufficient_traffic:'لم يقم يوتيوب بحساب مقاييس الاحتفاظ/CTR التفصيلية بعد. تظهر عادةً خلال 24-48 ساعة بعد النشر بمجرد أن يتجاوز الفيديو 1000 مشاهدة.',
+    swipe_title:'المشاهدة مقابل التخطي', swipe_sub:'الإشارة الرئيسية لخوارزمية Shorts',
+    watched:'👁 تمت المشاهدة', swiped:'↕ تم التخطي',
+    watched_pct:'تمت المشاهدة', swiped_pct:'تم التخطي',
+    forecast_title:'توقعات الفيديو', forecast_sub:'محاكي معلمات الفيديو',
+    sim_new:'محاكاة فيديو جديد', back_btn:'← عودة',
+    new_sim_title:'محاكي الفيديو الجديد', new_sim_sub:'تعيين المعلمات',
+    video_params:'معلمات الفيديو', move_sliders:'حرك أشرطة التمرير',
+    retention_label:'الاحتفاظ', views_label:'المشاهدات', reach_hint:'إجمالي الوصول',
+    shorts_ret_label:'الاحتفاظ بـ Shorts', interested_label:'المهتمون',
+    swiped_pct_label:'٪ تم التخطي',
+    calc_title:'حاسبة المقاييس', calc_sub:'محول بيانات استوديو يوتيوب',
+    calc_sret_title:'الاحتفاظ بـ Shorts', calc_sret_sub:'متوسط الوقت ÷ الطول × 100٪',
+    calc_vlen:'طول الفيديو (بالثواني)', calc_avgtime:'متوسط الوقت (بالثواني)',
+    calc_swipe_title:'المشاهدة مقابل التخطي', calc_swipe_sub:'٪ من الاستوديو ← أشخاص حقيقيون',
+    calc_total_views:'إجمالي المشاهدات', calc_view_pct:'٪ اختاروا المشاهدة',
+    calc_inpeople:'بالأشخاص',
+    calc_interest_title:'معدل الاهتمام', calc_interest_sub:'المهتمون ÷ المشاهدات × 100٪',
+    calc_lviews:'إجمالي المشاهدات', calc_lint:'المهتمون',
+    calc_interest_result:'معدل الاهتمام',
+    calc_ctr_title:'CTR ← انطباعات الظهور', calc_ctr_sub:'المشاهدات + ٪ CTR ← انطباعات الظهور',
+    calc_ctrviews:'إجمالي المشاهدات', calc_impressions:'انطباعات الظهور',
+    enter_data:'أدخل البيانات', in_people:'بالأشخاص',
+    news_title:'الأخبار', news_sub:'تحديثات وإعلانات YTMetrics',
+    loading_news:'جاري تحميل الأخبار...', no_news:'لا توجد أخبار بعد. عد لاحقاً!',
+    news_error:'خطأ في التحميل.', new_post:'منشور جديد', editing:'تعديل',
+    publish:'نشر', save:'حفظ', cancel:'إلغاء',
+    attach_media:'إرفاق وسائط', remove:'إزالة', send:'إرسال',
+    write_comment:'اكتب تعليقاً...',
+    ai_title:'دردشة الذكاء الاصطناعي', ai_sub:'منتج ذكاء اصطناعي شخصي مدرب على خوارزميات يوتيوب',
+    ai_producer:'منتج الذكاء الاصطناعي لـ YTMetrics',
+    ai_hint:'اسأل عن Shorts، الفيديوهات الطويلة، الخوارزميات، المقاييس، الاستراتيجيات. يمكنك طلب تحليل مقاطع فيديو قناتك أدناه.',
+    ai_welcome:'مرحباً! أنا منتج الذكاء الاصطناعي الخاص بك المدرب على مبادئ خوارزميات يوتيوب 2026. اسأل عن Shorts، الفيديوهات الطويلة، المقاييس، الاستراتيجيات. يمكنك طلب تحليل مقاطع فيديو قناتك بالزر أعلاه. كيف يمكنني المساعدة؟ 🎬',
+    send_video_context:'📊 اطلب من الذكاء الاصطناعي تحليل مقاطع فيديو قناتي',
+    context_sent:'✓ تم استلام تحليل الفيديو',
+    analyzing_videos:'جاري تحليل مقاطع فيديو القناة...',
+    loading:'جاري التحميل...',
+    ai_good_btn:'الذكاء الاصطناعي: ما نجح بشكل جيد', ai_bad_btn:'الذكاء الاصطناعي: ما يمكن تحسينه',
+    ai_forecast_btn:'الذكاء الاصطناعي: تحليل الخوارزميات وتوقعات النمو',
+    open_sim:'🎛️ محاكاة معلمات هذا الفيديو',
+    open_yt:'فتح على يوتيوب', watch_here:'شاهد هنا', close_player:'إغلاق المشغل',
+    install_page_title:'تنزيل التطبيق', install_page_sub:'ثبّت YTMetrics كتطبيق على جهازك',
+    install_hero_title:'ثبّت YTMetrics على جهازك',
+    install_hero_sub:'قم بتشغيل YTMetrics مباشرة من سطح المكتب أو الشاشة الرئيسية — بدون متصفح، أسرع وأكثر ملاءمة، تماماً مثل تطبيق عادي.',
+    install_btn_text:'تثبيت التطبيق',
+    install_safari_ios:'للثبيت على iPhone/iPad:\n1. اضغط على زر "مشاركة" (مربع به سهم للأعلى) في Safari.\n2. اختر "إضافة إلى الشاشة الرئيسية".',
+    install_safari_mac:'للثبيت على متصفح Safari لجهاز Mac:\n1. افتح قائمة "ملف" في الأعلى.\n2. اختر "إضافة إلى Dock".',
+    install_android:'للثبيت على Android:\n1. اضغط على زر القائمة ذو الثلاث نقاط في متصفح Chrome.\n2. اختر "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية".',
+    install_other:'YTMetrics هو تطبيق ويب تقدمي (PWA) ويتم تثبيته مباشرة من خلال متصفحك (لا حاجة لملف تثبيت مثل .exe/.dmg):\n\n1. انقر على أيقونة التثبيت ⊕ في شريط عنوان Chrome.\n2. أو افتح قائمة المتصفح (ثلاث نقاط) واختر "تثبيت YTMetrics".',
+    already_installed_title:'التطبيق مثبت بالفعل',
+    already_installed_sub:'أنت تستخدم YTMetrics كتطبيق حالياً.',
+    step1_title:'انقر على تثبيت', step1_text:'الزر أعلاه أو قائمة المتصفح ستعرض عليك تثبيت التطبيق.',
+    step2_title:'تأكيد', step2_text:'سيعرض المتصفح نافذة تأكيد منبثقة — انقر فوق "تثبيت".',
+    step3_title:'جاهز!', step3_text:'ستظهر أيقونة YTMetrics على سطح المكتب أو الشاشة الرئيسية.',
+    benefit1:'تشغيل سريع بدون متصفح', benefit2:'نافذة تطبيق منفصلة',
+    benefit3:'أيقونة على سطح المكتب / الشاشة الرئيسية', benefit4:'نفس وظائف المتصفح',
+    settings_title:'الإعدادات', settings_sub:'التخصيص',
+    stab_appearance:'🎨 المظهر', stab_language:'🌐 اللغة',
+    stab_feedback:'💬 الملاحظات', stab_about:'👥 حول التطبيق',
+    dark_theme:'🌙 المظهر الداكن', dark_theme_sub:'التبديل بين المظهر الداكن والفاتح',
+    pin_locked_title:'الوصول مقيد',
+    pin_enter_desc:'أدخل رمز PIN للحساب:',
+    pin_clear_btn:'إعادة تعيين',
+    pin_logout_btn:'تسجيل الخروج',
+    pin_wrong:'رمز PIN غير صحيح!',
+    pin_status_on:'مفعّل',
+    pin_status_off:'معطّل',
+    pin_setup_title:'إعدادات رمز PIN',
+    pin_label_new:'رمز PIN الجديد المكون من 4 أرقام',
+    pin_label_confirm:'تأكيد رمز PIN',
+    pin_btn_set:'تعيين رمز PIN',
+    pin_label_current:'رمز PIN الحالي',
+    pin_label_change_new:'رمز PIN الجديد (اتركه فارغاً لإلغائه)',
+    pin_btn_disable:'تعطيل',
+    pin_btn_change:'تغيير',
+    pin_error_mismatch:'رموز PIN غير متطابقة!',
+    pin_error_4digit:'يجب أن يكون رمز PIN مكوناً من 4 أرقام!',
+    pin_error_current_wrong:'رمز PIN الحالي غير صحيح!',
+    lang_title:'لغة الواجهة', lang_auto_note:'الكشف التلقائي: الروسية لـ RU/CIS، والإنجليزية للباقي.',
+    lang_auto:'تلقائي', lang_auto_det:'تم اكتشافه',
+    feedback_title:'💬 ترك ملاحظات', feedback_sub:'أخبرنا بما يعجبك أو ما يمكن تحسينه. الحد الأقصى: رأيان كل 24 ساعة.',
+    rating:'التقييم', send_feedback:'إرسال الملاحظات', feedback_success:'✅ شكراً لك! تم استلام ملاحظاتك.',
+    feedback_ph:'ملاحظاتك...',
+    authors_row:'👥 المؤلفون', authors_row_sub:'الفريق الذي يقف وراء YTMetrics',
+    privacy_row:'🔒 سياسة الخصوصية', privacy_row_sub:'كيف نستخدم بياناتك',
+    terms_row:'📄 شروط الخدمة', terms_row_sub:'قواعد استخدام الخدمة',
+    authors_modal_title:'مؤلفو YTMetrics', authors_modal_sub:'الفريق الذي يقف وراء هذا المنتج',
+    admin_title:'لوحة الإدارة', admin_sub:'إدارة مستخدمي YTMetrics',
+    notif_title:'الرسائل', read_all:'✓ تحديد الكل كمقروء',
+    users_block:'المستخدمين', admins_block:'المسؤولين (ADMIN)',
+    user_banned_text:'تم حظر المستخدم',
+    aum_email:'البريد الإلكتروني', aum_name:'الاسم', aum_yt:'قناة يوتيوب',
+    aum_url:'رابط القناة', aum_subs:'المشتركين', aum_reg:'تاريخ التسجيل', aum_desc:'وصف القناة',
+    ban_btn:'🚫 حظر', unban_btn:'✅ إلغاء الحظر',
+    make_admin_btn:'⭐ تعيين كمسؤول', delete_btn:'🗑 حذف',
+    no_data_val:'لا توجد بيانات', no_desc:'لا يوجد وصف',
+    ban_confirm:'حظر', unban_confirm:'إلغاء الحظر',
+    admin_confirm:'التعيين كمسؤول',
+    delete_confirm:'حذف المستخدم نهائياً',
+    delete_warning:'سيتم مسح جميع البيانات. لا يمكن التراجع عن هذا الإجراء.',
+    banned_label:'محظور', admin_rights_granted:'تم منح صلاحيات المسؤول!',
+    user_deleted:'تم حذف المستخدم.',
+    notif_empty:'لا توجد إشعارات بعد', just_now:'الآن',
+    min_ago:' دقيقة مضت', hr_ago:' ساعة مضت', days_ago:' أيام مضت',
+    today:'اليوم', yesterday:'أمس', days_suffix:' أيام مضت',
+    weeks_suffix:' أسابيع مضت', months_suffix:' أشهر مضت', years_suffix:' سنوات مضت',
+    landing_btn:'قم بالتحليل الآن', hero_more:'معرفة المزيد ↓',
+    trust1:'وصول للقراءة فقط', trust2:'تفويض آمن', trust3:'لا يتم مشاركة البيانات مع أطراف ثالثة',
+    ban_title:'تم حظر الوصول',
+    ban_text:'لقد تم حظرك بواسطة مسؤول منصة YTMetrics.<br>إذا كنت تعتقد أن هذا حدث عن طريق الخطأ، يمكنك تقديم طلب استئناف.',
+    ban_appeal_label:'تعليق الاستئناف الخاص بك',
+    ban_appeal_ph:'اشرح لماذا تعتقد أن الحظر حدث عن طريق الخطأ...',
+    ban_btn_text:'تقديم استئناف', ban_back:'← العودة إلى الرئيسية',
+    ban_success_text:'✅ تم تقديم طلب الاستئناف. سيقوم المسؤول بمراجعته قريباً.',
+    ch_select_title:'اختر قناة يوتيوب', ch_select_sub:'حسابك لديه قنوات متعددة.',
+    ch_logout:'⎋ تسجيل الخروج',
+    left:'المتبقي', ai_analyzing:'الذكاء الاصطناعي يحلل...', ai_building:'الذكاء الاصطناعي يبني التوقعات...', thinking:'جاري التفكير...',
+    privacy_title:'سياسة الخصوصية',
+    privacy_p1_title:'ما هي البيانات التي نجمعها:', privacy_p1:'الاسم والبريد الإلكتروني والصورة الرمزية. قنوات يوتيوب والمقاييس التحليلية — للوحة التحكم.',
+    privacy_p2_title:'كيف نستخدمها:', privacy_p2:'فقط لعرض الإحصاءات. نحن لا نبيع أو نشارك البيانات مع أطراف ثالثة.',
+    privacy_p3_title:'الاتصال:',
+    terms_title:'شروط الخدمة',
+    terms_p1_title:'الاستخدام:', terms_p1:'YTMetrics هي أداة لصناع محتوى يوتيوب.',
+    terms_p2_title:'القيود:', terms_p2:'يُمنع جمع البيانات تلقائيًا وانتهاك شروط يوتيوب/جوجل.',
+    terms_p3_title:'الحدود:', terms_p3:'25 طلب ذكاء اصطناعي يومياً مجاناً.',
+    footer_privacy:'سياسة الخصوصية', footer_terms:'شروط الخدمة',
+    perms_modal_title:'صلاحيات المسؤول',
+    save_perms:'حفظ الصلاحيات', grant_all:'🔥 منح جميع الصلاحيات',
+    supreme_note:'يمكن للمسؤول الرئيسي فقط إدارة صلاحيات المسؤولين الآخرين.',
+    perms_saved:'تم حفظ الصلاحيات!', all_perms_granted:'تم منح جميع الصلاحيات!',
+    grant_all_confirm:'هل تريد منح هذا المسؤول جميع الصلاحيات دون قيود؟',
+    manage_perms_btn:'🔐 الصلاحيات',
+    hero_badge_val:'✦ تحليلات يوتيوب · تحليلات الذكاء الاصطناعي · 2026',
+    hero_title:'تحليلات يوتيوب<br>بمستوى <span>احترافي</span>',
+    hero_sub:'المشاهدات، الاحتفاظ، CTR، سحب Shorts — جميع مقاييس قناتك في مكان واحد.',
+    hero_desc_title:'ماذا يقدم YTMetrics:',
+    hero_desc_body:'YTMetrics هي أداة تحليلية لمصممي محتوى يوتيوب. تتصل بقناتك عبر تفويض آمن. نطلب وصولاً للقراءة فقط.',
+    rules_title:'قوانين منصة YTMetrics',
+    rule1:'يُمنع استخدام الألفاظ النابية في عناوين القنوات وأوصافها.',
+    rule2:'يُمنع نشر محتوى مسيء أو تمييزي.',
+    rule3:'يُمنع جمع البيانات تلقائيًا وانتهاك شروط يوتيوب/جوجل.',
+    rule4:'تحتفظ الإدارة بالحق في حظر الوصول دون سابق إنذار.',
+    rule5:'باستخدامك لـ YTMetrics، فإنك توافق على القواعد و<span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="showPrivacyPolicy()">سياسة الخصوصية</span>.',
+    features_label:'الميزات',
+    features_title:'كل شيء لتنمية قناتك',
+    features_sub:'بيانات حقيقية من تحليلات يوتيوب + تحليل خوارزمي بالذكاء الاصطناعي.',
+    f1_title:'إحصاءات في الوقت الفعلي',
+    f1_text:'المشاهدات والإعجابات والتعليقات والمشاركات والاحتفاظ بكل فيديو.',
+    f2_title:'تحليلات Shorts',
+    f2_text:'نسبة السحب والاحتفاظ الحقيقية — المقاييس الدقيقة التي تتبعها الخوارزمية.',
+    f3_title:'دردشة الذكاء الاصطناعي',
+    f3_text:'يحلل منتج الذكاء الاصطناعي المقاييس ويقدم توصيات قابلة للتنفيذ مباشرة في الدردشة.',
+    f4_title:'التوقعات والمحاكاة',
+    f4_text:'حدد CTR والاحتفاظ — سيعرض المحاكي توقعات النمو.',
+    f5_title:'حاسبة المقاييس',
+    f5_text:'محول بيانات استوديو يوتيوب.',
+    f6_title:'أمان البيانات',
+    f6_text:'وصول للقراءة فقط. لا يتم مشاركة البيانات.',
+    purpose_title:'لماذا يحتاج التطبيق إلى الوصول ليوتيوب',
+    purpose_text:'يستخدم YTMetrics واجهة برمجة تطبيقات بيانات يوتيوب v3 وواجهة برمجة تطبيقات تحليلات يوتيوب حصريًا لاسترداد الإحصاءات. وضع القراءة فقط.',
+    perm1_title:'قراءة بيانات القناة',
+    perm1_text:'قائمة القنوات ومقاطع الفيديو والبيانات الوصفية.',
+    perm2_title:'التحليلات',
+    perm2_text:'قراءة البيانات التحليلية للوحة التحكم.',
+    perm3_title:'لا ننشر',
+    perm3_text:'لا نقوم بتحميل مقاطع الفيديو أو تغيير الإعدادات.',
+    perm4_title:'البيانات في أمان',
+    perm4_text:'لا تتم مشاركتها مع أطراف ثالثة.',
+    warn_title:'لقد انتهكت القواعد!',
+    warn_btn:'لن أنتهك القواعد بعد الآن وسأحذف المحتوى المخالف',
+    update_available:'✨ يتوفر تحديث',
+    update_title:'✨ إصدار جديد جاهز!',
+    update_desc:'لقد أضفنا ميزات جديدة، وحسّنا لوحة الإدارة (فصل الرسائل والانتهاكات)، وعزّزنا أداء التطبيق.',
+    update_size:'حجم التحديث:',
+    update_btn:'تثبيت التحديث',
+    update_progress_title:'جاري تحديث التطبيق...',
+    update_progress_desc:'تنزيل الموارد',
+    update_p1:'تحضير ملفات التحديث...',
+    update_p1_sub:'بدء التنزيل',
+    update_p2:'تنزيل الموارد الجديدة...',
+    update_p2_sub:'تنزيل حزمة التحديث:',
+    update_p3:'تثبيت التحديث...',
+    update_p3_sub:'استبدال الملفات المحلية في ذاكرة التخزين المؤقت',
+    update_p4:'إعادة تشغيل التطبيق...',
+    update_p4_sub:'تفعيل الإصدار الجديد',
+    settings_changed:'تم تغيير الإعدادات بنجاح.',
+    theme_light_badge:'الفاتح',
+    theme_dark_badge:'الداكن',
+    theme_modal_title:'اختر المظهر',
+    theme_light:'المظهر الفاتح',
+    theme_dark:'المظهر الداكن',
+    about_us_title:'حول التطبيق',
+    about_us_sub:'معلومات المؤلف والمستندات القانونية',
+    about_modal_title:'حول التطبيق',
+    feedback_modal_title:'ترك ملاحظات',
+    feedback_modal_sub:'أخبرنا بما يعجبك أو ما يمكن تحسينه. الحد الأقصى: رأيان كل 24 ساعة.',
+    filter_shorts:'Shorts',
+    chat_placeholder:'اسأل عن الخوارزميات، المقاييس، الاستراتيجيات...',
+    feedback_select_rating:'يرجى تحديد التقييم.',
+    feedback_write_text:'يرجى كتابة ملاحظاتك.',
+    error_try_later:'حدث خطأ. حاول لاحقاً.',
+    network_error:'خطأ في الشبكة.',
+    write_comment_alert:'يرجى كتابة تعليق.',
+    ban_data_error:'خطأ: لم يتم العثور على البيانات.',
+    limit_reached:'تم الوصول إلى الحد اليومي.',
+    access_blocked:'تم حظر الوصول.',
+    ai_unavailable:'الذكاء الاصطناعي غير متوفر.',
+    analyze_prompt_text:'يرجى تحليل مقاطع فيديو قناتي',
+    video_count_format:'فيديو',
+    unknown:'غير معروف',
+    no_permission_notif:'لا توجد صلاحية لعرض الإشعارات',
+    file_too_large:'الملف كبير جداً (الحد الأقصى 3 ميجابايت)',
+    fill_title_content:'يرجى ملء العنوان والمحتوى.',
+    delete_post_confirm:'حذف هذا المنشور؟',
+    delete_comment_confirm:'حذف التعليق؟',
+    no_permission_users:'لا توجد صلاحية لعرض المستخدمين',
+    no_permission:'لا توجد صلاحية',
+    no_permission_admins:'لا توجد صلاحية لعرض المسؤولين',
+    banned:'تم الحظر.',
+    admin_rights_removed:'تمت إزالة صلاحيات المسؤول.',
+    video_label:'فيديو',
+    swipe_label:'سحب',
+    views_label_short:'مشاهدة',
+    watch_hours_days:'30 يوماً',
+    shorts_retention:'الاحتفاظ بـ SHORTS',
+    pct_swiped:'٪ تم سحبها',
+    audience:'الجمهور',
+    analyzing_dots:'جاري التحليل...',
+    analyzing_algorithms:'جاري تحليل الخوارزميات...',
+    calc_loop:'🔄 تكرار تشغيل',
+    calc_looping:'✅ تكرار المشاهدة',
+    calc_most:'✓ الأغلبية',
+    calc_some_leave:'⚠ البعض يغادر',
+    calc_watched:'تمت المشاهدة',
+    calc_swiped:'تم السحب',
+    calc_alg_promotes:'🚀 الخوارزمية تروّج',
+    calc_good:'✓ جيد',
+    calc_need_hook:'⚠ بحاجة إلى جذب',
+    calc_too_many_swipes:'❌ الكثير من السحب',
+    calc_high:'🎯 مرتفعة',
+    calc_more_half:'✓ أكثر من النصف',
+    calc_losing_viewers:'⚠ يفقد المشاهدين',
+    calc_impressions_val:' ظهور',
+    calc_excellent_ctr:'🚀 CTR ممتاز',
+    calc_good_ctr:'✓ CTR جيد',
+    calc_average:'⚠ متوسط',
+    calc_low_ctr:'❌ منخفض — غيّر الصورة المصغرة'
   }
 };
 
 function t(key){ return (T[_currentLang]||T.ru)[key]||key; }
+
+function showToast(msg) {
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement('div');
+  toast.className = 'toast-message';
+  toast.innerHTML = '<span>✅</span> <span>' + msg + '</span>';
+  container.appendChild(toast);
+  setTimeout(() => { toast.remove(); }, 3000);
+}
+
 
 function detectAutoLang(){
   const loc=(navigator.language||'en').toLowerCase();
@@ -1888,8 +2498,9 @@ function detectAutoLang(){
 function applyLang(lang){
   const effective=lang==='auto'?detectAutoLang():lang;
   _currentLang=effective;
-  ['lang-auto','lang-ru','lang-en'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
-  const activeId=lang==='auto'?'lang-auto':lang==='ru'?'lang-ru':'lang-en';
+  document.documentElement.setAttribute('dir', effective==='ar'?'rtl':'ltr');
+  ['lang-auto','lang-ru','lang-en','lang-ar'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('active');});
+  const activeId=lang==='auto'?'lang-auto':lang==='ru'?'lang-ru':lang==='en'?'lang-en':'lang-ar';
   const ae=document.getElementById(activeId);if(ae)ae.classList.add('active');
   applyTranslations();
 }
@@ -2079,11 +2690,67 @@ function applyTranslations(){
   const sendBtn=document.getElementById('ai-chat-send');
   if(sendBtn)sendBtn.textContent=t('send');
   const chatInput=document.getElementById('ai-chat-input');
-  if(chatInput)chatInput.placeholder=_currentLang==='en'?'Ask about algorithms, metrics, strategy...':'Спроси про алгоритмы, метрики, стратегию...';
+  if(chatInput)chatInput.placeholder=t('chat_placeholder');
   setElText('perms-modal-title',t('perms_modal_title'));
   setElText('perm-save-btn-text',t('save_perms'));
   setElText('grant-all-btn',t('grant_all'));
   setElText('perm-supreme-note',t('supreme_note'));
+  
+  // Audited landing, features, purpose, warnings and modals translation
+  setElText('hero-badge-el', t('hero_badge_val'));
+  const hTitle = document.getElementById('hero-title-el'); if(hTitle) hTitle.innerHTML = t('hero_title');
+  setElText('hero-sub-el', t('hero_sub'));
+  setElText('hero-desc-title-el', t('hero_desc_title'));
+  setElText('hero-desc-body-el', t('hero_desc_body'));
+  setElText('rules-title-el', t('rules_title'));
+  setElText('rule1-el', t('rule1'));
+  setElText('rule2-el', t('rule2'));
+  setElText('rule3-el', t('rule3'));
+  setElText('rule4-el', t('rule4'));
+  const r5 = document.getElementById('rule5-el'); if(r5) r5.innerHTML = t('rule5');
+  setElText('features-label-el', t('features_label'));
+  setElText('features-title-el', t('features_title'));
+  setElText('features-sub-el', t('features_sub'));
+  setElText('f1-title-el', t('f1_title'));
+  setElText('f1-text-el', t('f1_text'));
+  setElText('f2-title-el', t('f2_title'));
+  setElText('f2-text-el', t('f2_text'));
+  setElText('f3-title-el', t('f3_title'));
+  setElText('f3-text-el', t('f3_text'));
+  setElText('f4-title-el', t('f4_title'));
+  setElText('f4-text-el', t('f4_text'));
+  setElText('f5-title-el', t('f5_title'));
+  setElText('f5-text-el', t('f5_text'));
+  setElText('f6-title-el', t('f6_title'));
+  setElText('f6-text-el', t('f6_text'));
+  setElText('purpose-title-el', t('purpose_title'));
+  setElText('purpose-text-el', t('purpose_text'));
+  setElText('perm1-title-el', t('perm1_title'));
+  setElText('perm1-text-el', t('perm1_text'));
+  setElText('perm2-title-el', t('perm2_title'));
+  setElText('perm2-text-el', t('perm2_text'));
+  setElText('perm3-title-el', t('perm3_title'));
+  setElText('perm3-text-el', t('perm3_text'));
+  setElText('perm4-title-el', t('perm4_title'));
+  setElText('perm4-text-el', t('perm4_text'));
+  setElText('warning-title-el', t('warn_title'));
+  setElText('clear-warning-btn', t('warn_btn'));
+  setElText('update-modal-title', t('update_title'));
+  setElText('update-modal-desc', t('update_desc'));
+  setElText('update-size-text', t('update_size'));
+  setElText('update-btn-text', t('update_btn'));
+  setElText('update-status-title', t('update_progress_title'));
+  setElText('update-status-desc', t('update_progress_desc'));
+  setElText('theme-modal-title', t('theme_modal_title'));
+  setElText('theme-light-label', t('theme_light'));
+  setElText('theme-dark-label', t('theme_dark'));
+  setElText('about-us-title', t('about_us_title'));
+  setElText('about-us-sub', t('about_us_sub'));
+  setElText('about-modal-title', t('about_modal_title'));
+  setElText('feedback-modal-title', t('feedback_modal_title'));
+  setElText('feedback-modal-sub', t('feedback_modal_sub'));
+  setElText('filter-shorts-btn', '⚡ ' + t('filter_shorts'));
+  setElText('fc-filter-shorts-btn', '⚡ ' + t('filter_shorts'));
 }
 
 function setLanguage(lang){
@@ -2101,15 +2768,15 @@ async function submitFeedback(){
   const text=(document.getElementById('feedback-text').value||'').trim();
   const errEl=document.getElementById('feedback-error'),successEl=document.getElementById('feedback-success');
   errEl.textContent='';successEl.style.display='none';
-  if(!_feedbackRating){errEl.textContent=_currentLang==='en'?'Please select a rating.':'Выберите оценку.';return;}
-  if(!text){errEl.textContent=_currentLang==='en'?'Please write your feedback.':'Напишите текст отзыва.';return;}
+  if(!_feedbackRating){errEl.textContent=t('feedback_select_rating');return;}
+  if(!text){errEl.textContent=t('feedback_write_text');return;}
   const btn=document.getElementById('feedback-submit-btn');btn.disabled=true;btn.textContent='...';
   try{
     const res=await apiFetch('/api/feedback',{method:'POST',body:JSON.stringify({rating:_feedbackRating,text})});
     const data=await res.json().catch(()=>({}));
     if(res.ok){successEl.style.display='block';document.getElementById('feedback-text').value='';setFeedbackRating(0);}
-    else{errEl.textContent=data.message||data.error||(_currentLang==='en'?'Error. Try later.':'Ошибка.');}
-  }catch(e){errEl.textContent=_currentLang==='en'?'Network error.':'Ошибка сети.';}
+    else{errEl.textContent=data.message||data.error||t('error_try_later');}
+  }catch(e){errEl.textContent=t('network_error');}
   btn.disabled=false;btn.textContent=t('send_feedback');
 }
 
@@ -2138,8 +2805,8 @@ function clearUser(){try{localStorage.removeItem(LS_KEY); const b=document.getEl
 
 async function submitAppeal(){
   const comment=document.getElementById('ban-appeal-text').value.trim();
-  if(!comment){alert(_currentLang==='en'?'Please write a comment.':'Напишите комментарий.');return;}
-  if(!_banUserId||!_banEmail){alert('Ошибка: данные не найдены.');return;}
+  if(!comment){alert(t('write_comment_alert'));return;}
+  if(!_banUserId||!_banEmail){alert(t('ban_data_error'));return;}
   const btn=document.getElementById('ban-appeal-btn');btn.disabled=true;btn.textContent='...';
   try{
     const res=await fetch(API_URL+'/api/admin/appeals',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:_banUserId,email:_banEmail,comment})});
@@ -2310,7 +2977,7 @@ async function analyzeChannelVideos(){
   const originalText=document.getElementById('send-context-btn-text').textContent;
   document.getElementById('send-context-btn-text').textContent=t('analyzing_videos');
 
-  appendChatMsg('user',_currentLang==='en'?('Please analyze my channels videos ('+_realVideos.length+' videos)'):('Проанализируй видео моего канала ('+_realVideos.length+' видео)'));
+  appendChatMsg('user', t('analyze_prompt_text') + ' (' + _realVideos.length + ' ' + t('video_count_format') + ')');
   const lid='loading-analyze-'+Date.now();
   appendChatMsg('ai','<div class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+t('ai_analyzing')+'</span></div>',lid);
 
@@ -2331,7 +2998,7 @@ async function analyzeChannelVideos(){
       updateChatMsg(lid,'⚠️ '+(data.message||data.error||'Error'),true);
       return;
     }
-    chatHistory.push({role:'user',content:_currentLang==='en'?'Analyze my channel videos':'Проанализируй видео моего канала'});
+    chatHistory.push({role:'user',content: t('analyze_prompt_text')});
     chatHistory.push({role:'assistant',content:data.text});
     updateChatMsg(lid,(data.text||'').replace(/\n/g,'<br>'),false);
     saveChatHistory();
@@ -2391,10 +3058,10 @@ function formatRelDate(iso){
 }
 
 function formatRegDate(iso){
-  if(!iso)return _currentLang==='en'?'unknown':'неизвестно';
+  if(!iso)return t('unknown');
   const d=new Date(iso);
   const diffDays=Math.floor((Date.now()-d)/86400000);
-  const abs=d.toLocaleDateString(_currentLang==='en'?'en-US':'ru-RU',{day:'2-digit',month:'long',year:'numeric'});
+  const abs=d.toLocaleDateString(_currentLang==='en'?'en-US':(_currentLang==='ar'?'ar':'ru-RU'),{day:'2-digit',month:'long',year:'numeric'});
   if(diffDays===0)return t('today')+' · '+abs;
   if(diffDays===1)return t('yesterday')+' · '+abs;
   if(diffDays<30)return diffDays+t('days_suffix')+' · '+abs;
@@ -2405,7 +3072,8 @@ function formatRegDate(iso){
 function formatNewsDate(iso){
   if(!iso)return'';
   const d=new Date(iso);
-  return d.toLocaleDateString(_currentLang==='en'?'en-US':'ru-RU',{day:'2-digit',month:'long',year:'numeric'})+' '+d.toLocaleTimeString(_currentLang==='en'?'en-US':'ru-RU',{hour:'2-digit',minute:'2-digit'});
+  const loc=_currentLang==='en'?'en-US':(_currentLang==='ar'?'ar':'ru-RU');
+  return d.toLocaleDateString(loc,{day:'2-digit',month:'long',year:'numeric'})+' '+d.toLocaleTimeString(loc,{hour:'2-digit',minute:'2-digit'});
 }
 
 function formatNotifDate(iso){
@@ -2417,7 +3085,7 @@ function formatNotifDate(iso){
   if(hrs<24)return hrs+t('hr_ago');
   const days=Math.floor(hrs/24);
   if(days<7)return days+t('days_ago');
-  return new Date(iso).toLocaleDateString(_currentLang==='en'?'en-US':'ru-RU',{day:'2-digit',month:'short'});
+  return new Date(iso).toLocaleDateString(_currentLang==='en'?'en-US':(_currentLang==='ar'?'ar':'ru-RU'),{day:'2-digit',month:'short'});
 }
 
 function escapeHtml(str){if(!str)return'';return str.replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
@@ -2437,13 +3105,13 @@ async function loadAdminNotifications(){
   try{
     const res=await apiFetch('/api/admin/notifications');
     if(res.status===403){
-      const errText=_currentLang==='en'?'No permission to view notifications':'Нет прав на просмотр уведомлений';
+      const errText=t('no_permission_notif');
       list.innerHTML='<div class="admin-empty">'+errText+'</div>';
       vList.innerHTML='<div class="admin-empty">'+errText+'</div>';
       updateNotifBadges([],[],[]);
       return;
     }
-    if(!res.ok){list.innerHTML='<div class="admin-empty">Ошибка загрузки</div>';vList.innerHTML='<div class="admin-empty">Ошибка загрузки</div>';return;}
+    if(!res.ok){list.innerHTML='<div class="admin-empty">'+t('news_error')+'</div>';vList.innerHTML='<div class="admin-empty">'+t('news_error')+'</div>';return;}
     const data=await res.json();const notifs=data.notifications||[];
     const violations=notifs.filter(n=>n.type==='content_violation');
     const messages=notifs.filter(n=>n.type!=='content_violation');
@@ -2637,7 +3305,7 @@ async function pollNotifCount(){
 }
 
 let _isAdminForNews=false, _editingPostId=null, _newsMediaBase64=null, _newsMediaType=null;
-function onNewsMediaSelect(e){const file=e.target.files[0];if(!file)return;if(file.size>3*1024*1024){alert(_currentLang==='en'?'File too large (max 3MB)':'Файл слишком большой (макс. 3MB)');e.target.value='';return;}const reader=new FileReader();reader.onload=function(){_newsMediaBase64=reader.result;_newsMediaType=file.type.startsWith('video')?'video':'image';document.getElementById('news-media-preview').textContent='✓ '+file.name;document.getElementById('news-media-clear').style.display='inline';};reader.readAsDataURL(file);}
+function onNewsMediaSelect(e){const file=e.target.files[0];if(!file)return;if(file.size>3*1024*1024){alert(t('file_too_large'));e.target.value='';return;}const reader=new FileReader();reader.onload=function(){_newsMediaBase64=reader.result;_newsMediaType=file.type.startsWith('video')?'video':'image';document.getElementById('news-media-preview').textContent='✓ '+file.name;document.getElementById('news-media-clear').style.display='inline';};reader.readAsDataURL(file);}
 function clearNewsMedia(){_newsMediaBase64=null;_newsMediaType=null;document.getElementById('news-media-input').value='';document.getElementById('news-media-preview').textContent='';document.getElementById('news-media-clear').style.display='none';}
 function cancelNewsEdit(){
   _editingPostId=null;
@@ -2686,14 +3354,14 @@ function renderNewsPost(p){
 }
 async function submitNewsPost(){
   const title=document.getElementById('news-title-input').value.trim(),content=document.getElementById('news-content-input').value.trim();
-  if(!title||!content){alert(_currentLang==='en'?'Fill in title and content.':'Заполните заголовок и текст.');return;}
+  if(!title||!content){alert(t('fill_title_content'));return;}
   const btn=document.getElementById('news-submit-btn');btn.disabled=true;btn.textContent='...';
   try{
     const payload={title:title,content:content,media_url:_newsMediaBase64,media_type:_newsMediaType};
     const res=_editingPostId?await apiFetch('/api/news/'+_editingPostId,{method:'PUT',body:JSON.stringify(payload)}):await apiFetch('/api/news',{method:'POST',body:JSON.stringify(payload)});
     const data=await res.json();
-    if(res.ok){cancelNewsEdit();await loadNews();}else{alert('Error: '+(data.error||'unknown'));}
-  }catch(e){alert(_currentLang==='en'?'Network error.':'Ошибка сети.');}
+    if(res.ok){cancelNewsEdit();await loadNews();}else{alert('Error: '+(data.error||t('unknown')));}
+  }catch(e){alert(t('network_error'));}
   btn.disabled=false;btn.textContent=t('publish');
 }
 function startEditNewsPost(postId){
@@ -2708,10 +3376,10 @@ function startEditNewsPost(postId){
   document.getElementById('news-cancel-btn').style.display='inline-block';
   document.getElementById('news-create-card').scrollIntoView({behavior:'smooth'});
 }
-async function deleteNewsPost(postId){if(!confirm(_currentLang==='en'?'Delete this post?':'Удалить эту новость?'))return;try{const res=await apiFetch('/api/news/'+postId,{method:'DELETE'});if(res.ok)await loadNews();}catch(e){}}
+async function deleteNewsPost(postId){if(!confirm(t('delete_post_confirm')))return;try{const res=await apiFetch('/api/news/'+postId,{method:'DELETE'});if(res.ok)await loadNews();}catch(e){}}
 async function reactNewsPost(postId,reaction){try{const res=await apiFetch('/api/news/'+postId+'/react',{method:'POST',body:JSON.stringify({reaction:reaction})});if(res.ok)await loadNews();}catch(e){}}
 async function submitNewsComment(postId){const input=document.getElementById('comment-input-'+postId);const content=input.value.trim();if(!content)return;try{const res=await apiFetch('/api/news/'+postId+'/comment',{method:'POST',body:JSON.stringify({content:content})});if(res.ok){input.value='';await loadNews();}else{const d=await res.json();alert(d.error||'Error');}}catch(e){}}
-async function deleteNewsComment(commentId){if(!confirm(_currentLang==='en'?'Delete comment?':'Удалить комментарий?'))return;try{const res=await apiFetch('/api/news/comments/'+commentId,{method:'DELETE'});if(res.ok)await loadNews();}catch(e){}}
+async function deleteNewsComment(commentId){if(!confirm(t('delete_comment_confirm')))return;try{const res=await apiFetch('/api/news/comments/'+commentId,{method:'DELETE'});if(res.ok)await loadNews();}catch(e){}}
 
 let _isAdmin=false, _currentAdminUserIdx=null, _myPermissions=null, _isSupreme=false, _isPrimary=false;
 
@@ -2737,14 +3405,14 @@ async function loadAdminUsers(){
   if(!list)return;
   await loadMyPermissions();
   if(_myPermissions&&!_myPermissions.view_users){
-    list.innerHTML='<div class="admin-empty">'+(_currentLang==='en'?'No permission to view users':'Нет прав на просмотр пользователей')+'</div>';
+    list.innerHTML='<div class="admin-empty">'+t('no_permission_users')+'</div>';
     if(countEl)countEl.textContent='';
     return;
   }
   list.innerHTML='<div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+t('loading')+'</span></div>';
   try{
     const res=await apiFetch('/api/admin/users');
-    if(res.status===403){list.innerHTML='<div class="admin-empty">'+(_currentLang==='en'?'No permission':'Нет прав')+'</div>';return;}
+    if(res.status===403){list.innerHTML='<div class="admin-empty">'+t('no_permission')+'</div>';return;}
     if(!res.ok){const err=await res.json().catch(function(){return {};});list.innerHTML='<div class="admin-empty">Error: '+(err.error||res.status)+'</div>';return;}
     const data=await res.json();const users=data.users||[];
     if(countEl)countEl.textContent='· '+users.length;
@@ -2762,12 +3430,12 @@ async function loadAdminUsers(){
 async function renderAdminList(){
   const adminList=document.getElementById('admin-admins-list');if(!adminList)return;
   if(_myPermissions&&!_myPermissions.view_admins){
-    adminList.innerHTML='<div class="admin-empty">'+(_currentLang==='en'?'No permission to view admins':'Нет прав на просмотр админов')+'</div>';
+    adminList.innerHTML='<div class="admin-empty">'+t('no_permission_admins')+'</div>';
     return;
   }
   try{
     const res=await apiFetch('/api/admin/admins');
-    if(res.status===403){adminList.innerHTML='<div class="admin-empty">'+(_currentLang==='en'?'No permission':'Нет прав')+'</div>';return;}
+    if(res.status===403){adminList.innerHTML='<div class="admin-empty">'+t('no_permission')+'</div>';return;}
     if(!res.ok){adminList.innerHTML='<div class="admin-empty">Error</div>';return;}
     const data=await res.json();
     const admins=data.admins||[];
@@ -2797,7 +3465,7 @@ async function adminBanAdmin(userId,email,name){
   try{
     const res=await apiFetch('/api/admin/ban-admin',{method:'POST',body:JSON.stringify({userId:userId,email:email})});
     const data=await res.json();
-    if(res.ok){alert(_currentLang==='en'?'Banned.':'Заблокирован.');renderAdminList();loadAdminUsers();}
+    if(res.ok){alert(t('banned'));renderAdminList();loadAdminUsers();}
     else alert(data.error||'Error');
   }catch(e){alert('Error');}
 }
@@ -2806,7 +3474,7 @@ async function adminRemoveAdmin(email,name){
   try{
     const res=await apiFetch('/api/admin/remove-admin',{method:'POST',body:JSON.stringify({email:email})});
     const data=await res.json();
-    if(res.ok){alert(_currentLang==='en'?'Admin rights removed.':'Права сняты.');renderAdminList();}
+    if(res.ok){alert(t('admin_rights_removed'));renderAdminList();}
     else alert(data.error||'Error');
   }catch(e){alert('Error');}
 }
@@ -2877,7 +3545,7 @@ function openAdminUserModal(idx){
   if(googleAvatar&&ytAvatar)gWrap.innerHTML='<img class="umodal-google-avatar" src="'+googleAvatar+'" alt="" onerror="this.style.display=\'none\'">';
   else gWrap.innerHTML='';
   const banBanner=document.getElementById('aum-ban-banner');
-  if(isBanned){banBanner.style.display='flex';document.getElementById('aum-ban-date').textContent=u.banned_at?new Date(u.banned_at).toLocaleDateString(_currentLang==='en'?'en-US':'ru-RU'):'';}
+  if(isBanned){banBanner.style.display='flex';document.getElementById('aum-ban-date').textContent=u.banned_at?new Date(u.banned_at).toLocaleDateString(_currentLang==='en'?'en-US':(_currentLang==='ar'?'ar':'ru-RU')):'';}
   else banBanner.style.display='none';
   document.getElementById('aum-email').textContent=u.email||'—';
   document.getElementById('aum-google-nick').textContent=googleName;
@@ -3129,11 +3797,11 @@ function renderStatsVideoGrid(){
     grid.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">'
       +'<table style="width:100%;border-collapse:collapse;font-family:\'DM Mono\',monospace;font-size:12px">'
       +'<thead><tr style="border-bottom:1px solid var(--border);background:var(--input-bg)">'
-      +'<th style="padding:11px 14px;text-align:left;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">'+(_currentLang==='en'?'Video':'Видео')+'</th>'
+      +'<th style="padding:11px 14px;text-align:left;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">'+t('video_label')+'</th>'
       +'<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">'+t('views')+'</th>'
       +'<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">'+t('likes')+'</th>'
       +'<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">'+t('retention')+'</th>'
-      +'<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">CTR / '+(_currentLang==='en'?'Swipe':'Свайп')+'</th>'
+      +'<th style="padding:11px 14px;text-align:right;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:10px">CTR / '+t('swipe_label')+'</th>'
       +'</tr></thead><tbody>'
       +videos.map(function(v){
         const isShort=v.type==='short';
@@ -3160,7 +3828,7 @@ function renderStatsVideoGrid(){
       return '<div onclick="openStatsModal('+v.id+')" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s" onmouseover="this.style.borderColor=\'rgba(232,255,71,.4)\';this.style.transform=\'translateY(-3px)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.transform=\'translateY(0)\'">'
         +'<div style="position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--border)">'+(v.thumbnail?'<img src="'+v.thumbnail+'" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'">':'')+'<span style="position:absolute;top:7px;right:7px;font-family:\'DM Mono\',monospace;font-size:9px;font-weight:700;padding:3px 8px;border-radius:5px;border:1px solid;'+bs+'">'+(isShort?'⚡ Shorts':'📹 Long')+'</span></div>'
         +'<div style="padding:10px 12px"><div style="font-size:12px;font-weight:700;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+escapeHtml(v.title)+'</div>'
-        +'<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);margin-top:5px">'+fmt(v.views)+' '+(_currentLang==='en'?'views':'просм.')+' · '+formatRelDate(v.published_at)+'</div>'+hoursHtml+'</div></div>';
+        +'<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);margin-top:5px">'+fmt(v.views)+' '+t('views_label_short')+' · '+formatRelDate(v.published_at)+'</div>'+hoursHtml+'</div></div>';
     }).join('');
   }
 }
@@ -3188,7 +3856,7 @@ function renderForecastGrid(){
         +(v.thumbnail?'<img src="'+v.thumbnail+'" class="video-item-thumb" onerror="this.style.display=\'none\'">':'<span class="video-item-icon">'+(isShort?'⚡':'📹')+'</span>')
         +'<div class="video-item-info">'
         +'<div class="video-item-title">'+escapeHtml(v.title)+'</div>'
-        +'<div class="video-item-meta">'+fmt(v.views)+' '+(_currentLang==='en'?'views':'просм.')+' · '+formatRelDate(v.published_at)+'</div>'
+        +'<div class="video-item-meta">'+fmt(v.views)+' '+t('views_label_short')+' · '+formatRelDate(v.published_at)+'</div>'
         +'</div>'
         +'<span class="video-item-badge" style="'+bs+'">'+(isShort?'⚡ Shorts':'📹 Long')+'</span>'
         +'</div>';
@@ -3243,7 +3911,7 @@ function openStatsModal(id){
   document.getElementById('sm-shares').textContent=fmt(v.shares);document.getElementById('sm-shares-d').textContent=pctOf(v.shares,v.views)+' '+t('sharing');
   document.getElementById('sm-avg-dur').textContent=fmtDuration(v.avgDurationSec);document.getElementById('sm-avg-dur-d').textContent=t('avg_view');
   document.getElementById('sm-watch-hours').textContent=v.watchHours!=null?v.watchHours+'h':'—';
-  document.getElementById('sm-watch-hours-d').textContent=v.watchHours!=null?(_currentLang==='en'?'30 days':'за 30 дней'):'—';
+  document.getElementById('sm-watch-hours-d').textContent=v.watchHours!=null?t('watch_hours_days'):'—';
 
   const nodataBanner=document.getElementById('sm-nodata-banner');
   const reasonText=noDataReasonText(v.noDataReason);
@@ -3251,10 +3919,10 @@ function openStatsModal(id){
   else{ nodataBanner.style.display='none'; }
 
   if(isShort){
-    setElText('sm-ret-label',_currentLang==='en'?'SHORTS RETENTION':'УДЕРЖАНИЕ SHORTS');
+    setElText('sm-ret-label',t('shorts_retention'));
     document.getElementById('sm-ret').textContent=v.retentionShort!=null?(v.retentionShort>=200?'200%+':v.retentionShort+'%'):'—';
     document.getElementById('sm-ret-d').textContent=v.retentionShort!=null?t('real_data'):t('no_data');
-    setElText('sm-ctr-label',_currentLang==='en'?'% SWIPED':'% СВАЙПНУЛИ');
+    setElText('sm-ctr-label',t('pct_swiped'));
     document.getElementById('sm-ctr').textContent=v.swipedRatio!=null?v.swipedRatio+'%':'—';
     document.getElementById('sm-ctr-d').textContent=v.swipedRatio!=null?t('swipe_away'):t('no_data');
     if(v.swipedRatio!=null){
@@ -3266,7 +3934,7 @@ function openStatsModal(id){
   }else{
     setElText('sm-ret-label',t('retention'));
     document.getElementById('sm-ret').textContent=v.retention!=null?v.retention+'%':'—';
-    document.getElementById('sm-ret-d').textContent=v.retention!=null?(_currentLang==='en'?'audience':'аудитории'):t('no_data');
+    document.getElementById('sm-ret-d').textContent=v.retention!=null?t('audience'):t('no_data');
     setElText('sm-ctr-label','CTR');
     document.getElementById('sm-ctr').textContent=v.ctr!=null?v.ctr+'%':'—';
     document.getElementById('sm-ctr-d').textContent=v.ctr!=null?t('clickthrough'):t('no_data');
@@ -3284,11 +3952,11 @@ async function askStatsAI(type){
   btn.disabled=true;
   btn.innerHTML='<span class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></span> '+t('ai_analyzing');
   block.style.display='block';block.className='ai-response-block '+(type==='good'?'ai-response-green':'ai-response-yellow');
-  block.innerHTML='<div class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+(_currentLang==='en'?'Analyzing...':'Анализирую...')+'</span></div>';
+  block.innerHTML='<div class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+t('analyzing_dots')+'</span></div>';
   const mt=isShort
     ?('Type: Shorts. Views: '+v.views+'. Likes: '+v.likes+'. Comments: '+v.comments+'. Shares: '+v.shares+'. Retention: '+(v.retentionShort!=null?v.retentionShort+'%':'no data (likely low traffic)')+'. Swiped: '+(v.swipedRatio!=null?v.swipedRatio+'%':'no data')+'. Watched: '+(v.viewedRatio!=null?v.viewedRatio+'%':'no data')+'. Avg duration: '+fmtDuration(v.avgDurationSec)+'. Watch hours(30d): '+(v.watchHours||'—')+'.')
     :('Type: Long-form. Views: '+v.views+'. Likes: '+v.likes+'. Comments: '+v.comments+'. Shares: '+v.shares+'. Retention: '+(v.retention!=null?v.retention+'%':'no data (likely low traffic)')+'. CTR: '+(v.ctr!=null?v.ctr+'%':'no data')+'. Avg duration: '+fmtDuration(v.avgDurationSec)+'. Watch hours(30d): '+(v.watchHours||'—')+'.');
-  const lang=_currentLang==='en'?'English':'Russian';
+  const lang = _currentLang === 'en' ? 'English' : (_currentLang === 'ar' ? 'Arabic' : 'Russian');
   const prompt=type==='good'
     ?('Video "'+v.title+'". Metrics: '+mt+'\n\nDescribe 3-4 points WHAT WORKED WELL. If some metrics show "no data", briefly explain this is common for low-traffic videos rather than inventing numbers. Specific, with emoji. Up to 200 words. Answer in '+lang+'.')
     :('Video "'+v.title+'". Metrics: '+mt+'\n\nDescribe 3-4 points WHAT CAN BE IMPROVED. If some metrics show "no data", briefly explain this is common for low-traffic videos rather than inventing numbers. Specific, with emoji. Up to 200 words. Answer in '+lang+'.');
@@ -3337,11 +4005,11 @@ async function askForecastAI(){
   btn.disabled=true;
   btn.innerHTML='<span class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></span> '+t('ai_building');
   block.style.display='block';block.className='ai-response-block ai-response-blue';
-  block.innerHTML='<div class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+(_currentLang==='en'?'Analyzing algorithms...':'Анализирую алгоритмы...')+'</span></div>';
+  block.innerHTML='<div class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+t('analyzing_algorithms')+'</span></div>';
   const mt=isShort
     ?('Type: Shorts. Views: '+v.views+'. Retention: '+(v.retentionShort!=null?v.retentionShort+'%':'no data (likely low traffic)')+'. Swiped: '+(v.swipedRatio!=null?v.swipedRatio+'%':'no data')+'. Avg duration: '+fmtDuration(v.avgDurationSec)+'. Watch hours(30d): '+(v.watchHours||'—')+'.')
     :('Type: Long-form. Views: '+v.views+'. Retention: '+(v.retention!=null?v.retention+'%':'no data (likely low traffic)')+'. CTR: '+(v.ctr!=null?v.ctr+'%':'no data')+'. Avg duration: '+fmtDuration(v.avgDurationSec)+'. Watch hours(30d): '+(v.watchHours||'—')+'.');
-  const lang=_currentLang==='en'?'English':'Russian';
+  const lang = _currentLang === 'en' ? 'English' : (_currentLang === 'ar' ? 'Arabic' : 'Russian');
   const prompt='Video "'+v.title+'". Metrics: '+mt+'\n\n1) How the YouTube algorithm behaves with this video. 2) What can drive more views. 3) What to do for more exposure. If metrics show "no data", briefly explain why instead of inventing numbers. With emoji, up to 250 words. Answer in '+lang+'.';
   try{
     const answer=await callAI([{role:'user',content:prompt}]);
@@ -3494,18 +4162,20 @@ function updatePinStatusBadge() {
   const themeBadge = document.getElementById('theme-status-badge');
   if (themeBadge) {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    themeBadge.textContent = isDark ? (_currentLang === 'en' ? 'Dark' : 'Темная') : (_currentLang === 'en' ? 'Light' : 'Светлая');
+    themeBadge.textContent = isDark ? t('theme_dark_badge') : t('theme_light_badge');
   }
   
   const langBadge = document.getElementById('lang-status-badge');
   if (langBadge) {
     const curLang = localStorage.getItem(LS_LANG) || 'auto';
     if (curLang === 'auto') {
-      langBadge.textContent = _currentLang === 'en' ? 'Auto' : 'Авто';
+      langBadge.textContent = t('lang_auto');
     } else if (curLang === 'ru') {
       langBadge.textContent = 'Русский';
-    } else {
+    } else if (curLang === 'en') {
       langBadge.textContent = 'English';
+    } else {
+      langBadge.textContent = 'العربية';
     }
   }
 }
@@ -3517,7 +4187,9 @@ function openThemeSettingsModal() {
 function setThemeAndClose(theme) {
   const isDark = theme === 'dark';
   applyTheme(isDark);
+  updatePinStatusBadge();
   closeModal('theme-settings-modal');
+  showToast(t('settings_changed'));
 }
 
 function openLangSettingsModal() {
@@ -3527,6 +4199,7 @@ function openLangSettingsModal() {
 function setLanguageAndClose(lang) {
   setLanguage(lang);
   closeModal('lang-settings-modal');
+  showToast(t('settings_changed'));
 }
 
 function openFeedbackSettingsModal() {
@@ -3581,6 +4254,7 @@ function saveNewPin() {
   localStorage.setItem('ytm_pin_' + _currentUser.email, val1);
   updatePinStatusBadge();
   closeModal('pin-setup-modal');
+  showToast(t('settings_changed'));
 }
 
 function disableCurrentPin() {
@@ -3598,6 +4272,7 @@ function disableCurrentPin() {
   localStorage.removeItem('ytm_pin_' + _currentUser.email);
   updatePinStatusBadge();
   closeModal('pin-setup-modal');
+  showToast(t('settings_changed'));
 }
 
 function changeCurrentPin() {
@@ -3619,6 +4294,7 @@ function changeCurrentPin() {
     localStorage.removeItem('ytm_pin_' + _currentUser.email);
     updatePinStatusBadge();
     closeModal('pin-setup-modal');
+    showToast(t('settings_changed'));
     return;
   }
   
@@ -3634,6 +4310,7 @@ function changeCurrentPin() {
   localStorage.setItem('ytm_pin_' + _currentUser.email, val1);
   updatePinStatusBadge();
   closeModal('pin-setup-modal');
+  showToast(t('settings_changed'));
 }
 
 function calcShortRet(){
@@ -3642,16 +4319,16 @@ function calcShortRet(){
   if(!len||len<=0){el.textContent='—';h.textContent=t('enter_data');return;}
   const ret=(avg/len)*100;el.textContent=ret>=200?'200%+':ret.toFixed(1)+'%';
   el.style.color=ret>=100?'var(--green)':ret>=70?'var(--accent)':'var(--orange)';
-  h.textContent=ret>=120?'🔄 Loop':ret>=100?(_currentLang==='en'?'✅ Looping':'✅ Досматривают'):ret>=70?(_currentLang==='en'?'✓ Most':'✓ Большинство'):(_currentLang==='en'?'⚠ Some leave':'⚠ Часть уходит');
+  h.textContent=ret>=120?t('calc_loop'):ret>=100?t('calc_looping'):ret>=70?t('calc_most'):t('calc_some_leave');
 }
 function calcSwipeReverse(){
   const total=parseFloat(document.getElementById('cs-total').value)||0,vp=parseFloat(document.getElementById('cs-view-pct').value)||0;
   const el=document.getElementById('cr-swipe'),h=document.getElementById('cr-swipe-hint');
   if(!total||!vp){el.innerHTML='—';h.textContent=t('enter_data');return;}
   const sp=Math.max(0,100-vp);
-  el.innerHTML='👁 '+(_currentLang==='en'?'Watched: ':'Посмотрело: ')+'<span style="color:var(--accent2)">'+fmtFull(Math.round(total*vp/100))+'</span><br>↕ '+(_currentLang==='en'?'Swiped: ':'Свайпнуло: ')+'<span style="color:var(--red)">'+fmtFull(Math.round(total*sp/100))+'</span>';
+  el.innerHTML='👁 '+t('calc_watched')+': <span style="color:var(--accent2)">'+fmtFull(Math.round(total*vp/100))+'</span><br>↕ '+t('calc_swiped')+': <span style="color:var(--red)">'+fmtFull(Math.round(total*sp/100))+'</span>';
   el.style.color='var(--text)';
-  h.textContent=vp>=80?(_currentLang==='en'?'🚀 Algorithm promotes':'🚀 Алгоритм продвигает'):vp>=65?(_currentLang==='en'?'✓ Good':'✓ Хорошо'):vp>=50?(_currentLang==='en'?'⚠ Need a hook':'⚠ Нужен крючок'):(_currentLang==='en'?'❌ Too many swipes':'❌ Много свайпов');
+  h.textContent=vp>=80?t('calc_alg_promotes'):vp>=65?t('calc_good'):vp>=50?t('calc_need_hook'):t('calc_too_many_swipes');
 }
 function calcInterest(){
   const views=parseFloat(document.getElementById('cl-views').value),ints=parseFloat(document.getElementById('cl-int').value);
@@ -3659,15 +4336,15 @@ function calcInterest(){
   if(!views||views<=0){el.textContent='—';h.textContent=t('enter_data');return;}
   const pct=(ints/views)*100;el.textContent=pct.toFixed(1)+'%';
   el.style.color=pct>=60?'var(--green)':pct>=40?'var(--accent)':'var(--orange)';
-  h.textContent=pct>=70?(_currentLang==='en'?'🎯 High':'🎯 Высокая'):pct>=50?(_currentLang==='en'?'✓ More than half':'✓ Больше половины'):(_currentLang==='en'?'⚠ Losing viewers':'⚠ Теряет зрителей');
+  h.textContent=pct>=70?t('calc_high'):pct>=50?t('calc_more_half'):t('calc_losing_viewers');
 }
 function calcCTRReverse(){
   const views=parseFloat(document.getElementById('cl-views-ctr').value)||0,ctr=parseFloat(document.getElementById('cl-ctr-pct').value)||0;
   const el=document.getElementById('cr-ctr'),h=document.getElementById('cr-ctr-hint');
   if(!views||!ctr){el.textContent='—';h.textContent=t('enter_data');return;}
-  el.textContent=fmtFull(Math.round(views/(ctr/100)))+(_currentLang==='en'?' impressions':' показов');
+  el.textContent=fmtFull(Math.round(views/(ctr/100)))+t('calc_impressions_val');
   el.style.color='var(--accent)';
-  h.textContent=ctr>=7?(_currentLang==='en'?'🚀 Excellent CTR':'🚀 Отличный CTR'):ctr>=5?(_currentLang==='en'?'✓ Good CTR':'✓ Хороший CTR'):ctr>=3?(_currentLang==='en'?'⚠ Average':'⚠ Средний'):(_currentLang==='en'?'❌ Low — change thumbnail':'❌ Низкий — смените превью');
+  h.textContent=ctr>=7?t('calc_excellent_ctr'):ctr>=5?t('calc_good_ctr'):ctr>=3?t('calc_average'):t('calc_low_ctr');
 }
 
 function showDashboard(channelData){
