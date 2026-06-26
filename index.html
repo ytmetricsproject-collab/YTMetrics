@@ -2947,7 +2947,7 @@ function aiErrorMessage(s,d){
       return _currentLang==='en'?'AI configuration error (invalid API key).':'Ошибка настройки ИИ (недействительный API-ключ).';
     }
     if(msg.includes('quota')||msg.includes('exhausted')||msg.includes('Quota')) {
-      return _currentLang==='en'?'AI quota exceeded (Gemini API limit reached. Try again in 1 minute).':'Лимит запросов ИИ исчерпан (превышена квота Gemini API. Попробуйте через 1 минуту).';
+      return _currentLang==='en'?'AI quota exceeded (Gemini API key limit reached. Try again in 1 minute, or change key if daily limit is exhausted).':'Лимит запросов ИИ исчерпан (превышена квота самого API-ключа Gemini. Попробуйте через 1 минуту, либо смените API-ключ в настройках Vercel, если исчерпан суточный лимит).';
     }
     if(msg.includes('overloaded')||msg.includes('503')||msg.includes('Unavailable')) {
       return _currentLang==='en'?'Gemini servers are currently overloaded. Please try again in a few seconds.':'Серверы Gemini перегружены. Пожалуйста, повторите попытку через несколько секунд.';
