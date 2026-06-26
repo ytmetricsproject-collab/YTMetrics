@@ -1125,7 +1125,7 @@ app.get('/api/youtube/videos', async (req,res)=>{
     let analyticsFailed=false;
     try{
       const analyticsData=await gFetch(
-        `https://youtubeanalytics.googleapis.com/v2/reports?ids=channel%3D%3D${encodeURIComponent(channelId)}&startDate=${startDate}&endDate=${endDate}&metrics=views,likes,comments,shares,averageViewPercentage,impressionClickThroughRate,averageViewDuration,estimatedMinutesWatched&dimensions=video&sort=-views&maxResults=50`,
+        `https://youtubeanalytics.googleapis.com/v2/reports?ids=channel%3D%3D${encodeURIComponent(channelId)}&startDate=${startDate}&endDate=${endDate}&metrics=views,likes,comments,shares,averageViewPercentage,impressionClickThroughRate,averageViewDuration,estimatedMinutesWatched,subscribersGained&dimensions=video&sort=-views&maxResults=50`,
         accessToken
       );
       const headers=(analyticsData.columnHeaders||[]).map(h=>h.name);
@@ -1139,6 +1139,7 @@ app.get('/api/youtube/videos', async (req,res)=>{
           shares:       gi('shares')>=0 ? safeInt(row[gi('shares')]) : 0,
           avgDurSec:    gi('averageViewDuration')>=0&&row[gi('averageViewDuration')]!=null ? parseFloat(safeFloat(row[gi('averageViewDuration')]).toFixed(1)) : null,
           watchMinutes: mins,
+          subscribersGained: gi('subscribersGained')>=0 ? safeInt(row[gi('subscribersGained')]) : 0,
         };
       }
       if(!(analyticsData.rows||[]).length)analyticsFailed=true;
@@ -1215,6 +1216,7 @@ app.get('/api/youtube/videos', async (req,res)=>{
         viewed_ratio:    isShort ? (swipe.viewedRatio??null) : null,
         avg_duration_sec: analytics.avgDurSec!=null ? analytics.avgDurSec : (swipe.avgDurSec!=null?swipe.avgDurSec:null),
         watch_hours: watchMinutes>0 ? parseFloat((watchMinutes/60).toFixed(1)) : null,
+        subscribers_gained: analytics.subscribersGained||0,
         no_data_reason: noDataReason,
         video_url: 'https://www.youtube.com/watch?v='+item.id,
         channel_url: payload.channel_url||('https://www.youtube.com/channel/'+channelId),
