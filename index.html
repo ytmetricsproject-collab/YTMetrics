@@ -2938,8 +2938,11 @@ function aiErrorMessage(s,d){
   if(s===403)return _currentLang==='en'?'Access blocked.':'Доступ заблокирован.';
   return _currentLang==='en'?'AI unavailable.':'ИИ недоступен.';
 }
-async function callAI(messages,systemPrompt){
-  const response=await apiFetch('/api/ai',{method:'POST',body:JSON.stringify({system:systemPrompt||undefined,messages,max_tokens:1000})});
+async function callAI(messages,systemPrompt,videos,channelInfo){
+  const payload={system:systemPrompt||undefined,messages,max_tokens:1000};
+  if(videos)payload.videos=videos;
+  if(channelInfo)payload.channelInfo=channelInfo;
+  const response=await apiFetch('/api/ai',{method:'POST',body:JSON.stringify(payload)});
   const data=await response.json().catch(()=>({}));
   if(response.status===403){handleBanFromResponse();throw new Error('BANNED');}
   updateCounterFromResponse(data);
@@ -3020,7 +3023,17 @@ async function sendChatMessage(){
   appendChatMsg('ai','<div class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+t('thinking')+'</span></div>',lid);
   chatHistory.push({role:'user',content:msg});
   try{
-    const answer=await callAI(chatHistory);
+    let videos=null;
+    let channelInfo=null;
+    if(_realVideos&&_realVideos.length>0){
+      videos=_realVideos.slice(0,20).map(v=>({
+        title:v.title, type:v.type, views:v.views, likes:v.likes, comments:v.comments, shares:v.shares,
+        retention:v.retention, ctr:v.ctr, retentionShort:v.retentionShort, swipedRatio:v.swipedRatio,
+        avgDurationSec:v.avgDurationSec, watchHours:v.watchHours,
+      }));
+      channelInfo={ name:(_currentUser&&(_currentUser.channel_name||_currentUser.name))||'', subscribers:(_currentUser&&_currentUser.subscribers)||0 };
+    }
+    const answer=await callAI(chatHistory,null,videos,channelInfo);
     chatHistory.push({role:'assistant',content:answer});
     updateChatMsg(lid,answer.replace(/\n/g,'<br>'),false);
     saveChatHistory();
@@ -3036,7 +3049,15 @@ function appendChatMsg(role,html,id){
 function updateChatMsg(id,html,isError){
   const el=document.getElementById(id);
   if(el){el.innerHTML=html;el.className='chat-msg '+(isError?'ai-error':'ai');}
-  document.getElementById('ai-chat-messages').scrollTop=99999;
+  const msgs=document.getElementById('ai-chat-messages');
+  if(msgs){
+    const userMsgs=msgs.querySelectorAll('.chat-msg.user');
+    if(userMsgs.length>0){
+      userMsgs[userMsgs.length-1].scrollIntoView({behavior:'smooth',block:'start'});
+    }else{
+      msgs.scrollTop=99999;
+    }
+  }
 }
 
 const fmt=function(n){if(n==null||isNaN(n))return'—';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return String(Math.round(n));};
