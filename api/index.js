@@ -409,10 +409,28 @@ app.post('/api/ai', async (req,res)=>{
     const globalUsed=await getGlobalUsageToday();
     if(globalUsed>=ADMIN_DAILY_LIMIT)return res.status(429).json({ error:'GLOBAL_LIMIT_REACHED', message:'Глобальный лимит API исчерпан.', totalRequestsLeft:0, totalLimit:ADMIN_DAILY_LIMIT, role:'admin' });
   }
-  const { system, messages }=req.body;
+  const { system, messages, videos, channelInfo }=req.body;
   if(!messages||!Array.isArray(messages))return res.status(400).json({ error:'messages required' });
   try{
-    const model=genAI.getGenerativeModel({ model:'gemini-2.5-flash', systemInstruction:system||AI_SYSTEM_PROMPT });
+    let systemInstruction = system || AI_SYSTEM_PROMPT;
+    if(videos && Array.isArray(videos) && videos.length > 0){
+      let videoContext = `\n\n=== КОНТЕКСТ КАНАЛА И ВИДЕО ПОЛЬЗОВАТЕЛЯ ===\n`;
+      videoContext += `Канал: ${channelInfo?.name || 'Неизвестно'}\n`;
+      videoContext += `Подписчики: ${channelInfo?.subscribers || 0}\n\n`;
+      videoContext += `Последние видео пользователя (от новых к старым, где индекс 1 — это самое последнее видео):\n`;
+      videos.forEach((v, idx) => {
+        const isShort = v.type === 'short';
+        const ret = isShort
+          ? (v.swipedRatio != null ? v.swipedRatio + '% swipe away' : 'нет данных')
+          : (v.retention != null ? v.retention + '%' : 'нет данных');
+        const ctr = isShort ? '—' : (v.ctr != null ? v.ctr + '%' : 'нет данных');
+        videoContext += `${idx + 1}. "${v.title}" [${isShort ? 'Shorts' : 'Обычное видео'}]\n`;
+        videoContext += `   Просмотры: ${v.views} | Лайки: ${v.likes} | Комментарии: ${v.comments} | Репосты: ${v.shares}\n`;
+        videoContext += `   Удержание: ${ret} | CTR: ${ctr} | Средняя длительность: ${v.avgDurationSec ? Math.round(v.avgDurationSec) + ' сек' : 'нет данных'} | Часы просмотра: ${v.watchHours || 'нет данных'}\n\n`;
+      });
+      systemInstruction += videoContext;
+    }
+    const model=genAI.getGenerativeModel({ model:'gemini-2.5-flash', systemInstruction });
     const history=[];
     const lastMessage=messages[messages.length-1];
     for(let i=0;i<messages.length-1;i++){
