@@ -1189,169 +1189,8 @@
       </div>
     </div>
 
-    <!-- PIN CODE SETUP MODAL -->
-    <div class="modal-overlay" id="pin-setup-modal">
-      <div class="modal-box" style="max-width:400px;">
-        <div class="modal-header">
-          <div class="modal-title" id="pin-setup-modal-title">Настройка PIN-кода</div>
-          <button class="modal-close" onclick="closeModal('pin-setup-modal')">✕</button>
-        </div>
-        <div class="modal-body" style="padding-top:10px;">
-          <div id="pin-setup-error" style="color:var(--red); font-size:12px; margin-bottom:12px; min-height:18px; font-weight:700;"></div>
-          
-          <!-- Form 1: Create PIN -->
-          <div id="pin-form-create" style="display:none; flex-direction:column; gap:12px;">
-            <div class="calc-field">
-              <label id="pin-setup-label-new">Новый 4-значный PIN-код</label>
-              <input type="password" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="calc-input" id="pin-setup-new1" placeholder="••••" style="-webkit-text-security: disc; text-align:center; font-size:20px; letter-spacing:6px; background:var(--input-bg); border:1px solid var(--border); color:var(--text); outline:none;">
-            </div>
-            <div class="calc-field">
-              <label id="pin-setup-label-confirm">Подтвердите PIN-код</label>
-              <input type="password" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="calc-input" id="pin-setup-new2" placeholder="••••" style="-webkit-text-security: disc; text-align:center; font-size:20px; letter-spacing:6px; background:var(--input-bg); border:1px solid var(--border); color:var(--text); outline:none;">
-            </div>
-            <button class="feedback-submit-btn" onclick="saveNewPin()" id="pin-setup-btn-set" style="width:100%; margin-top:8px;">Установить PIN-код</button>
-          </div>
 
-          <!-- Form 2: Change/Disable PIN -->
-          <div id="pin-form-manage" style="display:none; flex-direction:column; gap:12px;">
-            <div class="calc-field">
-              <label id="pin-setup-label-current">Текущий PIN-код</label>
-              <input type="password" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="calc-input" id="pin-setup-current" placeholder="••••" style="-webkit-text-security: disc; text-align:center; font-size:20px; letter-spacing:6px; background:var(--input-bg); border:1px solid var(--border); color:var(--text); outline:none;">
-            </div>
-            <div style="border-top:1px dashed var(--border); margin:8px 0;"></div>
-            <div class="calc-field">
-              <label id="pin-setup-label-change-new">Новый PIN-код (оставьте пустым для отключения)</label>
-              <input type="password" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="calc-input" id="pin-setup-change1" placeholder="••••" style="-webkit-text-security: disc; text-align:center; font-size:20px; letter-spacing:6px; background:var(--input-bg); border:1px solid var(--border); color:var(--text); outline:none;">
-            </div>
-            <div class="calc-field">
-              <label id="pin-setup-label-change-confirm">Подтвердите новый PIN-код</label>
-              <input type="password" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="calc-input" id="pin-setup-change2" placeholder="••••" style="-webkit-text-security: disc; text-align:center; font-size:20px; letter-spacing:6px; background:var(--input-bg); border:1px solid var(--border); color:var(--text); outline:none;">
-            </div>
-            <div style="display:flex; gap:10px; margin-top:8px;">
-              <button class="feedback-submit-btn" onclick="disableCurrentPin()" id="pin-setup-btn-disable" style="flex:1; background:transparent; border:1px solid var(--red); color:var(--red);">Отключить</button>
-              <button class="feedback-submit-btn" onclick="changeCurrentPin()" id="pin-setup-btn-change" style="flex:1;">Изменить</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- THEME SETTINGS MODAL -->
-    <div class="modal-overlay" id="theme-settings-modal">
-      <div class="modal-box modal-sm" style="max-width:400px;">
-        <div class="modal-header">
-          <div class="modal-title" id="theme-modal-title">Выбор темы</div>
-          <button class="modal-close" onclick="closeModal('theme-settings-modal')">✕</button>
-        </div>
-        <div class="modal-body" style="padding-top:10px; display:flex; flex-direction:column; gap:10px;">
-          <div class="video-item" onclick="setThemeAndClose('light')" style="padding:12px 16px;">
-            <span style="font-size:20px; margin-right:8px;">☀️</span>
-            <div class="video-item-info">
-              <div class="video-item-title" id="theme-light-label">Светлая тема</div>
-            </div>
-          </div>
-          <div class="video-item" onclick="setThemeAndClose('dark')" style="padding:12px 16px;">
-            <span style="font-size:20px; margin-right:8px;">🌙</span>
-            <div class="video-item-info">
-              <div class="video-item-title" id="theme-dark-label">Тёмная тема</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- LANG SETTINGS MODAL -->
-    <div class="modal-overlay" id="lang-settings-modal">
-      <div class="modal-box modal-sm" style="max-width:400px;">
-        <div class="modal-header">
-          <div class="modal-title" id="lang-modal-title">Выбор языка</div>
-          <button class="modal-close" onclick="closeModal('lang-settings-modal')">✕</button>
-        </div>
-        <div class="modal-body" style="padding-top:10px; display:flex; flex-direction:column; gap:10px;">
-          <div class="video-item" id="lang-auto" onclick="setLanguageAndClose('auto')" style="padding:12px 16px;">
-            <span style="font-size:20px; margin-right:8px;">🌐</span>
-            <div class="video-item-info">
-              <div class="video-item-title" id="lang-auto-title-opt">Авто</div>
-            </div>
-          </div>
-          <div class="video-item" id="lang-ru" onclick="setLanguageAndClose('ru')" style="padding:12px 16px;">
-            <span style="font-size:20px; margin-right:8px;">🇷🇺</span>
-            <div class="video-item-info">
-              <div class="video-item-title">Русский</div>
-            </div>
-          </div>
-          <div class="video-item" id="lang-en" onclick="setLanguageAndClose('en')" style="padding:12px 16px;">
-            <span style="font-size:20px; margin-right:8px;">🇬🇧</span>
-            <div class="video-item-info">
-              <div class="video-item-title">English</div>
-            </div>
-          </div>
-          <div class="video-item" id="lang-ar" onclick="setLanguageAndClose('ar')" style="padding:12px 16px;">
-            <span style="font-size:20px; margin-right:8px;">🇸🇦</span>
-            <div class="video-item-info">
-              <div class="video-item-title">العربية</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- FEEDBACK SETTINGS MODAL -->
-    <div class="modal-overlay" id="feedback-settings-modal">
-      <div class="modal-box modal-sm" style="max-width:440px;">
-        <div class="modal-header">
-          <div class="modal-title" id="feedback-modal-title">Оставить отзыв</div>
-          <button class="modal-close" onclick="closeModal('feedback-settings-modal')">✕</button>
-        </div>
-        <div class="modal-body" style="padding-top:10px;">
-          <div class="feedback-card" style="border:none; padding:0; background:transparent; max-width:none; margin-bottom:0; box-shadow:none;">
-            <div class="settings-row-sub" id="feedback-modal-sub" style="margin-bottom:12px; font-size:11px; color:var(--muted)">Расскажите, что вам нравится или что можно улучшить. Лимит: 2 отзыва в 24 часа.</div>
-            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em" id="rating-label">Оценка</div>
-            <div class="star-rating" id="star-rating" style="margin-bottom:14px;">
-              <span class="star-btn" data-star="1" onclick="setFeedbackRating(1)">★</span>
-              <span class="star-btn" data-star="2" onclick="setFeedbackRating(2)">★</span>
-              <span class="star-btn" data-star="3" onclick="setFeedbackRating(3)">★</span>
-              <span class="star-btn" data-star="4" onclick="setFeedbackRating(4)">★</span>
-              <span class="star-btn" data-star="5" onclick="setFeedbackRating(5)">★</span>
-            </div>
-            <textarea class="feedback-textarea" id="feedback-text" placeholder="Ваш отзыв..." maxlength="2000" style="margin-bottom:12px;"></textarea>
-            <button class="feedback-submit-btn" id="feedback-submit-btn" onclick="submitFeedback()" style="margin-top:0; width:100%;">Отправить отзыв</button>
-            <div class="feedback-error" id="feedback-error" style="margin-top:8px;"></div>
-            <div class="feedback-success" id="feedback-success" style="display:none; margin-top:8px; color:var(--green);">✅ Спасибо! Ваш отзыв получен.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ABOUT SETTINGS MODAL -->
-    <div class="modal-overlay" id="about-settings-modal">
-      <div class="modal-box modal-sm" style="max-width:400px;">
-        <div class="modal-header">
-          <div class="modal-title" id="about-modal-title">О проекте</div>
-          <button class="modal-close" onclick="closeModal('about-settings-modal')">✕</button>
-        </div>
-        <div class="modal-body" style="padding-top:10px; display:flex; flex-direction:column; gap:10px;">
-          <div class="video-item" onclick="openAuthorsModal(); closeModal('about-settings-modal');" style="padding:12px 16px;">
-            <span style="font-size:20px; margin-right:8px;">👥</span>
-            <div class="video-item-info">
-              <div class="video-item-title" id="authors-row-title">Авторы</div>
-            </div>
-          </div>
-          <div class="video-item" onclick="showPrivacyPolicy(); closeModal('about-settings-modal');" style="padding:12px 16px;">
-            <span style="font-size:20px; margin-right:8px;">🔒</span>
-            <div class="video-item-info">
-              <div class="video-item-title" id="privacy-row-title">Политика конфиденциальности</div>
-            </div>
-          </div>
-          <div class="video-item" onclick="showTerms(); closeModal('about-settings-modal');" style="padding:12px 16px;">
-            <span style="font-size:20px; margin-right:8px;">📄</span>
-            <div class="video-item-info">
-              <div class="video-item-title" id="terms-row-title">Условия использования</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <div class="tab-panel" id="tab-admin">
       <div class="page-header">
@@ -1426,9 +1265,10 @@
         <div class="metric-card"><div class="metric-icon">⏱</div><div class="metric-label" id="sm-ret-label">УДЕРЖАНИЕ</div><div class="metric-value" id="sm-ret">—</div><div class="metric-delta" id="sm-ret-d" style="color:var(--muted)">—</div></div>
         <div class="metric-card"><div class="metric-icon">🎯</div><div class="metric-label" id="sm-ctr-label">CTR</div><div class="metric-value" id="sm-ctr">—</div><div class="metric-delta" id="sm-ctr-d" style="color:var(--muted)">—</div></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
         <div class="metric-card"><div class="metric-icon">⌛</div><div class="metric-label" id="sm-avgdur-label">СРЕДНЕЕ ВРЕМЯ</div><div class="metric-value" id="sm-avg-dur">—</div><div class="metric-delta" id="sm-avg-dur-d" style="color:var(--muted)">—</div></div>
         <div class="metric-card"><div class="metric-icon">🕐</div><div class="metric-label" id="sm-hours-label">ЧАСОВ ПРОСМОТРЕНО (30д)</div><div class="metric-value" id="sm-watch-hours">—</div><div class="metric-delta" id="sm-watch-hours-d" style="color:var(--muted)">—</div></div>
+        <div class="metric-card"><div class="metric-icon">👤</div><div class="metric-label" id="sm-subs-gained-label">ПОДПИСЧИКИ</div><div class="metric-value" id="sm-subs-gained">—</div><div class="metric-delta" id="sm-subs-gained-d" style="color:var(--green)">—</div></div>
       </div>
       <div id="sm-nodata-banner" style="display:none;background:rgba(255,159,71,.06);border:1px solid rgba(255,159,71,.2);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-family:'DM Mono',monospace;font-size:11px;color:var(--orange);line-height:1.6"></div>
       <div id="sm-swipe-block" style="display:none;margin-bottom:16px">
@@ -1595,6 +1435,170 @@
   </div>
 </div>
 
+<!-- PIN CODE SETUP MODAL -->
+<div class="modal-overlay" id="pin-setup-modal">
+  <div class="modal-box" style="max-width:400px;">
+    <div class="modal-header">
+      <div class="modal-title" id="pin-setup-modal-title">Настройка PIN-кода</div>
+      <button class="modal-close" onclick="closeModal('pin-setup-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:10px;">
+      <div id="pin-setup-error" style="color:var(--red); font-size:12px; margin-bottom:12px; min-height:18px; font-weight:700;"></div>
+      
+      <!-- Form 1: Create PIN -->
+      <div id="pin-form-create" style="display:none; flex-direction:column; gap:12px;">
+        <div class="calc-field">
+          <label id="pin-setup-label-new">Новый 4-значный PIN-код</label>
+          <input type="password" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="calc-input" id="pin-setup-new1" placeholder="••••" style="-webkit-text-security: disc; text-align:center; font-size:20px; letter-spacing:6px; background:var(--input-bg); border:1px solid var(--border); color:var(--text); outline:none;">
+        </div>
+        <div class="calc-field">
+          <label id="pin-setup-label-confirm">Подтвердите PIN-код</label>
+          <input type="password" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="calc-input" id="pin-setup-new2" placeholder="••••" style="-webkit-text-security: disc; text-align:center; font-size:20px; letter-spacing:6px; background:var(--input-bg); border:1px solid var(--border); color:var(--text); outline:none;">
+        </div>
+        <button class="feedback-submit-btn" onclick="saveNewPin()" id="pin-setup-btn-set" style="width:100%; margin-top:8px;">Установить PIN-код</button>
+      </div>
+
+      <!-- Form 2: Change/Disable PIN -->
+      <div id="pin-form-manage" style="display:none; flex-direction:column; gap:12px;">
+        <div class="calc-field">
+          <label id="pin-setup-label-current">Текущий PIN-код</label>
+          <input type="password" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="calc-input" id="pin-setup-current" placeholder="••••" style="-webkit-text-security: disc; text-align:center; font-size:20px; letter-spacing:6px; background:var(--input-bg); border:1px solid var(--border); color:var(--text); outline:none;">
+        </div>
+        <div style="border-top:1px dashed var(--border); margin:8px 0;"></div>
+        <div class="calc-field">
+          <label id="pin-setup-label-change-new">Новый PIN-код (оставьте пустым для отключения)</label>
+          <input type="password" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="calc-input" id="pin-setup-change1" placeholder="••••" style="-webkit-text-security: disc; text-align:center; font-size:20px; letter-spacing:6px; background:var(--input-bg); border:1px solid var(--border); color:var(--text); outline:none;">
+        </div>
+        <div class="calc-field">
+          <label id="pin-setup-label-change-confirm">Подтвердите новый PIN-код</label>
+          <input type="password" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="calc-input" id="pin-setup-change2" placeholder="••••" style="-webkit-text-security: disc; text-align:center; font-size:20px; letter-spacing:6px; background:var(--input-bg); border:1px solid var(--border); color:var(--text); outline:none;">
+        </div>
+        <div style="display:flex; gap:10px; margin-top:8px;">
+          <button class="feedback-submit-btn" onclick="disableCurrentPin()" id="pin-setup-btn-disable" style="flex:1; background:transparent; border:1px solid var(--red); color:var(--red);">Отключить</button>
+          <button class="feedback-submit-btn" onclick="changeCurrentPin()" id="pin-setup-btn-change" style="flex:1;">Изменить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- THEME SETTINGS MODAL -->
+<div class="modal-overlay" id="theme-settings-modal">
+  <div class="modal-box modal-sm" style="max-width:400px;">
+    <div class="modal-header">
+      <div class="modal-title" id="theme-modal-title">Выбор темы</div>
+      <button class="modal-close" onclick="closeModal('theme-settings-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:10px; display:flex; flex-direction:column; gap:10px;">
+      <div class="video-item" onclick="setThemeAndClose('light')" style="padding:12px 16px;">
+        <span style="font-size:20px; margin-right:8px;">☀️</span>
+        <div class="video-item-info">
+          <div class="video-item-title" id="theme-light-label">Светлая тема</div>
+        </div>
+      </div>
+      <div class="video-item" onclick="setThemeAndClose('dark')" style="padding:12px 16px;">
+        <span style="font-size:20px; margin-right:8px;">🌙</span>
+        <div class="video-item-info">
+          <div class="video-item-title" id="theme-dark-label">Тёмная тема</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LANG SETTINGS MODAL -->
+<div class="modal-overlay" id="lang-settings-modal">
+  <div class="modal-box modal-sm" style="max-width:400px;">
+    <div class="modal-header">
+      <div class="modal-title" id="lang-modal-title">Выбор языка</div>
+      <button class="modal-close" onclick="closeModal('lang-settings-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:10px; display:flex; flex-direction:column; gap:10px;">
+      <div class="video-item" id="lang-auto" onclick="setLanguageAndClose('auto')" style="padding:12px 16px;">
+        <span style="font-size:20px; margin-right:8px;">🌐</span>
+        <div class="video-item-info">
+          <div class="video-item-title" id="lang-auto-title-opt">Авто</div>
+        </div>
+      </div>
+      <div class="video-item" id="lang-ru" onclick="setLanguageAndClose('ru')" style="padding:12px 16px;">
+        <span style="font-size:20px; margin-right:8px;">🇷🇺</span>
+        <div class="video-item-info">
+          <div class="video-item-title">Русский</div>
+        </div>
+      </div>
+      <div class="video-item" id="lang-en" onclick="setLanguageAndClose('en')" style="padding:12px 16px;">
+        <span style="font-size:20px; margin-right:8px;">🇬🇧</span>
+        <div class="video-item-info">
+          <div class="video-item-title">English</div>
+        </div>
+      </div>
+      <div class="video-item" id="lang-ar" onclick="setLanguageAndClose('ar')" style="padding:12px 16px;">
+        <span style="font-size:20px; margin-right:8px;">🇸🇦</span>
+        <div class="video-item-info">
+          <div class="video-item-title">العربية</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEEDBACK SETTINGS MODAL -->
+<div class="modal-overlay" id="feedback-settings-modal">
+  <div class="modal-box modal-sm" style="max-width:440px;">
+    <div class="modal-header">
+      <div class="modal-title" id="feedback-modal-title">Оставить отзыв</div>
+      <button class="modal-close" onclick="closeModal('feedback-settings-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:10px;">
+      <div class="feedback-card" style="border:none; padding:0; background:transparent; max-width:none; margin-bottom:0; box-shadow:none;">
+        <div class="settings-row-sub" id="feedback-modal-sub" style="margin-bottom:12px; font-size:11px; color:var(--muted)">Расскажите, что вам нравится или что можно улучшить. Лимит: 2 отзыва в 24 часа.</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em" id="rating-label">Оценка</div>
+        <div class="star-rating" id="star-rating" style="margin-bottom:14px;">
+          <span class="star-btn" data-star="1" onclick="setFeedbackRating(1)">★</span>
+          <span class="star-btn" data-star="2" onclick="setFeedbackRating(2)">★</span>
+          <span class="star-btn" data-star="3" onclick="setFeedbackRating(3)">★</span>
+          <span class="star-btn" data-star="4" onclick="setFeedbackRating(4)">★</span>
+          <span class="star-btn" data-star="5" onclick="setFeedbackRating(5)">★</span>
+        </div>
+        <textarea class="feedback-textarea" id="feedback-text" placeholder="Ваш отзыв..." maxlength="2000" style="margin-bottom:12px;"></textarea>
+        <button class="feedback-submit-btn" id="feedback-submit-btn" onclick="submitFeedback()" style="margin-top:0; width:100%;">Отправить отзыв</button>
+        <div class="feedback-error" id="feedback-error" style="margin-top:8px;"></div>
+        <div class="feedback-success" id="feedback-success" style="display:none; margin-top:8px; color:var(--green);">✅ Спасибо! Ваш отзыв получен.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT SETTINGS MODAL -->
+<div class="modal-overlay" id="about-settings-modal">
+  <div class="modal-box modal-sm" style="max-width:400px;">
+    <div class="modal-header">
+      <div class="modal-title" id="about-modal-title">О проекте</div>
+      <button class="modal-close" onclick="closeModal('about-settings-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:10px; display:flex; flex-direction:column; gap:10px;">
+      <div class="video-item" onclick="openAuthorsModal(); closeModal('about-settings-modal');" style="padding:12px 16px;">
+        <span style="font-size:20px; margin-right:8px;">👥</span>
+        <div class="video-item-info">
+          <div class="video-item-title" id="authors-row-title">Авторы</div>
+        </div>
+      </div>
+      <div class="video-item" onclick="showPrivacyPolicy(); closeModal('about-settings-modal');" style="padding:12px 16px;">
+        <span style="font-size:20px; margin-right:8px;">🔒</span>
+        <div class="video-item-info">
+          <div class="video-item-title" id="privacy-row-title">Политика конфиденциальности</div>
+        </div>
+      </div>
+      <div class="video-item" onclick="showTerms(); closeModal('about-settings-modal');" style="padding:12px 16px;">
+        <span style="font-size:20px; margin-right:8px;">📄</span>
+        <div class="video-item-info">
+          <div class="video-item-title" id="terms-row-title">Условия использования</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 const API_URL='https://yt-metrics-seven.vercel.app';
 const LS_KEY='ytmetrics_user', LS_TOK='ytmetrics_token', LS_CHAT='ytmetrics_chat';
@@ -1696,8 +1700,8 @@ const T={
     filter_all:'Все', filter_long:'Видео', loading_videos:'Загружаем видео с YouTube...',
     stats_error_title:'⚠ Не удалось загрузить видео', no_videos:'Нет видео на канале.', no_videos_filter:'Нет видео',
     views:'ПРОСМОТРЫ', likes:'ЛАЙКИ', comments:'КОММЕНТАРИИ', shares:'РЕПОСТЫ',
-    retention:'УДЕРЖАНИЕ', avg_duration:'СРЕДНЕЕ ВРЕМЯ', watch_hours:'ЧАСОВ ПРОСМОТРЕНО (30д)',
-    total:'суммарно', of_views:'от просмотров', of_likes:'от лайков', sharing:'делятся', channel:'канал', avg_view:'среднее',
+    retention:'УДЕРЖАНИЕ', avg_duration:'СРЕДНЕЕ ВРЕМЯ', watch_hours:'ЧАСОВ ПРОСМОТРЕНО (30д)', subs_gained_label:'ПОДПИСЧИКИ',
+    total:'суммарно', of_views:'от просмотров', of_likes:'от лайков', sharing:'делятся', channel:'канал', avg_view:'среднее', gained_sub:'подписалось',
     no_data:'нет данных', real_data:'реальные данные', swipe_away:'уходят свайпом', clickthrough:'кликабельность',
     no_data_low_views:'Недостаточно просмотров для подробной статистики YouTube Analytics (нужно больше трафика за 30 дней).',
     no_data_insufficient_traffic:'YouTube пока не рассчитал детальные метрики удержания/CTR. Обычно они появляются через 24–48 часов после публикации при наличии 1000+ просмотров.',
@@ -1957,8 +1961,8 @@ const T={
     filter_all:'All', filter_long:'Videos', loading_videos:'Loading videos from YouTube...',
     stats_error_title:'⚠ Failed to load videos', no_videos:'No videos on the channel.', no_videos_filter:'No videos',
     views:'VIEWS', likes:'LIKES', comments:'COMMENTS', shares:'SHARES',
-    retention:'RETENTION', avg_duration:'AVG. DURATION', watch_hours:'HOURS WATCHED (30d)',
-    total:'total', of_views:'of views', of_likes:'of likes', sharing:'sharing', channel:'channel', avg_view:'average',
+    retention:'RETENTION', avg_duration:'AVG. DURATION', watch_hours:'HOURS WATCHED (30d)', subs_gained_label:'SUBSCRIBERS',
+    total:'total', of_views:'of views', of_likes:'of likes', sharing:'sharing', channel:'channel', avg_view:'average', gained_sub:'gained',
     no_data:'no data', real_data:'real data', swipe_away:'swipe away', clickthrough:'click-through rate',
     no_data_low_views:'Not enough views yet for detailed YouTube Analytics stats (needs more traffic over 30 days).',
     no_data_insufficient_traffic:'YouTube has not calculated detailed retention/CTR metrics yet. They usually appear 24–48 hours after publication once the video exceeds 1000+ views.',
@@ -2218,8 +2222,8 @@ const T={
     filter_all:'الكل', filter_long:'الفيديوهات', loading_videos:'جاري تحميل مقاطع الفيديو من يوتيوب...',
     stats_error_title:'⚠ فشل تحميل مقاطع الفيديو', no_videos:'لا توجد مقاطع فيديو في القناة.', no_videos_filter:'لا توجد مقاطع فيديو',
     views:'المشاهدات', likes:'الإعجابات', comments:'التعليقات', shares:'المشاركات',
-    retention:'الاحتفاظ بالجمهور', avg_duration:'متوسط مدة المشاهدة', watch_hours:'ساعات المشاهدة (30 يوم)',
-    total:'الإجمالي', of_views:'من المشاهدات', of_likes:'من الإعجابات', sharing:'مشاركة', channel:'القناة', avg_view:'المعدل',
+    retention:'الاحتفاظ بالجمهور', avg_duration:'متوسط مدة المشاهدة', watch_hours:'ساعات المشاهدة (30 يوم)', subs_gained_label:'المشتركون الجدد',
+    total:'الإجمالي', of_views:'من المشاهدات', of_likes:'من الإعجابات', sharing:'مشاركة', channel:'القناة', avg_view:'المعدل', gained_sub:'جديد',
     no_data:'لا توجد بيانات', real_data:'بيانات حقيقية', swipe_away:'تخطي بالفيديو', clickthrough:'نسبة النقر إلى الظهور',
     no_data_low_views:'لا توجد مشاهدات كافية بعد للحصول على إحصاءات تحليلات يوتيوب التفصيلية (تحتاج إلى المزيد من حركة المرور على مدار 30 يومًا).',
     no_data_insufficient_traffic:'لم يقم يوتيوب بحساب مقاييس الاحتفاظ/CTR التفصيلية بعد. تظهر عادةً خلال 24-48 ساعة بعد النشر بمجرد أن يتجاوز الفيديو 1000 مشاهدة.',
@@ -2631,6 +2635,7 @@ function applyTranslations(){
   setElText('sm-shares-label',t('shares'));
   setElText('sm-avgdur-label',t('avg_duration'));
   setElText('sm-hours-label',t('watch_hours'));
+  setElText('sm-subs-gained-label',t('subs_gained_label'));
   setElText('swipe-title-text',t('swipe_title'));
   setElText('swipe-sub-text',t('swipe_sub'));
   setElText('watched-label-text',t('watched'));
@@ -2936,13 +2941,34 @@ function handleBanFromResponse(){
 function aiErrorMessage(s,d){
   if(s===429)return d&&d.message||(_currentLang==='en'?'Daily limit reached.':'Дневной лимит исчерпан.');
   if(s===403)return _currentLang==='en'?'Access blocked.':'Доступ заблокирован.';
+  if(d&&d.message){
+    const msg=d.message;
+    if(msg.includes('API_KEY_INVALID')||msg.includes('API key')) {
+      return _currentLang==='en'?'AI configuration error (invalid API key).':'Ошибка настройки ИИ (недействительный API-ключ).';
+    }
+    if(msg.includes('quota')||msg.includes('exhausted')||msg.includes('Quota')) {
+      return _currentLang==='en'?'AI quota exceeded (Gemini API limit reached. Try again in 1 minute).':'Лимит запросов ИИ исчерпан (превышена квота Gemini API. Попробуйте через 1 минуту).';
+    }
+    if(msg.includes('overloaded')||msg.includes('503')||msg.includes('Unavailable')) {
+      return _currentLang==='en'?'Gemini servers are currently overloaded. Please try again in a few seconds.':'Серверы Gemini перегружены. Пожалуйста, повторите попытку через несколько секунд.';
+    }
+    if(msg.includes('fetch failed')||msg.includes('ENOTFOUND')||msg.includes('connect')) {
+      return _currentLang==='en'?'No internet connection or backend server cannot reach Gemini API.':'Нет подключения к интернету или сервер не может связаться с Gemini API.';
+    }
+    return (_currentLang==='en'?'AI error: ':'Ошибка ИИ: ')+msg;
+  }
   return _currentLang==='en'?'AI unavailable.':'ИИ недоступен.';
 }
 async function callAI(messages,systemPrompt,videos,channelInfo){
   const payload={system:systemPrompt||undefined,messages,max_tokens:1000};
   if(videos)payload.videos=videos;
   if(channelInfo)payload.channelInfo=channelInfo;
-  const response=await apiFetch('/api/ai',{method:'POST',body:JSON.stringify(payload)});
+  let response;
+  try {
+    response=await apiFetch('/api/ai',{method:'POST',body:JSON.stringify(payload)});
+  } catch(e) {
+    throw new Error(_currentLang==='en'?'Network error: No internet connection or backend server is offline.':'Ошибка сети: Нет подключения к интернету или сервер отключен.');
+  }
   const data=await response.json().catch(()=>({}));
   if(response.status===403){handleBanFromResponse();throw new Error('BANNED');}
   updateCounterFromResponse(data);
@@ -2994,11 +3020,16 @@ async function analyzeChannelVideos(){
       channelInfo:{ name:(_currentUser&&(_currentUser.channel_name||_currentUser.name))||'', subscribers:(_currentUser&&_currentUser.subscribers)||0 },
       lang:_currentLang,
     };
-    const res=await apiFetch('/api/ai/analyze-videos',{method:'POST',body:JSON.stringify(payload)});
+    let res;
+    try {
+      res=await apiFetch('/api/ai/analyze-videos',{method:'POST',body:JSON.stringify(payload)});
+    } catch(errNetwork) {
+      throw new Error(_currentLang==='en'?'Network error: No internet connection or backend server is offline.':'Ошибка сети: Нет подключения к интернету или сервер отключен.');
+    }
     const data=await res.json().catch(()=>({}));
     if(res.status===403){handleBanFromResponse();return;}
     if(!res.ok){
-      updateChatMsg(lid,'⚠️ '+(data.message||data.error||'Error'),true);
+      updateChatMsg(lid,'⚠️ '+aiErrorMessage(res.status,data),true);
       return;
     }
     chatHistory.push({role:'user',content: t('analyze_prompt_text')});
@@ -3686,6 +3717,7 @@ function normalizeVideo(v,idx){
     viewedRatio:    isShort&&v.viewed_ratio!=null  ? v.viewed_ratio  : null,
     avgDurationSec: v.avg_duration_sec!=null ? v.avg_duration_sec : null,
     watchHours:     v.watch_hours!=null ? v.watch_hours : null,
+    subscribersGained: v.subscribers_gained!=null ? v.subscribers_gained : 0,
     noDataReason:   v.no_data_reason||null,
     video_url: v.video_url||('https://www.youtube.com/watch?v='+(v.id||v.video_id)),
     channel_url: v.channel_url||null,
@@ -3933,6 +3965,7 @@ function openStatsModal(id){
   setElText('sm-shares-label',t('shares'));
   setElText('sm-avgdur-label',t('avg_duration'));
   setElText('sm-hours-label',t('watch_hours'));
+  setElText('sm-subs-gained-label',t('subs_gained_label'));
   document.getElementById('sm-views').textContent=fmt(v.views);document.getElementById('sm-views-d').textContent=t('total');
   document.getElementById('sm-likes').textContent=fmt(v.likes);document.getElementById('sm-likes-d').textContent=pctOf(v.likes,v.views)+' '+t('of_views');
   document.getElementById('sm-comments').textContent=fmt(v.comments);document.getElementById('sm-comments-d').textContent=pctOf(v.comments,v.likes)+' '+t('of_likes');
@@ -3940,6 +3973,8 @@ function openStatsModal(id){
   document.getElementById('sm-avg-dur').textContent=fmtDuration(v.avgDurationSec);document.getElementById('sm-avg-dur-d').textContent=t('avg_view');
   document.getElementById('sm-watch-hours').textContent=v.watchHours!=null?v.watchHours+'h':'—';
   document.getElementById('sm-watch-hours-d').textContent=v.watchHours!=null?t('watch_hours_days'):'—';
+  document.getElementById('sm-subs-gained').textContent=v.subscribersGained!=null?((v.subscribersGained>=0?'+':'')+fmt(v.subscribersGained)):'—';
+  document.getElementById('sm-subs-gained-d').textContent=t('gained_sub');
 
   const nodataBanner=document.getElementById('sm-nodata-banner');
   const reasonText=noDataReasonText(v.noDataReason);
