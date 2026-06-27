@@ -975,19 +975,24 @@ const YOUTUBE_SCOPES=[
 ].join(' ');
 
 app.get('/api/auth/google', (req,res)=>{
-  const params=new URLSearchParams({ client_id:GOOGLE_CLIENT_ID, redirect_uri:REDIRECT_URI, response_type:'code', scope:YOUTUBE_SCOPES, access_type:'offline', prompt:'consent', include_granted_scopes:'true' });
+  const origin = req.query.origin || '';
+  const params=new URLSearchParams({ client_id:GOOGLE_CLIENT_ID, redirect_uri:REDIRECT_URI, response_type:'code', scope:YOUTUBE_SCOPES, access_type:'offline', prompt:'consent', include_granted_scopes:'true', state:origin });
   res.writeHead(302,{ Location:'https://accounts.google.com/o/oauth2/v2/auth?'+params.toString() });
   res.end();
 });
 
 app.get('/api/auth/callback', async (req,res)=>{
+  const { code, error, state }=req.query;
   let redirectTarget = APP_URL;
-  if (!process.env.APP_URL && req.headers.host) {
+  if (state && (state.startsWith('http://') || state.startsWith('https://'))) {
+    redirectTarget = state;
+  } else if (!process.env.APP_URL && req.headers.host) {
     const proto = req.headers['x-forwarded-proto'] || 'https';
     redirectTarget = `${proto}://${req.headers.host}`;
   }
-
-  const { code, error }=req.query;
+  if (redirectTarget.endsWith('/')) {
+    redirectTarget = redirectTarget.slice(0, -1);
+  }
   if(error||!code){ res.writeHead(302,{ Location:redirectTarget+'/?error=oauth_denied' }); return res.end(); }
   try{
     const tokenRes=await fetch('https://oauth2.googleapis.com/token',{ method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams({ code, client_id:GOOGLE_CLIENT_ID, client_secret:GOOGLE_CLIENT_SECRET, redirect_uri:REDIRECT_URI, grant_type:'authorization_code' }) });
