@@ -639,6 +639,47 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+/* Floating report button styles */
+.float-report-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: rgba(255, 71, 87, 0.08);
+  border: 1px solid rgba(255, 71, 87, 0.25);
+  border-radius: 50px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #ff4d4d;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(255, 71, 87, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.2s ease-in-out;
+}
+.float-report-btn:hover {
+  background: rgba(255, 71, 87, 0.15);
+  border-color: rgba(255, 71, 87, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 71, 87, 0.25);
+}
+@media (max-width: 768px) {
+  .float-report-btn {
+    bottom: 16px;
+    right: 16px;
+    padding: 10px 12px;
+  }
+  .float-report-btn span {
+    display: none !important;
+  }
+}
+
 /* Toast styles */
 .toast-container {
   position: fixed;
@@ -1248,6 +1289,9 @@
       </div>
     </div>
 
+    <button class="float-report-btn" onclick="openBugReportModal()">
+      ⚠️ <span id="float-report-text">Сообщить о проблеме</span>
+    </button>
   </main>
 </div>
 
@@ -2729,6 +2773,7 @@ function applyTranslations(){
   setElText('report-title',t('report_title'));
   setElText('report-sub',t('report_sub'));
   setElText('cta-report-text',t('report_cta'));
+  setElText('float-report-text',t('report_cta'));
   setElText('report-modal-title',t('report_title'));
   setElText('report-modal-sub',t('report_modal_sub'));
   setElText('report-label-email',t('report_label_email'));
@@ -3233,8 +3278,8 @@ function updateChatMsg(id,html,isError){
   }
 }
 
-const fmt=function(n){if(n==null||isNaN(n))return'—';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return String(Math.round(n));};
-const fmtFull=function(n){if(n==null||isNaN(n))return'—';return Math.round(n).toLocaleString('ru-RU');};
+const fmt=function(n){if(n==null||isNaN(n))return'—';const lang=_currentLang==='en'?'en-US':(_currentLang==='ar'?'ar':'ru-RU');return new Intl.NumberFormat(lang).format(n);};
+const fmtFull=function(n){if(n==null||isNaN(n))return'—';const lang=_currentLang==='en'?'en-US':(_currentLang==='ar'?'ar':'ru-RU');return new Intl.NumberFormat(lang).format(Math.round(n));};
 const pctOf=function(a,b){return b?((a/b)*100).toFixed(1)+'%':'—';};
 function fmtSubs(n){if(!n||isNaN(n))return'0';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(0)+'K';return String(n);}
 function fmtDuration(sec){if(!sec||sec===0)return'—';const m=Math.floor(sec/60),s=Math.round(sec%60);return m+'m '+s+'s';}
