@@ -365,6 +365,7 @@
     .notif-icon-content_violation{background:rgba(255,71,87,.1);border:1px solid rgba(255,71,87,.2);}
     .notif-icon-new_admin{background:rgba(255,159,71,.1);border:1px solid rgba(255,159,71,.2);}
     .notif-icon-user_banned{background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.15);}
+    .notif-icon-support_report{background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.15);}
     .notif-icon-user_deleted{background:rgba(100,100,120,.1);border:1px solid rgba(100,100,120,.2);}
     .notif-icon-default{background:rgba(100,100,120,.08);border:1px solid var(--border);}
     .notif-content{flex:1;min-width:0;}
@@ -857,9 +858,10 @@
         <div class="rule-item"><div class="rule-num">5</div><div id="rule5-el">Используя YTMetrics, вы соглашаетесь с правилами и <span style="color:var(--accent);cursor:pointer;text-decoration:underline" onclick="showPrivacyPolicy()">Политикой конфиденциальности</span>.</div></div>
       </div>
     </div>
-    <div class="hero-cta">
+    <div class="hero-cta" style="flex-wrap:wrap; gap:12px; justify-content:center;">
       <button class="btn-cta-main" onclick="startLogin()"><span>📈</span> <span id="cta-main-text">Сделать анализ</span></button>
       <button class="btn-cta-sec" onclick="scrollToFeatures()" id="cta-sec-text">Узнать больше ↓</button>
+      <button class="btn-cta-sec" onclick="openBugReportModal()" style="border-color:rgba(255,71,87,.25); color:var(--red); background:rgba(255,71,87,.04);"><span style="margin-right:4px;">⚠️</span> <span id="cta-report-text">Сообщить о проблеме</span></button>
     </div>
     <div class="hero-trust">
       <div class="trust-item"><div class="trust-dot"></div><span id="trust1-el">Только чтение данных</span></div>
@@ -1182,6 +1184,16 @@
             <div class="video-item-meta" id="feedback-sub">Поделитесь вашим мнением о работе YTMetrics</div>
           </div>
           <span class="video-item-badge" style="color:var(--accent2); border-color:rgba(71,200,255,.3); background:rgba(71,200,255,.06);">Написать</span>
+        </div>
+
+        <!-- Сообщить о проблеме -->
+        <div class="video-item" onclick="openBugReportModal()">
+          <span class="video-item-icon" style="font-size:24px;">🐛</span>
+          <div class="video-item-info">
+            <div class="video-item-title" id="report-title">Сообщить о проблеме</div>
+            <div class="video-item-meta" id="report-sub">Сообщить о баге или технической ошибке на сайте</div>
+          </div>
+          <span class="video-item-badge" style="color:var(--red); border-color:rgba(255,71,87,.3); background:rgba(255,71,87,.06);">Сообщить</span>
         </div>
 
         <!-- О проекте -->
@@ -1576,6 +1588,46 @@
   </div>
 </div>
 
+<!-- REPORT MODAL -->
+<div class="modal-overlay" id="report-modal">
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-header">
+      <div style="flex:1;min-width:0">
+        <div class="modal-title" style="display:flex;align-items:center;gap:8px;">
+          <span>🐛</span> <span id="report-modal-title">Сообщить о проблеме</span>
+        </div>
+        <div class="modal-sub" id="report-modal-sub">Мы постараемся исправить ошибку как можно скорее</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('report-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:var(--muted);" id="report-label-email">Ваш Email</label>
+        <input type="email" class="calc-input" id="report-email" placeholder="example@gmail.com" required style="font-size:13px;padding:10px 14px;">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:var(--muted);" id="report-label-category">Категория проблемы</label>
+        <select class="calc-input" id="report-category" style="font-size:13px;padding:10px 14px;cursor:pointer;height:38px;">
+          <option value="Зависает кнопка сделать анализ">Зависает кнопка "Сделать анализ"</option>
+          <option value="Кнопка сделать анализ не реагирует">Кнопка не реагирует на нажатие</option>
+          <option value="Черный экран при загрузке">Черный экран при загрузке сайта</option>
+          <option value="Медленная скорость работы">Медленная скорость работы / зависание</option>
+          <option value="Другая техническая проблема">Другая техническая проблема</option>
+        </select>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:var(--muted);" id="report-label-desc">Описание проблемы (минимум 10 символов)</label>
+        <textarea class="calc-input" id="report-comment" placeholder="Опишите, что именно пошло не так..." rows="4" style="font-size:13px;padding:10px 14px;resize:vertical;font-family:sans-serif;line-height:1.4;"></textarea>
+      </div>
+      <div id="report-error-msg" style="display:none;color:var(--red);font-family:'DM Mono',monospace;font-size:12px;line-height:1.4;"></div>
+      <div id="report-success-msg" style="display:none;color:var(--accent2);font-family:'DM Mono',monospace;font-size:12px;line-height:1.4;background:rgba(71,200,255,.08);border:1px solid rgba(71,200,255,.2);padding:10px 14px;border-radius:8px;">✓ Сообщение успешно отправлено! Спасибо за помощь.</div>
+      <button class="chat-context-btn" id="submit-report-btn" onclick="submitBugReport()" style="margin-bottom:0;justify-content:center;height:40px;font-size:12px;margin-top:6px;">
+        📤 <span id="submit-report-btn-text">Отправить сообщение</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ABOUT SETTINGS MODAL -->
 <div class="modal-overlay" id="about-settings-modal">
   <div class="modal-box modal-sm" style="max-width:400px;">
@@ -1607,7 +1659,9 @@
 </div>
 
 <script>
-const API_URL='https://yt-metrics-seven.vercel.app';
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:3000'
+  : (window.location.protocol === 'file:' ? 'https://yt-metrics-seven.vercel.app' : window.location.origin);
 const LS_KEY='ytmetrics_user', LS_TOK='ytmetrics_token', LS_CHAT='ytmetrics_chat';
 const LS_THEME='ytmetrics_theme', LS_FORMAT='ytmetrics_format', LS_LANG='ytmetrics_lang';
 const PERM_KEYS=['read_notifications','view_users','ban_users','view_admins','ban_admins','add_admins','remove_admins'];
@@ -1957,7 +2011,24 @@ const T={
     calc_excellent_ctr:'🚀 Отличный CTR',
     calc_good_ctr:'✓ Хороший CTR',
     calc_average:'⚠ Средний',
-    calc_low_ctr:'❌ Низкий — смените превью'
+    calc_low_ctr:'❌ Низкий — смените превью',
+    report_cta:'Сообщить о проблеме',
+    report_title:'Сообщить о проблеме',
+    report_sub:'Сообщить о баге или технической ошибке на сайте',
+    report_modal_sub:'Мы постараемся исправить ошибку как можно скорее',
+    report_label_email:'Ваш Email',
+    report_label_category:'Категория проблемы',
+    report_label_desc:'Описание проблемы (минимум 10 символов)',
+    report_btn_send:'Отправить сообщение',
+    report_success_msg:'✓ Сообщение успешно отправлено! Спасибо за помощь.',
+    report_email_ph:'example@gmail.com',
+    report_comm_ph:'Опишите, что именно пошло не так...',
+    report_cat_hangs:'Зависает кнопка "Сделать анализ"',
+    report_cat_no_react:'Кнопка не реагирует на нажатие',
+    report_cat_black:'Черный экран при загрузке сайта',
+    report_cat_slow:'Медленная скорость работы / зависание',
+    report_cat_other:'Другая техническая проблема',
+    report_min_chars:'Описание проблемы должно содержать хотя бы 10 символов!'
   },
   en:{
     nav_stats:'Analytics', nav_forecast:'Video Forecast', nav_calc:'Calculator',
@@ -2218,7 +2289,24 @@ const T={
     calc_excellent_ctr:'🚀 Excellent CTR',
     calc_good_ctr:'✓ Good CTR',
     calc_average:'Average',
-    calc_low_ctr:'❌ Low — change thumbnail'
+    calc_low_ctr:'❌ Low — change thumbnail',
+    report_cta:'Report an issue',
+    report_title:'Report an issue',
+    report_sub:'Report a bug or technical error on the website',
+    report_modal_sub:'We will try to fix the issue as soon as possible',
+    report_label_email:'Your Email',
+    report_label_category:'Issue Category',
+    report_label_desc:'Issue Description (at least 10 characters)',
+    report_btn_send:'Send Report',
+    report_success_msg:'✓ Report sent successfully! Thank you for your help.',
+    report_email_ph:'example@gmail.com',
+    report_comm_ph:'Describe what exactly went wrong...',
+    report_cat_hangs:'Analysis button freezes',
+    report_cat_no_react:'Button does not react',
+    report_cat_black:'Black screen on load',
+    report_cat_slow:'Slow performance / freezing',
+    report_cat_other:'Other technical issue',
+    report_min_chars:'Issue description must be at least 10 characters long!'
   },
   ar:{
     nav_stats:'التحليلات', nav_forecast:'توقعات الفيديو', nav_calc:'الحاسبة',
@@ -2479,7 +2567,24 @@ const T={
     calc_excellent_ctr:'🚀 CTR ممتاز',
     calc_good_ctr:'✓ CTR جيد',
     calc_average:'⚠ متوسط',
-    calc_low_ctr:'❌ منخفض — غيّر الصورة المصغرة'
+    calc_low_ctr:'❌ منخفض — غيّر الصورة المصغرة',
+    report_cta:'الإبلاغ عن مشكلة',
+    report_title:'الإبلاغ عن مشكلة',
+    report_sub:'الإبلاغ عن خلل أو خطأ فني على الموقع',
+    report_modal_sub:'سنحاول إصلاح المشكلة في أقرب وقت ممكن',
+    report_label_email:'بريدك الإلكتروني',
+    report_label_category:'فئة المشكلة',
+    report_label_desc:'وصف المشكلة (على الأقل 10 أحرف)',
+    report_btn_send:'إرسال التقرير',
+    report_success_msg:'✓ تم إرسال التقرير بنجاح! شكراً لمساعدتك.',
+    report_email_ph:'example@gmail.com',
+    report_comm_ph:'صف بالضبط ما الذي حدث بشكل خاطئ...',
+    report_cat_hangs:'زر التحليل يتجمد',
+    report_cat_no_react:'الزر لا يتفاعل',
+    report_cat_black:'شاشة سوداء عند التحميل',
+    report_cat_slow:'أداء بطيء / تجمد',
+    report_cat_other:'مشكلة فنية أخرى',
+    report_min_chars:'يجب أن يكون وصف المشكلة 10 أحرف على الأقل!'
   }
 };
 
@@ -2621,6 +2726,25 @@ function applyTranslations(){
   setElText('feedback-title',t('feedback_title'));
   setElText('feedback-sub',t('feedback_sub'));
   setElText('rating-label',t('rating'));
+  setElText('report-title',t('report_title'));
+  setElText('report-sub',t('report_sub'));
+  setElText('cta-report-text',t('report_cta'));
+  setElText('report-modal-title',t('report_title'));
+  setElText('report-modal-sub',t('report_modal_sub'));
+  setElText('report-label-email',t('report_label_email'));
+  setElText('report-label-category',t('report_label_category'));
+  setElText('report-label-desc',t('report_label_desc'));
+  setElText('submit-report-btn-text',t('report_btn_send'));
+  const repEmail=document.getElementById('report-email');if(repEmail)repEmail.placeholder=t('report_email_ph');
+  const repComm=document.getElementById('report-comment');if(repComm)repComm.placeholder=t('report_comm_ph');
+  const repCat=document.getElementById('report-category');
+  if(repCat&&repCat.options.length>=5){
+    repCat.options[0].text=t('report_cat_hangs');
+    repCat.options[1].text=t('report_cat_no_react');
+    repCat.options[2].text=t('report_cat_black');
+    repCat.options[3].text=t('report_cat_slow');
+    repCat.options[4].text=t('report_cat_other');
+  }
   const fbBtn=document.getElementById('feedback-submit-btn');if(fbBtn&&!fbBtn.disabled)fbBtn.textContent=t('send_feedback');
   const fbSucc=document.getElementById('feedback-success');if(fbSucc)fbSucc.textContent=t('feedback_success');
   const fbTa=document.getElementById('feedback-text');if(fbTa)fbTa.placeholder=t('feedback_ph');
@@ -3164,7 +3288,7 @@ function closeModal(id){document.getElementById(id).classList.remove('open');doc
 function openAuthorsModal(){openModal('authors-modal');}
 document.querySelectorAll('.modal-overlay').forEach(function(el){el.addEventListener('click',function(e){if(e.target===el)closeModal(el.id);});});
 
-const NOTIF_ICONS={new_user:'👤',appeal:'📩',feedback:'💬',content_violation:'⚠️',new_admin:'⭐',user_banned:'🚫',user_deleted:'🗑️',default:'🔔'};
+const NOTIF_ICONS={new_user:'👤',appeal:'📩',feedback:'💬',content_violation:'⚠️',new_admin:'⭐',user_banned:'🚫',support_report:'🐛',user_deleted:'🗑️',default:'🔔'};
 
 async function loadAdminNotifications(){
   const list=document.getElementById('admin-notif-list');
@@ -3684,6 +3808,7 @@ async function deleteUser(){
 document.getElementById('logout-btn').addEventListener('click',function(){
   clearToken();clearUser();clearChatHistory();_isAdmin=false;
   const navAdmin=document.getElementById('nav-admin');if(navAdmin)navAdmin.style.display='none';
+  const banner=document.getElementById('global-update-banner');if(banner)banner.style.display='none';
   apiFetch('/api/auth/logout',{method:'POST'}).catch(function(){});
   document.getElementById('dashboard').style.display='none';
   document.getElementById('channel-select-screen').style.display='none';
@@ -3717,7 +3842,12 @@ function showChannelSelect(user){
   }).join('');
 }
 function selectChannel(idx){const user=window._pendingUser,ch=window._pendingChannels[idx];if(!user||!ch)return;document.getElementById('channel-select-screen').style.display='none';showDashboard(buildMergedUser(user,ch));}
-function logoutFromChannelSelect(){clearToken();clearUser();document.getElementById('channel-select-screen').style.display='none';document.getElementById('landing-screen').style.display='flex';}
+function logoutFromChannelSelect(){
+  clearToken();clearUser();
+  const banner=document.getElementById('global-update-banner');if(banner)banner.style.display='none';
+  document.getElementById('channel-select-screen').style.display='none';
+  document.getElementById('landing-screen').style.display='flex';
+}
 
 let _currentUser=null, _realVideos=[], _statsFilter='all', _fcFilter='all';
 
@@ -4223,6 +4353,7 @@ function updatePinDots() {
 function logoutFromPinScreen(){
   clearToken();clearUser();clearChatHistory();_isAdmin=false;
   const navAdmin=document.getElementById('nav-admin');if(navAdmin)navAdmin.style.display='none';
+  const banner=document.getElementById('global-update-banner');if(banner)banner.style.display='none';
   apiFetch('/api/auth/logout',{method:'POST'}).catch(function(){});
   document.getElementById('pin-lock-screen').style.display='none';
   document.getElementById('dashboard').style.display='none';
@@ -4302,6 +4433,78 @@ function openFeedbackSettingsModal() {
 
 function openAboutSettingsModal() {
   openModal('about-settings-modal');
+}
+
+function openBugReportModal() {
+  const errEl = document.getElementById('report-error-msg'); if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+  const successEl = document.getElementById('report-success-msg'); if (successEl) successEl.style.display = 'none';
+  const emailInput = document.getElementById('report-email');
+  if (emailInput) {
+    if (_currentUser && _currentUser.email) {
+      emailInput.value = _currentUser.email;
+      emailInput.disabled = true;
+    } else {
+      emailInput.value = '';
+      emailInput.disabled = false;
+    }
+  }
+  document.getElementById('report-comment').value = '';
+  document.getElementById('report-category').selectedIndex = 0;
+  openModal('report-modal');
+}
+
+async function submitBugReport() {
+  const email = (document.getElementById('report-email').value || '').trim();
+  const category = document.getElementById('report-category').value;
+  const comment = (document.getElementById('report-comment').value || '').trim();
+  const errEl = document.getElementById('report-error-msg');
+  const successEl = document.getElementById('report-success-msg');
+  
+  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+  if (successEl) successEl.style.display = 'none';
+  
+  if (!email) {
+    if (errEl) { errEl.textContent = _currentLang === 'en' ? 'Email is required!' : (_currentLang === 'ar' ? 'البريد الإلكتروني مطلوب!' : 'Укажите ваш Email!'); errEl.style.display = 'block'; }
+    return;
+  }
+  if (!comment || comment.length < 10) {
+    if (errEl) { errEl.textContent = t('report_min_chars'); errEl.style.display = 'block'; }
+    return;
+  }
+  
+  const btn = document.getElementById('submit-report-btn');
+  btn.disabled = true;
+  const originalText = document.getElementById('submit-report-btn-text').textContent;
+  document.getElementById('submit-report-btn-text').textContent = '...';
+  
+  try {
+    const res = await fetch(API_URL + '/api/reports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, category, comment })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      if (successEl) {
+        successEl.textContent = t('report_success_msg');
+        successEl.style.display = 'block';
+      }
+      document.getElementById('report-comment').value = '';
+      setTimeout(() => { closeModal('report-modal'); }, 2000);
+    } else {
+      if (errEl) {
+        errEl.textContent = data.message || data.error || t('error_try_later');
+        errEl.style.display = 'block';
+      }
+    }
+  } catch(e) {
+    if (errEl) {
+      errEl.textContent = t('network_error');
+      errEl.style.display = 'block';
+    }
+  }
+  btn.disabled = false;
+  document.getElementById('submit-report-btn-text').textContent = originalText;
 }
 
 function openPinSetupModal() {
@@ -4514,14 +4717,14 @@ async function handleInitAuthMeResponse(res) {
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./sw.js').then(reg => {
       reg.update().catch(function(){});
-      if (reg.waiting) {
+      if (reg.waiting && getToken()) {
         _newServiceWorker = reg.waiting;
         document.getElementById('global-update-banner').style.display = 'flex';
       }
       reg.addEventListener('updatefound', () => {
         const installingWorker = reg.installing;
         installingWorker.addEventListener('statechange', () => {
-          if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          if (installingWorker.state === 'installed' && navigator.serviceWorker.controller && getToken()) {
             _newServiceWorker = installingWorker;
             document.getElementById('global-update-banner').style.display = 'flex';
           }
@@ -4580,6 +4783,12 @@ async function handleInitAuthMeResponse(res) {
     document.getElementById('landing-screen').style.display='flex';
     return;
   }
+  const token=getToken();
+  if(!token){
+    console.log('YTMetrics init: no token, showing landing-screen immediately');
+    document.getElementById('landing-screen').style.display='flex';
+    return;
+  }
   const cached=getUser();
   console.log('YTMetrics init: cached user =', cached);
   if(cached&&(cached.email||cached.channel_id)){
@@ -4617,6 +4826,7 @@ async function handleInitAuthMeResponse(res) {
   }catch(e){
     console.error('YTMetrics init: /api/auth/me fetch failed', e);
   }
+  clearToken();
   console.log('YTMetrics init: showing landing-screen');
   document.getElementById('landing-screen').style.display='flex';
 })();
