@@ -981,21 +981,27 @@ app.get('/api/auth/google', (req,res)=>{
 });
 
 app.get('/api/auth/callback', async (req,res)=>{
+  let redirectTarget = APP_URL;
+  if (!process.env.APP_URL && req.headers.host) {
+    const proto = req.headers['x-forwarded-proto'] || 'https';
+    redirectTarget = `${proto}://${req.headers.host}`;
+  }
+
   const { code, error }=req.query;
-  if(error||!code){ res.writeHead(302,{ Location:APP_URL+'/?error=oauth_denied' }); return res.end(); }
+  if(error||!code){ res.writeHead(302,{ Location:redirectTarget+'/?error=oauth_denied' }); return res.end(); }
   try{
     const tokenRes=await fetch('https://oauth2.googleapis.com/token',{ method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams({ code, client_id:GOOGLE_CLIENT_ID, client_secret:GOOGLE_CLIENT_SECRET, redirect_uri:REDIRECT_URI, grant_type:'authorization_code' }) });
     const tokens=await tokenRes.json();
-    if(!tokenRes.ok||tokens.error){ res.writeHead(302,{ Location:APP_URL+'/?error=token_exchange' }); return res.end(); }
+    if(!tokenRes.ok||tokens.error){ res.writeHead(302,{ Location:redirectTarget+'/?error=token_exchange' }); return res.end(); }
     const { access_token, refresh_token=null }=tokens;
     let googleProfile;
     try{ googleProfile=await gFetch('https://www.googleapis.com/oauth2/v3/userinfo', access_token); }
-    catch(e){ res.writeHead(302,{ Location:APP_URL+'/?error=userinfo' }); return res.end(); }
+    catch(e){ res.writeHead(302,{ Location:redirectTarget+'/?error=userinfo' }); return res.end(); }
     const googleId=googleProfile.sub, email=googleProfile.email, googleName=googleProfile.name||googleProfile.email;
     let isNewUser=false;
     try{
       const { data:existingUser }=await supabase.from('users').select('banned,id').eq('id',googleId).single();
-      if(existingUser?.banned){ res.writeHead(302,{ Location:APP_URL+'/?error=banned&uid='+encodeURIComponent(googleId)+'&uemail='+encodeURIComponent(email) }); return res.end(); }
+      if(existingUser?.banned){ res.writeHead(302,{ Location:redirectTarget+'/?error=banned&uid='+encodeURIComponent(googleId)+'&uemail='+encodeURIComponent(email) }); return res.end(); }
       if(!existingUser)isNewUser=true;
     }catch(e){ isNewUser=true; }
     const channels=await fetchChannels(access_token);
@@ -1021,9 +1027,9 @@ app.get('/api/auth/callback', async (req,res)=>{
     }
     const jwtPayload={ sub:googleId, email, name:googleName, google_picture:googleProfile.picture||null, channel_id:primary?.channel_id||null, channel_name:primary?.channel_name||null, channel_url:primary?.channel_url||null, avatar_url:primary?.avatar_url||googleProfile.picture||null, subscribers:primary?.subscribers||0, channels, access_token, refresh_token };
     const sessionToken=signSession(jwtPayload);
-    res.writeHead(302,{ 'Set-Cookie':buildCookieHeader(sessionToken), Location:APP_URL+'/?token='+encodeURIComponent(sessionToken) });
+    res.writeHead(302,{ 'Set-Cookie':buildCookieHeader(sessionToken), Location:redirectTarget+'/?token='+encodeURIComponent(sessionToken) });
     res.end();
-  }catch(e){ console.error('Callback fatal error:',e); res.writeHead(302,{ Location:APP_URL+'/?error=server' }); res.end(); }
+  }catch(e){ console.error('Callback fatal error:',e); res.writeHead(302,{ Location:redirectTarget+'/?error=server' }); res.end(); }
 });
 
 app.get('/api/auth/me', async (req,res)=>{
