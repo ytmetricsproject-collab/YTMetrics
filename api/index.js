@@ -829,6 +829,36 @@ app.delete('/api/admin/feedback/:id', async (req,res)=>{
   catch(e){ return res.status(500).json({ error:'Server error' }); }
 });
 
+app.post('/api/reports', async (req,res)=>{
+  const { email, category, comment }=req.body;
+  if(!email||typeof email!=='string'||!email.trim())return res.status(400).json({ error:'email required' });
+  if(!category||typeof category!=='string'||!category.trim())return res.status(400).json({ error:'category required' });
+  if(!comment||typeof comment!=='string'||!comment.trim())return res.status(400).json({ error:'comment required' });
+  if(comment.trim().length>2000)return res.status(400).json({ error:'Comment too long' });
+  
+  try{
+    const dayAgo=new Date(Date.now()-86400000).toISOString();
+    const { data:recent, error:countErr }=await supabase
+      .from('admin_notifications')
+      .select('id')
+      .eq('type','support_report')
+      .like('body',`От: ${email.trim()}%`)
+      .gte('created_at',dayAgo);
+    
+    if(!countErr && (recent||[]).length>=5) {
+      return res.status(429).json({ error:'LIMIT_REACHED', message:'Вы отправили слишком много жалоб. Пожалуйста, подождите 24 часа.' });
+    }
+
+    const title = `🐛 Жалоба: ${category.trim()}`;
+    const body = `От: ${email.trim()}\n\nОписание:\n${comment.trim()}`;
+    await createAdminNotification('support_report', title, body);
+    return res.json({ ok:true });
+  }catch(e){
+    console.error('Reports endpoint error:',e);
+    return res.status(500).json({ error:'Server error' });
+  }
+});
+
 // ════════════════════════════════════════════════════════
 // НОВОСТИ
 // ════════════════════════════════════════════════════════
