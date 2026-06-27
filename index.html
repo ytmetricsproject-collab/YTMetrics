@@ -2969,7 +2969,10 @@ function switchSettingsTab(name){
   const panel=document.getElementById('stab-'+name);if(panel)panel.classList.add('active');
 }
 
-function startLogin(){window.location.href=API_URL+'/api/auth/google';}
+function startLogin(){
+  const origin = window.location.origin + window.location.pathname;
+  window.location.href = API_URL + '/api/auth/google?origin=' + encodeURIComponent(origin);
+}
 function scrollToFeatures(){document.getElementById('features').scrollIntoView({behavior:'smooth'});}
 function showPrivacyPolicy(){openModal('privacy-modal');}
 function showTerms(){openModal('terms-modal');}
