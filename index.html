@@ -4762,16 +4762,24 @@ async function handleInitAuthMeResponse(res) {
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./sw.js').then(reg => {
       reg.update().catch(function(){});
-      if (reg.waiting && getToken()) {
+      if (reg.waiting) {
         _newServiceWorker = reg.waiting;
-        document.getElementById('global-update-banner').style.display = 'flex';
+        if (getToken()) {
+          document.getElementById('global-update-banner').style.display = 'flex';
+        } else {
+          _newServiceWorker.postMessage({ type: 'SKIP_WAITING' });
+        }
       }
       reg.addEventListener('updatefound', () => {
         const installingWorker = reg.installing;
         installingWorker.addEventListener('statechange', () => {
-          if (installingWorker.state === 'installed' && navigator.serviceWorker.controller && getToken()) {
+          if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
             _newServiceWorker = installingWorker;
-            document.getElementById('global-update-banner').style.display = 'flex';
+            if (getToken()) {
+              document.getElementById('global-update-banner').style.display = 'flex';
+            } else {
+              _newServiceWorker.postMessage({ type: 'SKIP_WAITING' });
+            }
           }
         });
       });
