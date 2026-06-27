@@ -1092,9 +1092,16 @@
         <div class="ai-counter-dot" id="ai-counter-dot"></div>
         <span id="ai-counter-text">Загрузка...</span>
       </div>
-      <button class="chat-context-btn" id="send-video-context-btn" onclick="analyzeChannelVideos()" style="display:none">
-        📊 <span id="send-context-btn-text">Попросить ИИ проанализировать видео моего канала</span>
-      </button>
+      <div id="ai-video-analyzer-wrap" style="display:none; flex-direction:column; gap:10px; margin-bottom:16px; width:100%;">
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; width:100%;">
+          <select id="ai-video-select" class="calc-input" style="flex:2; min-width:200px; font-size:12px; height: 38px; cursor: pointer;">
+            <!-- Будет заполнено динамически -->
+          </select>
+          <button class="chat-context-btn" id="send-video-context-btn" onclick="analyzeSelectedVideo()" style="margin-bottom:0; flex:1; min-width:180px; height: 38px; justify-content: center; display: inline-flex;">
+            📊 <span id="send-context-btn-text">Проанализировать видео</span>
+          </button>
+        </div>
+      </div>
       <div class="chat-context-badge" id="context-sent-badge" style="display:none">
         ✓ <span id="context-sent-text">Анализ видео получен</span>
       </div>
@@ -1737,9 +1744,9 @@ const T={
     ai_producer:'ИИ-продюсер YTMetrics',
     ai_hint:'Спрашивай про Shorts, Long-form, алгоритмы, метрики, стратегию публикаций. Можешь запросить анализ видео своего канала кнопкой ниже.',
     ai_welcome:'Привет! Я твой ИИ-продюсер, обученный на принципах работы алгоритмов YouTube 2026. Спрашивай про Shorts, Long-form видео, метрики, стратегии. Можешь запросить анализ видео своего канала кнопкой выше. Чем могу помочь? 🎬',
-    send_video_context:'📊 Попросить ИИ проанализировать видео моего канала',
+    send_video_context:'Проанализировать видео',
     context_sent:'✓ Анализ видео получен',
-    analyzing_videos:'Анализирую видео канала...',
+    analyzing_videos:'Анализирую видео...',
     loading:'Загрузка...',
     ai_good_btn:'ИИ: Что хорошо получилось', ai_bad_btn:'ИИ: Что можно улучшить',
     ai_forecast_btn:'ИИ: Разбор алгоритмов и прогноз роста',
@@ -1998,9 +2005,9 @@ const T={
     ai_producer:'YTMetrics AI Producer',
     ai_hint:'Ask about Shorts, Long-form, algorithms, metrics, strategies. You can request an analysis of your channel videos below.',
     ai_welcome:'Hi! I am your AI producer trained on YouTube 2026 algorithm principles. Ask about Shorts, Long-form, metrics, strategies. You can request a channel video analysis with the button above. How can I help? 🎬',
-    send_video_context:'📊 Ask AI to analyze my channel videos',
+    send_video_context:'Analyze video',
     context_sent:'✓ Video analysis received',
-    analyzing_videos:'Analyzing channel videos...',
+    analyzing_videos:'Analyzing video...',
     loading:'Loading...',
     ai_good_btn:'AI: What worked well', ai_bad_btn:'AI: What to improve',
     ai_forecast_btn:'AI: Algorithm analysis & growth forecast',
@@ -2259,9 +2266,9 @@ const T={
     ai_producer:'منتج الذكاء الاصطناعي لـ YTMetrics',
     ai_hint:'اسأل عن Shorts، الفيديوهات الطويلة، الخوارزميات، المقاييس، الاستراتيجيات. يمكنك طلب تحليل مقاطع فيديو قناتك أدناه.',
     ai_welcome:'مرحباً! أنا منتج الذكاء الاصطناعي الخاص بك المدرب على مبادئ خوارزميات يوتيوب 2026. اسأل عن Shorts، الفيديوهات الطويلة، المقاييس، الاستراتيجيات. يمكنك طلب تحليل مقاطع فيديو قناتك بالزر أعلاه. كيف يمكنني المساعدة؟ 🎬',
-    send_video_context:'📊 اطلب من الذكاء الاصطناعي تحليل مقاطع فيديو قناتي',
+    send_video_context:'تحليل الفيديو',
     context_sent:'✓ تم استلام تحليل الفيديو',
-    analyzing_videos:'جاري تحليل مقاطع فيديو القناة...',
+    analyzing_videos:'جاري تحليل الفيديو...',
     loading:'جاري التحميل...',
     ai_good_btn:'الذكاء الاصطناعي: ما نجح بشكل جيد', ai_bad_btn:'الذكاء الاصطناعي: ما يمكن تحسينه',
     ai_forecast_btn:'الذكاء الاصطناعي: تحليل الخوارزميات وتوقعات النمو',
@@ -2999,24 +3006,35 @@ function clearChatHistory(){
   if(msgs){msgs.innerHTML='';const d=document.createElement('div');d.className='chat-msg ai';d.textContent=getChatWelcome();msgs.appendChild(d);}
 }
 
-async function analyzeChannelVideos(){
+function populateAIVideoSelect(){
+  const sel=document.getElementById('ai-video-select');
+  if(!sel)return;
+  sel.innerHTML=_realVideos.map(v=>`<option value="${v.video_id}">${escapeHtml(v.title)} (${v.type==='short'?'Shorts':'Long'})</option>`).join('');
+}
+async function analyzeSelectedVideo(){
   if(!_realVideos.length)return;
+  const sel=document.getElementById('ai-video-select');
+  if(!sel)return;
+  const selectedId=sel.value;
+  const v=_realVideos.find(x=>x.video_id===selectedId);
+  if(!v)return;
+
   const btn=document.getElementById('send-video-context-btn');
   btn.disabled=true;
   const originalText=document.getElementById('send-context-btn-text').textContent;
   document.getElementById('send-context-btn-text').textContent=t('analyzing_videos');
 
-  appendChatMsg('user', t('analyze_prompt_text') + ' (' + _realVideos.length + ' ' + t('video_count_format') + ')');
+  appendChatMsg('user', t('analyze_prompt_text') + ' "' + v.title + '"');
   const lid='loading-analyze-'+Date.now();
   appendChatMsg('ai','<div class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+t('ai_analyzing')+'</span></div>',lid);
 
   try{
     const payload={
-      videos:_realVideos.slice(0,20).map(v=>({
+      videos:[{
         title:v.title, type:v.type, views:v.views, likes:v.likes, comments:v.comments, shares:v.shares,
         retention:v.retention, ctr:v.ctr, retentionShort:v.retentionShort, swipedRatio:v.swipedRatio,
         avgDurationSec:v.avgDurationSec, watchHours:v.watchHours,
-      })),
+      }],
       channelInfo:{ name:(_currentUser&&(_currentUser.channel_name||_currentUser.name))||'', subscribers:(_currentUser&&_currentUser.subscribers)||0 },
       lang:_currentLang,
     };
@@ -3032,7 +3050,7 @@ async function analyzeChannelVideos(){
       updateChatMsg(lid,'⚠️ '+aiErrorMessage(res.status,data),true);
       return;
     }
-    chatHistory.push({role:'user',content: t('analyze_prompt_text')});
+    chatHistory.push({role:'user',content: t('analyze_prompt_text') + ' "' + v.title + '"'});
     chatHistory.push({role:'assistant',content:data.text});
     updateChatMsg(lid,(data.text||'').replace(/\n/g,'<br>'),false);
     saveChatHistory();
@@ -3754,6 +3772,11 @@ async function loadRealVideos(user){
         setTimeout(() => {
           renderStatsVideoGrid();
           renderForecastGrid();
+          const wrapper=document.getElementById('ai-video-analyzer-wrap');
+          if(wrapper) {
+            wrapper.style.display='flex';
+            populateAIVideoSelect();
+          }
         }, 0);
         
         document.getElementById('stats-loading').style.display='none';
@@ -3821,7 +3844,11 @@ async function loadRealVideos(user){
       return;
     }
     _realVideos=raw.map(normalizeVideo);
-    const ctxBtn=document.getElementById('send-video-context-btn');if(ctxBtn)ctxBtn.style.display='flex';
+    const wrapper=document.getElementById('ai-video-analyzer-wrap');
+    if(wrapper){
+      wrapper.style.display='flex';
+      populateAIVideoSelect();
+    }
     renderStatsVideoGrid();renderForecastGrid();
   }catch(e){
     if (!hasCached) {
@@ -4423,7 +4450,7 @@ function showDashboard(channelData){
   else{avatarEl.textContent=(channelData.channel_name||channelData.email||'Y')[0].toUpperCase();}
   fetchAndRenderLimits();loadChatHistory();updatePinStatusBadge();initInstallTab();
   _realVideos=[];
-  const ctxBtn=document.getElementById('send-video-context-btn');if(ctxBtn)ctxBtn.style.display='none';
+  const wrapper=document.getElementById('ai-video-analyzer-wrap');if(wrapper)wrapper.style.display='none';
   const badge=document.getElementById('context-sent-badge');if(badge)badge.style.display='none';
   loadRealVideos(channelData).then(function(){renderForecastGrid();showVideoList();});
 }
