@@ -984,7 +984,7 @@ app.get('/api/auth/google', (req,res)=>{
 app.get('/api/auth/callback', async (req,res)=>{
   const { code, error, state }=req.query;
   let redirectTarget = APP_URL;
-  if (state && (state.startsWith('http://') || state.startsWith('https://'))) {
+  if (state && (state.startsWith('http://') || state.startsWith('https://') || state.startsWith('ytmetrics://'))) {
     redirectTarget = state;
   } else if (!process.env.APP_URL && req.headers.host) {
     const proto = req.headers['x-forwarded-proto'] || 'https';
