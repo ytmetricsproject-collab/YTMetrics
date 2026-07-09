@@ -34,7 +34,9 @@
     "mac": {
       "target": "dmg",
       "icon": "icon.png",
-      "identity": null
+      "identity": "-",
+      "gatekeeperAssess": false,
+      "hardenedRuntime": false
     },
     "linux": {
       "target": "AppImage",
