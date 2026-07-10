@@ -1,8 +1,10 @@
 const { app, BrowserWindow, shell } = require('electron');
 const path = require('path');
 
-// URL твоего рабочего сайта на Vercel (бэкенд остаётся там же, меняем только оболочку)
-const APP_URL = process.env.APP_URL || 'https://yt-metrics-seven.vercel.app';
+// Интерфейс теперь встроен в приложение (index.html лежит рядом с main.js).
+// Бэкенд (API, база данных, Gemini) остаётся на Vercel — код внутри index.html
+// сам определяет это по window.location.protocol === 'file:' и обращается туда.
+const INDEX_PATH = path.join(__dirname, 'index.html');
 const PROTOCOL = 'ytmetrics';
 
 let mainWindow;
@@ -21,7 +23,7 @@ function createWindow() {
     },
   });
 
-  mainWindow.loadURL(APP_URL);
+  mainWindow.loadFile(INDEX_PATH);
 
   // Перехватываем переход на Google-логин и открываем его в обычном браузере,
   // а не внутри окна приложения (Google блокирует вход из встроенных окон)
@@ -55,9 +57,9 @@ function handleAuthCallback(url) {
     const error = parsed.searchParams.get('error');
     if (!mainWindow) return;
     if (token) {
-      mainWindow.loadURL(`${APP_URL}/?token=${encodeURIComponent(token)}`);
+      mainWindow.loadFile(INDEX_PATH, { search: `token=${encodeURIComponent(token)}` });
     } else if (error) {
-      mainWindow.loadURL(`${APP_URL}/?error=${encodeURIComponent(error)}`);
+      mainWindow.loadFile(INDEX_PATH, { search: `error=${encodeURIComponent(error)}` });
     }
     if (mainWindow.isMinimized()) mainWindow.restore();
     mainWindow.focus();
