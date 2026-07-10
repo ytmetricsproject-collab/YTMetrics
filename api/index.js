@@ -502,6 +502,127 @@ app.post('/api/ai/analyze-videos', async (req,res)=>{
 });
 
 // ════════════════════════════════════════════════════════
+// СЦЕНАРИИ — анкета (ссылки на соцсети + заметки) и генерация 3 вариантов
+// ════════════════════════════════════════════════════════
+app.get('/api/scripts/profile', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  const email=payload.email||'';
+  const banStatus = await isUserBannedOrWarned(email);
+  if(banStatus.banned){
+    if(banStatus.warned) return res.status(403).json({ error:'WARNED', reason: banStatus.reason });
+    return res.status(403).json({ error:'BANNED' });
+  }
+  try{
+    const userId=payload.sub||email;
+    const { data, error }=await supabase.from('script_profiles').select('*').eq('user_id',userId).maybeSingle();
+    if(error){ console.error('scripts profile fetch error:',error.message); return res.status(500).json({ error:'Database error' }); }
+    return res.json({ profile: data || null });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+app.post('/api/scripts/profile', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  const email=payload.email||'';
+  const banStatus = await isUserBannedOrWarned(email);
+  if(banStatus.banned){
+    if(banStatus.warned) return res.status(403).json({ error:'WARNED', reason: banStatus.reason });
+    return res.status(403).json({ error:'BANNED' });
+  }
+  const { social_links, likes_text, dislikes_text }=req.body;
+  if(social_links!=null && typeof social_links!=='object')return res.status(400).json({ error:'social_links must be an object' });
+  if(likes_text!=null && String(likes_text).length>3000)return res.status(400).json({ error:'likes_text too long' });
+  if(dislikes_text!=null && String(dislikes_text).length>3000)return res.status(400).json({ error:'dislikes_text too long' });
+  try{
+    const userId=payload.sub||email;
+    const row={
+      user_id:userId, user_email:email,
+      social_links: social_links||{},
+      likes_text: (likes_text||'').trim(),
+      dislikes_text: (dislikes_text||'').trim(),
+      updated_at: new Date().toISOString(),
+    };
+    const { data, error }=await supabase.from('script_profiles').upsert(row,{ onConflict:'user_id' }).select().single();
+    if(error){ console.error('scripts profile save error:',error.message); return res.status(500).json({ error:'Database error' }); }
+    return res.json({ profile:data });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+app.post('/api/scripts/generate', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  const email=payload.email||'';
+  const banStatus = await isUserBannedOrWarned(email);
+  if(banStatus.banned){
+    if(banStatus.warned) return res.status(403).json({ error:'WARNED', reason: banStatus.reason });
+    return res.status(403).json({ error:'BANNED' });
+  }
+  const isAdmin=await isAdminEmail(email);
+  if(!isAdmin){
+    const userUsed=await getUserUsageToday(email);
+    if(userUsed>=USER_DAILY_LIMIT)return res.status(429).json({ error:'LIMIT_REACHED', message:`Дневной лимит ${USER_DAILY_LIMIT} запросов исчерпан.` });
+  }else{
+    const globalUsed=await getGlobalUsageToday();
+    if(globalUsed>=ADMIN_DAILY_LIMIT)return res.status(429).json({ error:'GLOBAL_LIMIT_REACHED', message:'Глобальный лимит API исчерпан.' });
+  }
+  const { social_links, likes_text, dislikes_text, videos, channelInfo, lang }=req.body;
+  if((!likes_text||!likes_text.trim()) && (!dislikes_text||!dislikes_text.trim())){
+    return res.status(400).json({ error:'likes_text or dislikes_text required' });
+  }
+  try{
+    const langName=lang==='en'?'English':(lang==='ar'?'Arabic':'Russian');
+    const links=social_links||{};
+    const linksLines=Object.entries(links).filter(([,v])=>v&&String(v).trim()).map(([k,v])=>`- ${k}: ${v}`).join('\n')||'(ссылки не указаны)';
+
+    let ytContext='';
+    if(videos && Array.isArray(videos) && videos.length>0){
+      ytContext=`\n\nРеальные данные последних видео с YouTube-канала "${channelInfo?.name||'—'}" (подписчиков: ${channelInfo?.subscribers||0}):\n`;
+      videos.slice(0,15).forEach((v,i)=>{
+        const isShort=v.type==='short';
+        const ret=isShort?(v.swipedRatio!=null?v.swipedRatio+'% свайпнули':'нет данных'):(v.retention!=null?v.retention+'% удержание':'нет данных');
+        ytContext+=`${i+1}. "${v.title}" [${isShort?'Shorts':'Long-form'}] — ${v.views} просмотров, ${ret}\n`;
+      });
+    }
+
+    const prompt=`Ты — продюсер и сценарист YouTube-контента. Пользователь ведёт следующие соцсети (ссылки даны только для понимания ниши/тематики, реальную статистику по ним ты не видишь):
+${linksLines}
+${ytContext}
+
+Что пользователю нравится делать / что хорошо получается:
+${(likes_text||'(не указано)').trim()}
+
+Что пользователю не нравится делать / что получается хуже:
+${(dislikes_text||'(не указано)').trim()}
+
+Задача: на основе этой информации предложи РОВНО 3 разных варианта сценария для следующего видео. Каждый вариант должен учитывать сильные стороны автора и по возможности избегать того, что ему не нравится или не даётся.
+
+Ответь СТРОГО в формате JSON-массива (без markdown, без пояснений вне JSON) из 3 объектов вида:
+{"title":"название видео","format":"Shorts или Long-form","hook":"первые 3-5 секунд / крючок","structure":["пункт 1 структуры","пункт 2","..."],"cta":"призыв к действию в конце","why":"почему это подходит именно этому автору, 1-2 предложения"}
+
+Язык ответа: ${langName}.`;
+
+    const model=genAI.getGenerativeModel({ model:'gemini-2.5-flash' });
+    const result=await model.generateContent(prompt);
+    let text=result.response.text()||'';
+    text=text.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```\s*$/,'').trim();
+    let scripts=null;
+    try{
+      const start=text.indexOf('['), end=text.lastIndexOf(']');
+      scripts=JSON.parse(start!==-1&&end!==-1?text.slice(start,end+1):text);
+    }catch(e){
+      console.error('scripts JSON parse failed:',e.message);
+    }
+
+    if(isAdmin){ await incrementGlobalUsage(); } else { await incrementUserUsage(email); }
+    if(Array.isArray(scripts) && scripts.length){
+      return res.json({ scripts });
+    }
+    return res.json({ scripts:null, raw:text });
+  }catch(e){
+    console.error('scripts generate error:',e.message);
+    return res.status(502).json({ error:'AI_ERROR', message:e.message });
+  }
+});
+
+// ════════════════════════════════════════════════════════
 // ADMIN ROUTES — ПОЛЬЗОВАТЕЛИ
 // ════════════════════════════════════════════════════════
 app.get('/api/admin/users', async (req,res)=>{
