@@ -966,6 +966,7 @@
       <div class="nav-item" data-tab="calc"><span class="nav-icon">🧮</span> <span class="nav-label" data-key="nav_calc">Калькулятор</span></div>
       <div class="nav-item" data-tab="news"><span class="nav-icon">📰</span> <span class="nav-label" data-key="nav_news">Новости</span></div>
       <div class="nav-item" data-tab="ai"><span class="nav-icon">✦</span> <span class="nav-label" data-key="nav_ai">Чат с ИИ</span></div>
+      <div class="nav-item" data-tab="scripts"><span class="nav-icon">🎬</span> <span class="nav-label" data-key="nav_scripts">Сценарии</span></div>
       <div class="nav-item" data-tab="install"><span class="nav-icon">⬇️</span> <span class="nav-label" data-key="nav_install">Скачать приложение</span></div>
       <div class="nav-item" data-tab="settings"><span class="nav-icon">⚙️</span> <span class="nav-label" data-key="nav_settings">Настройки</span></div>
       <div class="nav-item" data-tab="admin" id="nav-admin" style="display:none">
@@ -1157,6 +1158,45 @@
           <button class="chat-send" id="ai-chat-send" onclick="sendChatMessage()">Отправить</button>
         </div>
       </div>
+    </div>
+
+    <div class="tab-panel" id="tab-scripts">
+      <div class="page-header">
+        <div><h2 class="page-title" id="scripts-page-title">Сценарии</h2><p class="page-sub" id="scripts-page-sub">Заполни анкету — ИИ предложит 3 варианта сценария под тебя</p></div>
+        <div class="badge-live" style="background:rgba(71,200,255,.1);border-color:rgba(71,200,255,.3);color:var(--accent2)">🎬 SCRIPTS</div>
+      </div>
+
+      <div class="calc-block" style="margin-bottom:16px">
+        <div class="calc-block-title" id="scripts-links-title">Ссылки на твои соцсети</div>
+        <div class="calc-block-sub" id="scripts-links-sub">Нужны только для контекста ниши — заполняй что есть, остальное оставь пустым</div>
+        <div class="calc-fields">
+          <div class="calc-field"><label>YouTube</label><input type="text" class="calc-input" id="sp-link-youtube" placeholder="https://youtube.com/@..."></div>
+          <div class="calc-field"><label>VK</label><input type="text" class="calc-input" id="sp-link-vk" placeholder="https://vk.com/..."></div>
+          <div class="calc-field"><label>Instagram</label><input type="text" class="calc-input" id="sp-link-instagram" placeholder="https://instagram.com/..."></div>
+          <div class="calc-field"><label>TikTok</label><input type="text" class="calc-input" id="sp-link-tiktok" placeholder="https://tiktok.com/@..."></div>
+          <div class="calc-field"><label>Telegram</label><input type="text" class="calc-input" id="sp-link-telegram" placeholder="https://t.me/..."></div>
+        </div>
+      </div>
+
+      <div class="calc-block" style="margin-bottom:16px">
+        <div class="calc-block-title" id="scripts-likes-title">Что нравится делать / что хорошо получается</div>
+        <div class="calc-block-sub" id="scripts-likes-sub">Например: съёмка, монтаж, озвучка, придумывать заголовки...</div>
+        <textarea class="feedback-textarea" id="sp-likes-text" maxlength="3000" placeholder="Расскажи, что у тебя получается хорошо и что нравится делать в производстве видео..."></textarea>
+      </div>
+
+      <div class="calc-block" style="margin-bottom:16px">
+        <div class="calc-block-title" id="scripts-dislikes-title">Что не нравится / получается хуже</div>
+        <div class="calc-block-sub" id="scripts-dislikes-sub">Например: сведение звука, съёмка на камеру, долгий монтаж...</div>
+        <textarea class="feedback-textarea" id="sp-dislikes-text" maxlength="3000" placeholder="Расскажи, что даётся сложнее или что не нравится делать..."></textarea>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+        <button class="feedback-submit-btn" id="sp-save-btn" onclick="saveScriptProfile()" style="flex:0 0 auto">💾 <span id="scripts-save-btn-text">Сохранить анкету</span></button>
+        <button class="ai-btn ai-btn-blue" id="sp-generate-btn" onclick="generateScripts()" style="flex:1;min-width:220px;margin-bottom:0">🎬 <span id="scripts-generate-btn-text">Сгенерировать 3 сценария</span></button>
+      </div>
+
+      <div id="scripts-error-block" style="display:none" class="ai-error-block"></div>
+      <div id="scripts-results" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px"></div>
     </div>
 
     <div class="tab-panel" id="tab-install">
@@ -1798,7 +1838,7 @@ let _currentLang='ru';
 const T={
   ru:{
     nav_stats:'Статистика', nav_forecast:'Прогноз ролика', nav_calc:'Калькулятор',
-    nav_news:'Новости', nav_ai:'Чат с ИИ', nav_install:'Скачать приложение', nav_settings:'Настройки',
+    nav_news:'Новости', nav_ai:'Чат с ИИ', nav_scripts:'Сценарии', nav_install:'Скачать приложение', nav_settings:'Настройки',
     nav_admin:'Админ-панель', nav_logout:'Выйти из аккаунта',
     stats_title:'Статистика канала', stats_sub:'Выберите видео для анализа',
     subs_label:'подписчиков', views_total_label:'просмотров', hours_label:'ч просмотрено (30д)',
@@ -2076,7 +2116,7 @@ const T={
   },
   en:{
     nav_stats:'Analytics', nav_forecast:'Video Forecast', nav_calc:'Calculator',
-    nav_news:'News', nav_ai:'AI Chat', nav_install:'Download App', nav_settings:'Settings',
+    nav_news:'News', nav_ai:'AI Chat', nav_scripts:'Scripts', nav_install:'Download App', nav_settings:'Settings',
     nav_admin:'Admin Panel', nav_logout:'Sign out',
     stats_title:'Channel Analytics', stats_sub:'Select a video to analyze',
     subs_label:'subscribers', views_total_label:'views', hours_label:'hrs watched (30d)',
@@ -2354,7 +2394,7 @@ const T={
   },
   ar:{
     nav_stats:'التحليلات', nav_forecast:'توقعات الفيديو', nav_calc:'الحاسبة',
-    nav_news:'الأخبار', nav_ai:'الدردشة بالذكاء الاصطناعي', nav_install:'تنزيل التطبيق', nav_settings:'الإعدادات',
+    nav_news:'الأخبار', nav_ai:'الدردشة بالذكاء الاصطناعي', nav_scripts:'السيناريوهات', nav_install:'تنزيل التطبيق', nav_settings:'الإعدادات',
     nav_admin:'لوحة المسؤول', nav_logout:'تسجيل الخروج',
     stats_title:'تحليلات القناة', stats_sub:'اختر مقطع فيديو للتحليل',
     subs_label:'مشترك', views_total_label:'مشاهدة', hours_label:'ساعة مشاهدة (30 يوم)',
@@ -4688,6 +4728,123 @@ function calcCTRReverse(){
   h.textContent=ctr>=7?t('calc_excellent_ctr'):ctr>=5?t('calc_good_ctr'):ctr>=3?t('calc_average'):t('calc_low_ctr');
 }
 
+const SP_LINK_KEYS=['youtube','vk','instagram','tiktok','telegram'];
+let _scriptsLoaded=false;
+
+async function loadScriptProfile(){
+  if(_scriptsLoaded)return;
+  try{
+    const res=await apiFetch('/api/scripts/profile');
+    if(res.status===403){handleBanFromResponse();return;}
+    if(!res.ok)return;
+    const data=await res.json();
+    const p=data.profile;
+    if(p){
+      const links=p.social_links||{};
+      SP_LINK_KEYS.forEach(function(k){
+        const el=document.getElementById('sp-link-'+k);
+        if(el&&links[k])el.value=links[k];
+      });
+      const likesEl=document.getElementById('sp-likes-text');if(likesEl)likesEl.value=p.likes_text||'';
+      const dislikesEl=document.getElementById('sp-dislikes-text');if(dislikesEl)dislikesEl.value=p.dislikes_text||'';
+    }
+    _scriptsLoaded=true;
+  }catch(e){}
+}
+
+function collectScriptProfileInput(){
+  const social_links={};
+  SP_LINK_KEYS.forEach(function(k){
+    const el=document.getElementById('sp-link-'+k);
+    const v=el?el.value.trim():'';
+    if(v)social_links[k]=v;
+  });
+  const likes_text=(document.getElementById('sp-likes-text').value||'').trim();
+  const dislikes_text=(document.getElementById('sp-dislikes-text').value||'').trim();
+  return { social_links, likes_text, dislikes_text };
+}
+
+async function saveScriptProfile(){
+  const btn=document.getElementById('sp-save-btn');
+  const btnTextEl=document.getElementById('scripts-save-btn-text');
+  const origText=btnTextEl.textContent;
+  btn.disabled=true;btnTextEl.textContent='...';
+  try{
+    const payload=collectScriptProfileInput();
+    const res=await apiFetch('/api/scripts/profile',{method:'POST',body:JSON.stringify(payload)});
+    if(res.status===403){handleBanFromResponse();return;}
+    if(res.ok){showToast(t('settings_changed'));}
+    else{const d=await res.json().catch(function(){return{};});alert(d.error||t('error_try_later'));}
+  }catch(e){alert(t('network_error'));}
+  btn.disabled=false;btnTextEl.textContent=origText;
+}
+
+function scriptFormatBadgeStyle(format){
+  const isShort=/short/i.test(format||'');
+  return isShort?'color:var(--accent2);border-color:rgba(71,200,255,.3);background:rgba(71,200,255,.06)':'color:var(--accent);border-color:rgba(232,255,71,.3);background:rgba(232,255,71,.06)';
+}
+
+function renderScriptCards(scripts){
+  const wrap=document.getElementById('scripts-results');
+  wrap.innerHTML=scripts.map(function(s){
+    const structureHtml=Array.isArray(s.structure)?s.structure.map(function(step){return '<li style="margin-bottom:6px">'+escapeHtml(step)+'</li>';}).join(''):'';
+    return '<div class="calc-block">'
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px">'
+      +'<div class="calc-block-title" style="margin-bottom:0">'+escapeHtml(s.title||'—')+'</div>'
+      +'<span class="video-item-badge" style="'+scriptFormatBadgeStyle(s.format)+'">'+escapeHtml(s.format||'')+'</span>'
+      +'</div>'
+      +(s.hook?'<div style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--accent);margin-bottom:10px">🪝 '+escapeHtml(s.hook)+'</div>':'')
+      +(structureHtml?'<ol style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--text);padding-left:18px;margin-bottom:10px">'+structureHtml+'</ol>':'')
+      +(s.cta?'<div style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--muted);margin-bottom:8px">📣 '+escapeHtml(s.cta)+'</div>':'')
+      +(s.why?'<div style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--green);border-top:1px dashed var(--border);padding-top:8px;margin-top:8px">💡 '+escapeHtml(s.why)+'</div>':'')
+      +'</div>';
+  }).join('');
+}
+
+async function generateScripts(){
+  const { social_links, likes_text, dislikes_text }=collectScriptProfileInput();
+  if(!likes_text && !dislikes_text){
+    alert(t('feedback_write_text'));
+    return;
+  }
+  const btn=document.getElementById('sp-generate-btn');
+  const btnTextEl=document.getElementById('scripts-generate-btn-text');
+  const origText=btnTextEl.textContent;
+  const errBlock=document.getElementById('scripts-error-block');
+  errBlock.style.display='none';
+  document.getElementById('scripts-results').innerHTML='';
+  btn.disabled=true;
+  btnTextEl.innerHTML='<span class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></span> '+t('ai_building');
+  try{
+    let videos=null,channelInfo=null;
+    if(_realVideos&&_realVideos.length>0){
+      videos=_realVideos.slice(0,15).map(function(v){
+        return { title:v.title, type:v.type, views:v.views, retention:v.retention, swipedRatio:v.swipedRatio };
+      });
+      channelInfo={ name:(_currentUser&&(_currentUser.channel_name||_currentUser.name))||'', subscribers:(_currentUser&&_currentUser.subscribers)||0 };
+    }
+    const res=await apiFetch('/api/scripts/generate',{method:'POST',body:JSON.stringify({ social_links, likes_text, dislikes_text, videos, channelInfo, lang:_currentLang })});
+    if(res.status===403){handleBanFromResponse();return;}
+    const data=await res.json().catch(function(){return{};});
+    if(!res.ok){
+      errBlock.style.display='block';
+      errBlock.textContent='⚠️ '+aiErrorMessage(res.status,data);
+    }else if(Array.isArray(data.scripts)&&data.scripts.length){
+      renderScriptCards(data.scripts);
+      fetchAndRenderLimits();
+      // Сохраняем анкету автоматически вместе с генерацией
+      apiFetch('/api/scripts/profile',{method:'POST',body:JSON.stringify({ social_links, likes_text, dislikes_text })}).catch(function(){});
+    }else{
+      errBlock.style.display='block';
+      errBlock.textContent='⚠️ '+t('error_try_later');
+    }
+  }catch(e){
+    errBlock.style.display='block';
+    errBlock.textContent='⚠️ '+t('network_error');
+  }
+  btn.disabled=false;btnTextEl.textContent=origText;
+}
+
 function showDashboard(channelData){
   _currentUser=channelData;saveUser(channelData);
   document.getElementById('landing-screen').style.display='none';
@@ -4720,6 +4877,7 @@ document.querySelectorAll('.nav-item').forEach(function(item){
     if(tab==='ai')fetchAndRenderLimits();
     if(tab==='news')loadNews();
     if(tab==='install')initInstallTab();
+    if(tab==='scripts')loadScriptProfile();
     if(tab==='admin'&&_isAdmin){loadAdminUsers();loadAdminNotifications();}
     if(tab==='settings'){updatePinStatusBadge();}
   });
