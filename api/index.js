@@ -64,7 +64,18 @@ const genAI    = new GoogleGenerativeAI(GEMINI_API_KEY || 'placeholder-gemini-ke
 // ════════════════════════════════════════════════════════
 const AI_SYSTEM_PROMPT = `Ты — ИИ-продюсер и аналитик YouTube-канала YTMetrics AI. Отвечай как опытный поддерживающий продюсер — конкретно, по делу. Отвечай на русском языке если не попросят иначе.
 
-Когда пользователь делится данными о своих видео — анализируй их детально. Ты можешь видеть метрики: просмотры, лайки, комментарии, репосты, удержание, CTR, свайпы Shorts, среднее время просмотра, часы просмотра.
+Когда пользователь делится данными о своих видео — анализируй их детально. Ты можешь видеть метрики: просмотры, лайки, комментарии, репосты, удержание, CTR, свайпы Shorts, среднее время просмотра, часы просмотра, а также СКОЛЬКО ВРЕМЕНИ ПРОШЛО С ПУБЛИКАЦИИ каждого видео.
+
+ВРЕМЯ ПУБЛИКАЦИИ — КЛЮЧЕВОЙ ФАКТОР АНАЛИЗА:
+Одни и те же цифры значат разное в зависимости от возраста видео. Обязательно учитывай его в каждом разборе:
+- 0–48 часов: рано делать выводы о судьбе видео — идёт этап калибровки алгоритмом (холодный старт), метрики ещё нестабильны и могут резко измениться.
+- 3–14 дней: основной период, когда виден вердикт алгоритма — стабилизировавшиеся показатели уже говорят, попал ли ролик в раздачу.
+- 2–4 недели: видео в основном отработало свой органический охват; дальнейший рост обычно идёт медленно за счёт поиска/рекомендаций на длинной дистанции.
+- 1+ месяц: смотри на итоговые цифры как на завершённый результат, а не на что-то ещё развивающееся.
+Никогда не давай общий разбор метрик без указания, на каком этапе жизненного цикла находится видео с учётом его возраста.
+
+ТВОЯ ЗАДАЧА — НЕ "ПРОГНОЗ", А ОБЪЯСНЕНИЕ ПОВЕДЕНИЯ АЛГОРИТМА:
+Вместо того чтобы гадать о будущем ("наберёт X просмотров"), объясняй, ПОЧЕМУ алгоритм ведёт себя именно так с этим видео ПРЯМО СЕЙЧАС — опираясь на комбинацию: (а) сколько времени прошло, (б) тему/нишу видео, (в) реальные цифры метрик. Формулировки в духе "учитывая, что видео вышло N дней назад и уже набрало X при удержании Y% — это означает, что..." гораздо ценнее, чем абстрактное предсказание. Только если пользователь явно просит прогноз на будущее — можно аккуратно предположить траекторию, но и тогда обосновывай это текущим этапом жизненного цикла видео, а не гаданием.
 
 Если у видео отсутствуют какие-то метрики (написано "нет данных" или "недостаточно данных") — объясни, что детальные метрики (удержание/CTR/свайпы Shorts) появляются в API только через 24–48 часов после публикации ролика при условии, что он набрал достаточный объем трафика (обычно от 1000+ просмотров). Не придумывай цифры которых нет.
 
@@ -89,7 +100,7 @@ const AI_SYSTEM_PROMPT = `Ты — ИИ-продюсер и аналитик You
 - 0 просмотров 24-48ч = технический лаг. Не удалять!
 - Резкое падение = перекалибровка, не бан.
 
-Когда пользователь отправляет данные видео (JSON или текст с метриками) — давай развёрнутый анализ каждого видео. Указывай конкретные проблемы и решения.`;
+Когда пользователь отправляет данные видео (JSON или текст с метриками) — давай развёрнутый анализ каждого видео с учётом его возраста (сколько времени прошло с публикации). Указывай конкретные проблемы и решения.`;
 
 const MODERATION_SYSTEM_PROMPT = `Ты — модератор платформы YTMetrics. Анализируй метаданные YouTube-видео на нарушения правил платформы.
 
@@ -161,6 +172,20 @@ function parseDurationToSeconds(duration) {
 }
 function getDateDaysAgo(days){ const d=new Date(); d.setDate(d.getDate()-days); return d.toISOString().split('T')[0]; }
 function getTodayString(){ return new Date().toISOString().split('T')[0]; }
+function videoAgeLabel(publishedAt){
+  if(!publishedAt)return 'дата публикации неизвестна';
+  const diffMs=Date.now()-new Date(publishedAt).getTime();
+  if(isNaN(diffMs))return 'дата публикации неизвестна';
+  const hours=diffMs/3600000;
+  if(hours<1)return 'опубликовано менее часа назад';
+  if(hours<24)return `опубликовано ${Math.round(hours)} ч назад`;
+  const days=Math.round(hours/24);
+  if(days===1)return 'опубликовано 1 день назад';
+  if(days<7)return `опубликовано ${days} дн. назад`;
+  if(days<30)return `опубликовано ${Math.round(days/7)} нед. назад`;
+  if(days<365)return `опубликовано ${Math.round(days/30)} мес. назад`;
+  return `опубликовано ${Math.round(days/365)} г. назад`;
+}
 function safeInt(val){ return parseInt(val||0,10); }
 function safeFloat(val){ return parseFloat(val||0); }
 
@@ -424,7 +449,7 @@ app.post('/api/ai', async (req,res)=>{
           ? (v.swipedRatio != null ? v.swipedRatio + '% swipe away' : 'нет данных')
           : (v.retention != null ? v.retention + '%' : 'нет данных');
         const ctr = isShort ? '—' : (v.ctr != null ? v.ctr + '%' : 'нет данных');
-        videoContext += `${idx + 1}. "${v.title}" [${isShort ? 'Shorts' : 'Обычное видео'}]\n`;
+        videoContext += `${idx + 1}. "${v.title}" [${isShort ? 'Shorts' : 'Обычное видео'}] — ${videoAgeLabel(v.publishedAt||v.published_at)}\n`;
         videoContext += `   Просмотры: ${v.views} | Лайки: ${v.likes} | Комментарии: ${v.comments} | Репосты: ${v.shares}\n`;
         videoContext += `   Удержание: ${ret} | CTR: ${ctr} | Средняя длительность: ${v.avgDurationSec ? Math.round(v.avgDurationSec) + ' сек' : 'нет данных'} | Часы просмотра: ${v.watchHours || 'нет данных'}\n\n`;
       });
@@ -484,10 +509,10 @@ app.post('/api/ai/analyze-videos', async (req,res)=>{
       const ctr=isShort
         ? (v.swipedRatio!=null?v.swipedRatio+'% swiped away':'no data')
         : (v.ctr!=null?v.ctr+'%':'no data');
-      return `${i+1}. "${v.title}" [${isShort?'Shorts':'Long-form'}]\n   Views: ${v.views} | Likes: ${v.likes} | Comments: ${v.comments} | Shares: ${v.shares}\n   Retention: ${ret} | CTR/Swipe: ${ctr} | Avg duration: ${v.avgDurationSec?Math.round(v.avgDurationSec)+'s':'no data'} | Watch hours(30d): ${v.watchHours||'no data'}`;
+      return `${i+1}. "${v.title}" [${isShort?'Shorts':'Long-form'}] — published ${v.publishedAt||v.published_at ? videoAgeLabel(v.publishedAt||v.published_at) : 'date unknown'}\n   Views: ${v.views} | Likes: ${v.likes} | Comments: ${v.comments} | Shares: ${v.shares}\n   Retention: ${ret} | CTR/Swipe: ${ctr} | Avg duration: ${v.avgDurationSec?Math.round(v.avgDurationSec)+'s':'no data'} | Watch hours(30d): ${v.watchHours||'no data'}`;
     }).join('\n\n');
 
-    const prompt=`Channel: ${channelInfo?.name||'Unknown'}\nSubscribers: ${channelInfo?.subscribers||0}\n\nVideos data:\n\n${videoLines}\n\nAnalyze each video: what works, what doesn't, and concrete suggestions to improve performance. If some metrics show "no data", explain this is common for new channels or videos with low traffic (YouTube Analytics requires a minimum view threshold over 30 days for detailed retention/CTR/Shorts metrics) — do not invent numbers. Be specific, use emoji, organize per-video. Answer in ${langName}.`;
+    const prompt=`Channel: ${channelInfo?.name||'Unknown'}\nSubscribers: ${channelInfo?.subscribers||0}\n\nVideos data:\n\n${videoLines}\n\nFor each video: explain HOW THE YOUTUBE ALGORITHM IS CURRENTLY TREATING IT — grounded in three things together: (1) how much time has passed since publishing, (2) the topic/niche, (3) the actual metrics. Don't just predict a future number — explain what the current stage of the video's lifecycle means for these specific results (e.g. still in calibration window vs. already past its main distribution window). Then give concrete suggestions to improve. If some metrics show "no data", explain this is common for new channels or videos with low traffic (YouTube Analytics requires a minimum view threshold over 30 days for detailed retention/CTR/Shorts metrics) — do not invent numbers. Be specific, use emoji, organize per-video. Answer in ${langName}.`;
 
     const model=genAI.getGenerativeModel({ model:'gemini-2.5-flash', systemInstruction:AI_SYSTEM_PROMPT });
     const result=await model.generateContent(prompt);
@@ -497,6 +522,134 @@ app.post('/api/ai/analyze-videos', async (req,res)=>{
     return res.json({ text });
   }catch(e){
     console.error('analyze-videos error:',e.message);
+    return res.status(502).json({ error:'AI_ERROR', message:e.message });
+  }
+});
+
+// ════════════════════════════════════════════════════════
+// ПОИСК КОНКУРЕНТОВ — Gemini строит поисковый запрос, YouTube ищет,
+// Gemini объясняет релевантность каждого результата
+// ════════════════════════════════════════════════════════
+app.post('/api/competitors/search', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  const email=payload.email||'';
+  const banStatus = await isUserBannedOrWarned(email);
+  if(banStatus.banned){
+    if(banStatus.warned) return res.status(403).json({ error:'WARNED', reason: banStatus.reason });
+    return res.status(403).json({ error:'BANNED' });
+  }
+  const isAdmin=await isAdminEmail(email);
+  if(!isAdmin){
+    const userUsed=await getUserUsageToday(email);
+    if(userUsed>=USER_DAILY_LIMIT)return res.status(429).json({ error:'LIMIT_REACHED', message:`Дневной лимит ${USER_DAILY_LIMIT} запросов исчерпан.` });
+  }else{
+    const globalUsed=await getGlobalUsageToday();
+    if(globalUsed>=ADMIN_DAILY_LIMIT)return res.status(429).json({ error:'GLOBAL_LIMIT_REACHED', message:'Глобальный лимит API исчерпан.' });
+  }
+  const { query, lang }=req.body;
+  if(!query||!query.trim())return res.status(400).json({ error:'query required' });
+
+  try{
+    const accessToken=await getValidAccessToken(payload);
+    const model=genAI.getGenerativeModel({ model:'gemini-2.5-flash' });
+
+    // Шаг 1 — Gemini превращает описание ниши в точный поисковый запрос для YouTube
+    const planPrompt=`Ты — помощник поиска конкурентов на YouTube. Пользователь описал свою нишу/тему.
+Преврати это в точный поисковый запрос для YouTube Data API, который найдёт релевантные каналы/видео-конкурентов.
+
+Правила:
+- Убери слова-паразиты ("найди", "покажи конкурентов", "каналы про"), оставь суть темы.
+- Если пользователь просит "новых"/"свежих" авторов — recentOnly=true, order="date". Если "популярных"/"крупных" — order="viewCount". По умолчанию order="relevance".
+
+Описание пользователя: "${query.trim()}"
+
+Ответь СТРОГО в формате JSON (без markdown, без пояснений):
+{"intent":"краткое описание что ищем","query":"оптимизированный поисковый запрос","order":"relevance или date или viewCount","recentOnly":true или false}`;
+
+    const planResult=await model.generateContent(planPrompt);
+    let planText=(planResult.response.text()||'').trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```\s*$/,'').trim();
+    let plan;
+    try{ plan=JSON.parse(planText); }catch(e){ plan={ intent:query.trim(), query:query.trim(), order:'relevance', recentOnly:false }; }
+    if(!plan.query)plan.query=query.trim();
+
+    // Шаг 2 — реальный поиск по YouTube Data API
+    let searchUrl=`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=15&q=${encodeURIComponent(plan.query)}&order=${encodeURIComponent(plan.order||'relevance')}`;
+    if(plan.recentOnly){
+      const since=new Date(); since.setDate(since.getDate()-30);
+      searchUrl+=`&publishedAfter=${since.toISOString()}`;
+    }
+    const searchData=await gFetch(searchUrl, accessToken);
+    const items=(searchData.items||[]).filter(it=>it.id&&it.id.videoId);
+    if(!items.length){
+      if(isAdmin){ await incrementGlobalUsage(); } else { await incrementUserUsage(email); }
+      return res.json({ plan, results:[] });
+    }
+
+    // Статистика по найденным видео (просмотры) — одним батч-запросом
+    const videoIds=items.map(it=>it.id.videoId).join(',');
+    let statsMap={};
+    try{
+      const statsData=await gFetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics,contentDetails&id=${videoIds}`, accessToken);
+      (statsData.items||[]).forEach(v=>{ statsMap[v.id]={ views: v.statistics?.viewCount ? parseInt(v.statistics.viewCount,10) : null }; });
+    }catch(e){ console.warn('competitor stats fetch failed (non-fatal):', e.message); }
+
+    // Подписчики каналов — тоже батч-запросом
+    const channelIds=[...new Set(items.map(it=>it.snippet.channelId))].join(',');
+    let channelMap={};
+    try{
+      const chData=await gFetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelIds}`, accessToken);
+      (chData.items||[]).forEach(c=>{ channelMap[c.id]={ subscribers: c.statistics?.subscriberCount ? parseInt(c.statistics.subscriberCount,10) : null }; });
+    }catch(e){ console.warn('competitor channel stats fetch failed (non-fatal):', e.message); }
+
+    const compact=items.map((it,i)=>({
+      index:i, title:it.snippet.title, channel:it.snippet.channelTitle,
+      description:(it.snippet.description||'').slice(0,200),
+      publishedAt:it.snippet.publishedAt,
+      views:statsMap[it.id.videoId]?.views??null,
+    }));
+
+    // Шаг 3 — Gemini объясняет релевантность каждого результата
+    const langName=lang==='en'?'English':(lang==='ar'?'Arabic':'Russian');
+    const rankPrompt=`Ниша/тема пользователя: "${query.trim()}"
+Распознанное намерение: "${plan.intent||query.trim()}"
+
+Ниже список найденных на YouTube видео-конкурентов в формате JSON:
+${JSON.stringify(compact)}
+
+Оцени каждое видео по релевантности как конкурента (от 0 до 1) и дай короткое объяснение (до 10 слов) почему это релевантный конкурент или чем полезен для анализа. Учитывай тему, а не только совпадение слов.
+
+Ответь СТРОГО в формате JSON (без markdown): {"ranking":[{"index":0,"relevance":0.9,"reason":"..."},...]}. Язык объяснений: ${langName}.`;
+
+    let ranking=[];
+    try{
+      const rankResult=await model.generateContent(rankPrompt);
+      let rankText=(rankResult.response.text()||'').trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```\s*$/,'').trim();
+      const parsed=JSON.parse(rankText);
+      ranking=parsed.ranking||[];
+    }catch(e){ console.warn('competitor ranking failed (non-fatal):', e.message); }
+    const byIndex=new Map(ranking.map(r=>[r.index,r]));
+
+    const results=items.map((it,i)=>{
+      const rank=byIndex.get(i);
+      const vid=it.id.videoId, chId=it.snippet.channelId;
+      return {
+        video_id:vid, title:it.snippet.title, description:it.snippet.description||'',
+        thumbnail: it.snippet.thumbnails?.medium?.url || it.snippet.thumbnails?.default?.url || null,
+        channel_name: it.snippet.channelTitle, channel_id: chId,
+        channel_url: `https://www.youtube.com/channel/${chId}`,
+        video_url: `https://www.youtube.com/watch?v=${vid}`,
+        published_at: it.snippet.publishedAt,
+        views: statsMap[vid]?.views ?? null,
+        subscribers: channelMap[chId]?.subscribers ?? null,
+        relevance: rank?.relevance ?? 0.5,
+        reason: rank?.reason ?? '',
+      };
+    }).sort((a,b)=>(b.relevance??0)-(a.relevance??0));
+
+    if(isAdmin){ await incrementGlobalUsage(); } else { await incrementUserUsage(email); }
+    return res.json({ plan, results });
+  }catch(e){
+    console.error('competitors search error:',e.message);
     return res.status(502).json({ error:'AI_ERROR', message:e.message });
   }
 });
@@ -578,7 +731,7 @@ app.post('/api/scripts/generate', async (req,res)=>{
       videos.slice(0,15).forEach((v,i)=>{
         const isShort=v.type==='short';
         const ret=isShort?(v.swipedRatio!=null?v.swipedRatio+'% свайпнули':'нет данных'):(v.retention!=null?v.retention+'% удержание':'нет данных');
-        ytContext+=`${i+1}. "${v.title}" [${isShort?'Shorts':'Long-form'}] — ${v.views} просмотров, ${ret}\n`;
+        ytContext+=`${i+1}. "${v.title}" [${isShort?'Shorts':'Long-form'}] — ${videoAgeLabel(v.publishedAt)}, ${v.views} просмотров, ${ret}\n`;
       });
     }
 
@@ -1286,8 +1439,14 @@ app.get('/api/youtube/videos', async (req,res)=>{
 
     let analyticsFailed=false;
     try{
+      // "Top videos" отчёт: удержание, время просмотра, репосты, подписчики.
+      // ВАЖНО: сюда нельзя добавлять impressionClickThroughRate — это метрика
+      // из ДРУГОГО типа отчёта (impressions), и Google отклоняет весь запрос
+      // целиком при смешении несовместимых метрик. Плюс явно фильтруем по
+      // ID нужных видео — иначе при большом канале свежие ролики могли не
+      // попасть в "топ-50 по просмотрам за 30 дней" и остаться без данных.
       const analyticsData=await gFetch(
-        `https://youtubeanalytics.googleapis.com/v2/reports?ids=channel%3D%3D${encodeURIComponent(channelId)}&startDate=${startDate}&endDate=${endDate}&metrics=views,likes,comments,shares,averageViewPercentage,impressionClickThroughRate,averageViewDuration,estimatedMinutesWatched,subscribersGained&dimensions=video&sort=-views&maxResults=50`,
+        `https://youtubeanalytics.googleapis.com/v2/reports?ids=channel%3D%3D${encodeURIComponent(channelId)}&startDate=${startDate}&endDate=${endDate}&metrics=views,likes,comments,shares,averageViewPercentage,averageViewDuration,estimatedMinutesWatched,subscribersGained&dimensions=video&filters=video%3D%3D${videoIds.join('%2C')}&maxResults=${videoIds.length}`,
         accessToken
       );
       const headers=(analyticsData.columnHeaders||[]).map(h=>h.name);
@@ -1297,7 +1456,6 @@ app.get('/api/youtube/videos', async (req,res)=>{
         const mins=gi('estimatedMinutesWatched')>=0?safeFloat(row[gi('estimatedMinutesWatched')]):0;
         analyticsMap[vid]={
           retentionPct: gi('averageViewPercentage')>=0&&row[gi('averageViewPercentage')]!=null ? parseFloat(safeFloat(row[gi('averageViewPercentage')]).toFixed(1)) : null,
-          ctrPct:       gi('impressionClickThroughRate')>=0&&row[gi('impressionClickThroughRate')]!=null ? parseFloat((safeFloat(row[gi('impressionClickThroughRate')])*100).toFixed(2)) : null,
           shares:       gi('shares')>=0 ? safeInt(row[gi('shares')]) : 0,
           avgDurSec:    gi('averageViewDuration')>=0&&row[gi('averageViewDuration')]!=null ? parseFloat(safeFloat(row[gi('averageViewDuration')]).toFixed(1)) : null,
           watchMinutes: mins,
@@ -1307,25 +1465,33 @@ app.get('/api/youtube/videos', async (req,res)=>{
       if(!(analyticsData.rows||[]).length)analyticsFailed=true;
     }catch(e){ console.warn('Analytics API (non-fatal):',e.message); analyticsFailed=true; }
 
+    // CTR — отдельный запрос (отдельный тип отчёта "impressions" в API).
+    try{
+      const ctrData=await gFetch(
+        `https://youtubeanalytics.googleapis.com/v2/reports?ids=channel%3D%3D${encodeURIComponent(channelId)}&startDate=${startDate}&endDate=${endDate}&metrics=impressions,impressionClickThroughRate&dimensions=video&filters=video%3D%3D${videoIds.join('%2C')}&maxResults=${videoIds.length}`,
+        accessToken
+      );
+      const cH=(ctrData.columnHeaders||[]).map(h=>h.name);
+      const gi=n=>cH.indexOf(n);
+      for(const row of (ctrData.rows||[])){
+        const vid=row[gi('video')]; if(!vid)continue;
+        const ctrPct=gi('impressionClickThroughRate')>=0&&row[gi('impressionClickThroughRate')]!=null ? parseFloat((safeFloat(row[gi('impressionClickThroughRate')])*100).toFixed(2)) : null;
+        if(!analyticsMap[vid])analyticsMap[vid]={};
+        analyticsMap[vid].ctrPct=ctrPct;
+      }
+    }catch(e){ console.warn('CTR API (non-fatal, impressions data may not be ready yet):',e.message); }
+
+    // Для Shorts официального "% свайпов" в публичном API нет — используем
+    // то же реальное среднее удержание (averageViewPercentage), которое уже
+    // получили выше, и производим из него оценку "досмотрели / пролистнули".
     const shortCandidates=(statsData.items||[]).filter(item=>{ const dur=parseDurationToSeconds((item.contentDetails||{}).duration); return dur>0&&dur<=60; }).map(i=>i.id);
     let swipeMap={};
-    let swipeFailed=false;
-    if(shortCandidates.length>0){
-      try{
-        const shortsData=await gFetch(
-          `https://youtubeanalytics.googleapis.com/v2/reports?ids=channel%3D%3D${encodeURIComponent(channelId)}&startDate=${startDate}&endDate=${endDate}&metrics=views,averageViewDuration,shortViewsPercentage&dimensions=video&filters=video%3D%3D${shortCandidates.join('%2C')}`,
-          accessToken
-        );
-        const sH=(shortsData.columnHeaders||[]).map(h=>h.name);
-        const gi=n=>sH.indexOf(n);
-        for(const row of (shortsData.rows||[])){
-          const vid=row[gi('video')]; if(!vid)continue;
-          const viewedPct=gi('shortViewsPercentage')>=0&&row[gi('shortViewsPercentage')]!=null ? parseFloat(safeFloat(row[gi('shortViewsPercentage')]).toFixed(1)) : null;
-          const avgDur=gi('averageViewDuration')>=0&&row[gi('averageViewDuration')]!=null ? parseFloat(safeFloat(row[gi('averageViewDuration')]).toFixed(1)) : null;
-          swipeMap[vid]={ viewedRatio:viewedPct, swipedRatio:viewedPct!=null?parseFloat((100-viewedPct).toFixed(1)):null, avgDurSec:avgDur };
-        }
-        if(!(shortsData.rows||[]).length)swipeFailed=true;
-      }catch(e){ console.warn('Shorts swipe (non-fatal):',e.message); swipeFailed=true; }
+    for(const vid of shortCandidates){
+      const a=analyticsMap[vid];
+      if(a&&a.retentionPct!=null){
+        const viewedPct=Math.min(100,a.retentionPct);
+        swipeMap[vid]={ viewedRatio:parseFloat(viewedPct.toFixed(1)), swipedRatio:parseFloat(Math.max(0,100-viewedPct).toFixed(1)), avgDurSec:a.avgDurSec };
+      }
     }
 
     const channelName=payload.channel_name||channelId;
@@ -1391,7 +1557,7 @@ app.get('/api/youtube/videos', async (req,res)=>{
       subscriber_count: subscriberCount,
       channel_total_views: channelTotalViews,
       channel_watch_hours: parseFloat((channelWatchMinutes/60).toFixed(1)),
-      analytics_limited: analyticsFailed || swipeFailed, // подсказка фронту, что данные могут быть скудными
+      analytics_limited: analyticsFailed, // подсказка фронту, что данные могут быть скудными
     });
   }catch(e){
     console.error('Videos error:',e.message);
