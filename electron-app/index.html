@@ -967,6 +967,7 @@
       <div class="nav-item" data-tab="news"><span class="nav-icon">📰</span> <span class="nav-label" data-key="nav_news">Новости</span></div>
       <div class="nav-item" data-tab="ai"><span class="nav-icon">✦</span> <span class="nav-label" data-key="nav_ai">Чат с ИИ</span></div>
       <div class="nav-item" data-tab="scripts"><span class="nav-icon">🎬</span> <span class="nav-label" data-key="nav_scripts">Сценарии</span></div>
+      <div class="nav-item" data-tab="competitors"><span class="nav-icon">🔎</span> <span class="nav-label" data-key="nav_competitors">Конкуренты</span></div>
       <div class="nav-item" data-tab="install"><span class="nav-icon">⬇️</span> <span class="nav-label" data-key="nav_install">Скачать приложение</span></div>
       <div class="nav-item" data-tab="settings"><span class="nav-icon">⚙️</span> <span class="nav-label" data-key="nav_settings">Настройки</span></div>
       <div class="nav-item" data-tab="admin" id="nav-admin" style="display:none">
@@ -1199,26 +1200,39 @@
       <div id="scripts-results" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px"></div>
     </div>
 
+    <div class="tab-panel" id="tab-competitors">
+      <div class="page-header">
+        <div><h2 class="page-title" id="competitors-page-title">Поиск конкурентов</h2><p class="page-sub" id="competitors-page-sub">Опиши свою нишу — ИИ найдёт релевантные каналы и видео на YouTube</p></div>
+        <div class="badge-live" style="background:rgba(232,255,71,.08);border-color:rgba(232,255,71,.25);color:var(--accent)">🔎 SEARCH</div>
+      </div>
+
+      <div class="calc-block" style="margin-bottom:20px">
+        <div class="calc-block-title" id="comp-input-title">Что ищем</div>
+        <div class="calc-block-sub" id="comp-input-sub">Например: «каналы про обзор смартфонов на русском» или «блогеры о ремонте квартир»</div>
+        <textarea class="feedback-textarea" id="comp-query-text" maxlength="500" style="min-height:70px" placeholder="Опиши нишу, тему или конкретный запрос для поиска конкурентов..."></textarea>
+        <button class="ai-btn ai-btn-yellow" id="comp-search-btn" onclick="searchCompetitors()" style="margin-top:12px;margin-bottom:0">🔎 <span id="comp-search-btn-text">Найти конкурентов</span></button>
+      </div>
+
+      <div id="comp-intent-block" style="display:none;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:16px"></div>
+      <div id="comp-error-block" style="display:none" class="ai-error-block"></div>
+      <div id="comp-results" class="video-list"></div>
+    </div>
+
     <div class="tab-panel" id="tab-install">
       <div class="page-header">
         <div><h2 class="page-title" id="install-page-title">Скачать приложение</h2><p class="page-sub" id="install-page-sub">Установите YTMetrics как приложение на устройство</p></div>
-        <div class="badge-live" style="background:rgba(232,255,71,.08);border-color:rgba(232,255,71,.25);color:var(--accent)">⬇️ PWA</div>
-      </div>
-
-      <div id="install-already-card" class="install-already-card" style="display:none">
-        <div style="font-size:32px;margin-bottom:10px">✅</div>
-        <div style="font-size:16px;font-weight:800;margin-bottom:6px" id="already-installed-title">Приложение уже установлено</div>
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)" id="already-installed-sub">Вы используете YTMetrics как приложение прямо сейчас.</div>
+        <div class="badge-live" style="background:rgba(232,255,71,.08);border-color:rgba(232,255,71,.25);color:var(--accent)">⬇️ DESKTOP</div>
       </div>
 
       <div id="install-main-content">
         <div class="install-hero">
           <img src="./icon-192.png" alt="YTMetrics" class="install-hero-icon" onerror="this.style.display='none'">
-          <div class="install-hero-title" id="install-hero-title">Установите YTMetrics на устройство</div>
-          <div class="install-hero-sub" id="install-hero-sub">Запускайте YTMetrics прямо с рабочего стола или главного экрана — без браузера, быстрее и удобнее, как обычное приложение.</div>
-          <button class="install-btn" id="install-action-btn" onclick="triggerInstall()" style="display:inline-flex;">
-            ⬇️ <span id="install-btn-text">Загрузить</span>
-          </button>
+          <div class="install-hero-title" id="install-hero-title">Установите YTMetrics на компьютер</div>
+          <div class="install-hero-sub" id="install-hero-sub">Полноценное приложение для Windows, macOS и Linux — без браузера, работает как обычная программа.</div>
+          <div id="install-os-buttons" style="display:flex;flex-direction:column;gap:10px;max-width:340px;margin:0 auto"></div>
+          <div id="install-unsigned-note" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:18px;line-height:1.7">
+            ⚠️ Установщики пока без цифровой подписи. При первом запуске Windows/macOS покажут предупреждение — это нормально для тестовой версии.
+          </div>
         </div>
       </div>
     </div>
@@ -1753,72 +1767,41 @@ let _banUserId=null, _banEmail=null;
 let _deferredInstallPrompt=null;
 let _installBrowser='chrome';
 
-window.addEventListener('beforeinstallprompt', (e)=>{
-  e.preventDefault();
-  _deferredInstallPrompt=e;
-  const btn=document.getElementById('install-action-btn');
-  if(btn)btn.style.display='inline-flex';
-});
-
-window.addEventListener('appinstalled', ()=>{
-  _deferredInstallPrompt=null;
-  showAlreadyInstalled();
-});
-
-function isRunningAsInstalledApp(){
-  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
-}
+// ⚠️ Если репозиторий переименован или перенесён на другой аккаунт GitHub — поменяй эти 2 константы
+const GH_REPO_OWNER='ytmetricsproject-collab';
+const GH_REPO_NAME='YTMetrics';
+const GH_RELEASE_BASE=`https://github.com/${GH_REPO_OWNER}/${GH_REPO_NAME}/releases/download/latest/`;
+const DESKTOP_DOWNLOADS=[
+  { os:'windows', label:'Windows', icon:'🪟', file:'YTMetrics-Setup-Windows.exe' },
+  { os:'mac',     label:'macOS',   icon:'🍎', file:'YTMetrics-macOS.dmg' },
+  { os:'linux',   label:'Linux',   icon:'🐧', file:'YTMetrics-Linux.AppImage' },
+];
 
 function detectPlatformForInstall(){
   const ua=navigator.userAgent;
-  const isIOS=/iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-  const isMac=/Macintosh/.test(ua) && !isIOS;
-  const isAndroid=/Android/.test(ua);
-  const isFirefox=/Firefox/.test(ua);
-  const isSafari=/^((?!chrome|android).)*safari/i.test(ua);
-  if(isIOS)return 'safari-ios';
-  if(isSafari&&isMac)return 'safari-mac';
-  if(isAndroid)return 'android';
-  if(isFirefox)return 'firefox';
-  return 'chrome';
+  if(/Macintosh/.test(ua))return 'mac';
+  if(/Windows/.test(ua))return 'windows';
+  if(/Linux/.test(ua))return 'linux';
+  return 'windows';
 }
 
-async function triggerInstall(){
-  if(_deferredInstallPrompt){
-    _deferredInstallPrompt.prompt();
-    const result=await _deferredInstallPrompt.userChoice;
-    if(result.outcome==='accepted'){
-      showAlreadyInstalled();
-    }
-    _deferredInstallPrompt=null;
-    return;
-  }
-  
-  const platform=detectPlatformForInstall();
-  let msg='';
-  if(platform==='safari-ios'){
-    msg=t('install_safari_ios');
-  }else if(platform==='safari-mac'){
-    msg=t('install_safari_mac');
-  }else if(platform==='android'){
-    msg=t('install_android');
-  }else{
-    msg=t('install_other');
-  }
-  alert(msg);
-}
-
-function showAlreadyInstalled(){
-  const card=document.getElementById('install-already-card');
-  const content=document.getElementById('install-main-content');
-  if(card)card.style.display='block';
-  if(content)content.style.display='none';
+function renderInstallButtons(){
+  const wrap=document.getElementById('install-os-buttons');
+  if(!wrap)return;
+  const current=detectPlatformForInstall();
+  wrap.innerHTML=DESKTOP_DOWNLOADS.map(function(d){
+    const isCurrent=d.os===current;
+    const style=isCurrent
+      ?'background:var(--accent);color:var(--bg);border:none;'
+      :'background:transparent;color:var(--text);border:1px solid var(--border);';
+    return '<a href="'+GH_RELEASE_BASE+d.file+'" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;border-radius:12px;font-family:\'Syne\',sans-serif;font-size:14px;font-weight:800;text-decoration:none;'+style+'">'
+      +d.icon+' '+d.label+(isCurrent?' <span style="font-family:\'DM Mono\',monospace;font-size:10px;font-weight:500;opacity:.75">(ваша ОС)</span>':'')
+      +'</a>';
+  }).join('');
 }
 
 function initInstallTab(){
-  if(isRunningAsInstalledApp()){
-    showAlreadyInstalled();
-  }
+  renderInstallButtons();
 }
 
 function applyTheme(isDark){
@@ -1838,7 +1821,8 @@ let _currentLang='ru';
 const T={
   ru:{
     nav_stats:'Статистика', nav_forecast:'Прогноз ролика', nav_calc:'Калькулятор',
-    nav_news:'Новости', nav_ai:'Чат с ИИ', nav_scripts:'Сценарии', nav_install:'Скачать приложение', nav_settings:'Настройки',
+    nav_news:'Новости', nav_ai:'Чат с ИИ', nav_scripts:'Сценарии', nav_competitors:'Конкуренты', nav_install:'Скачать приложение', nav_settings:'Настройки',
+    open_channel_label:'Канал',
     nav_admin:'Админ-панель', nav_logout:'Выйти из аккаунта',
     stats_title:'Статистика канала', stats_sub:'Выберите видео для анализа',
     subs_label:'подписчиков', views_total_label:'просмотров', hours_label:'ч просмотрено (30д)',
@@ -1887,7 +1871,7 @@ const T={
     analyzing_videos:'Анализирую видео...',
     loading:'Загрузка...',
     ai_good_btn:'ИИ: Что хорошо получилось', ai_bad_btn:'ИИ: Что можно улучшить',
-    ai_forecast_btn:'ИИ: Разбор алгоритмов и прогноз роста',
+    ai_forecast_btn:'ИИ: Разбор поведения алгоритма',
     open_sim:'🎛️ Симулировать параметры этого видео',
     open_yt:'Открыть на YouTube', watch_here:'Смотреть здесь', close_player:'Закрыть плеер',
     install_page_title:'Скачать приложение', install_page_sub:'Установите YTMetrics как приложение на устройство',
@@ -2116,7 +2100,8 @@ const T={
   },
   en:{
     nav_stats:'Analytics', nav_forecast:'Video Forecast', nav_calc:'Calculator',
-    nav_news:'News', nav_ai:'AI Chat', nav_scripts:'Scripts', nav_install:'Download App', nav_settings:'Settings',
+    nav_news:'News', nav_ai:'AI Chat', nav_scripts:'Scripts', nav_competitors:'Competitors', nav_install:'Download App', nav_settings:'Settings',
+    open_channel_label:'Channel',
     nav_admin:'Admin Panel', nav_logout:'Sign out',
     stats_title:'Channel Analytics', stats_sub:'Select a video to analyze',
     subs_label:'subscribers', views_total_label:'views', hours_label:'hrs watched (30d)',
@@ -2165,7 +2150,7 @@ const T={
     analyzing_videos:'Analyzing video...',
     loading:'Loading...',
     ai_good_btn:'AI: What worked well', ai_bad_btn:'AI: What to improve',
-    ai_forecast_btn:'AI: Algorithm analysis & growth forecast',
+    ai_forecast_btn:'AI: Algorithm behavior analysis',
     open_sim:'🎛️ Simulate this video parameters',
     open_yt:'Open on YouTube', watch_here:'Watch here', close_player:'Close player',
     install_page_title:'Download App', install_page_sub:'Install YTMetrics as an app on your device',
@@ -2394,7 +2379,8 @@ const T={
   },
   ar:{
     nav_stats:'التحليلات', nav_forecast:'توقعات الفيديو', nav_calc:'الحاسبة',
-    nav_news:'الأخبار', nav_ai:'الدردشة بالذكاء الاصطناعي', nav_scripts:'السيناريوهات', nav_install:'تنزيل التطبيق', nav_settings:'الإعدادات',
+    nav_news:'الأخبار', nav_ai:'الدردشة بالذكاء الاصطناعي', nav_scripts:'السيناريوهات', nav_competitors:'المنافسون', nav_install:'تنزيل التطبيق', nav_settings:'الإعدادات',
+    open_channel_label:'القناة',
     nav_admin:'لوحة المسؤول', nav_logout:'تسجيل الخروج',
     stats_title:'تحليلات القناة', stats_sub:'اختر مقطع فيديو للتحليل',
     subs_label:'مشترك', views_total_label:'مشاهدة', hours_label:'ساعة مشاهدة (30 يوم)',
@@ -2443,7 +2429,7 @@ const T={
     analyzing_videos:'جاري تحليل الفيديو...',
     loading:'جاري التحميل...',
     ai_good_btn:'الذكاء الاصطناعي: ما نجح بشكل جيد', ai_bad_btn:'الذكاء الاصطناعي: ما يمكن تحسينه',
-    ai_forecast_btn:'الذكاء الاصطناعي: تحليل الخوارزميات وتوقعات النمو',
+    ai_forecast_btn:'الذكاء الاصطناعي: تحليل سلوك الخوارزمية',
     open_sim:'🎛️ محاكاة معلمات هذا الفيديو',
     open_yt:'فتح على يوتيوب', watch_here:'شاهد هنا', close_player:'إغلاق المشغل',
     install_page_title:'تنزيل التطبيق', install_page_sub:'ثبّت YTMetrics كتطبيق على جهازك',
@@ -3245,7 +3231,7 @@ async function analyzeSelectedVideo(){
       videos:[{
         title:v.title, type:v.type, views:v.views, likes:v.likes, comments:v.comments, shares:v.shares,
         retention:v.retention, ctr:v.ctr, retentionShort:v.retentionShort, swipedRatio:v.swipedRatio,
-        avgDurationSec:v.avgDurationSec, watchHours:v.watchHours,
+        avgDurationSec:v.avgDurationSec, watchHours:v.watchHours, publishedAt:v.published_at,
       }],
       channelInfo:{ name:(_currentUser&&(_currentUser.channel_name||_currentUser.name))||'', subscribers:(_currentUser&&_currentUser.subscribers)||0 },
       lang:_currentLang,
@@ -3290,7 +3276,7 @@ async function sendChatMessage(){
       videos=_realVideos.slice(0,20).map(v=>({
         title:v.title, type:v.type, views:v.views, likes:v.likes, comments:v.comments, shares:v.shares,
         retention:v.retention, ctr:v.ctr, retentionShort:v.retentionShort, swipedRatio:v.swipedRatio,
-        avgDurationSec:v.avgDurationSec, watchHours:v.watchHours,
+        avgDurationSec:v.avgDurationSec, watchHours:v.watchHours, publishedAt:v.published_at,
       }));
       channelInfo={ name:(_currentUser&&(_currentUser.channel_name||_currentUser.name))||'', subscribers:(_currentUser&&_currentUser.subscribers)||0 };
     }
@@ -4251,6 +4237,21 @@ function openStatsModal(id){
   openModal('stats-modal');
 }
 
+function videoAgeEN(publishedAt){
+  if(!publishedAt)return 'publish date unknown';
+  const diffMs=Date.now()-new Date(publishedAt).getTime();
+  if(isNaN(diffMs))return 'publish date unknown';
+  const hours=diffMs/3600000;
+  if(hours<1)return 'published less than an hour ago';
+  if(hours<24)return 'published '+Math.round(hours)+'h ago';
+  const days=Math.round(hours/24);
+  if(days===1)return 'published 1 day ago';
+  if(days<7)return 'published '+days+' days ago';
+  if(days<30)return 'published '+Math.round(days/7)+' weeks ago';
+  if(days<365)return 'published '+Math.round(days/30)+' months ago';
+  return 'published '+Math.round(days/365)+' years ago';
+}
+
 async function askStatsAI(type){
   const v=_currentStatsVideo;if(!v)return;
   const isShort=v.type==='short';
@@ -4261,13 +4262,13 @@ async function askStatsAI(type){
   btn.innerHTML='<span class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></span> '+t('ai_analyzing');
   block.style.display='block';block.className='ai-response-block '+(type==='good'?'ai-response-green':'ai-response-yellow');
   block.innerHTML='<div class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+t('analyzing_dots')+'</span></div>';
-  const mt=isShort
+  const mt=(videoAgeEN(v.published_at)+'. ')+(isShort
     ?('Type: Shorts. Views: '+v.views+'. Likes: '+v.likes+'. Comments: '+v.comments+'. Shares: '+v.shares+'. Retention: '+(v.retentionShort!=null?v.retentionShort+'%':'no data (likely low traffic)')+'. Swiped: '+(v.swipedRatio!=null?v.swipedRatio+'%':'no data')+'. Watched: '+(v.viewedRatio!=null?v.viewedRatio+'%':'no data')+'. Avg duration: '+fmtDuration(v.avgDurationSec)+'. Watch hours(30d): '+(v.watchHours||'—')+'.')
-    :('Type: Long-form. Views: '+v.views+'. Likes: '+v.likes+'. Comments: '+v.comments+'. Shares: '+v.shares+'. Retention: '+(v.retention!=null?v.retention+'%':'no data (likely low traffic)')+'. CTR: '+(v.ctr!=null?v.ctr+'%':'no data')+'. Avg duration: '+fmtDuration(v.avgDurationSec)+'. Watch hours(30d): '+(v.watchHours||'—')+'.');
+    :('Type: Long-form. Views: '+v.views+'. Likes: '+v.likes+'. Comments: '+v.comments+'. Shares: '+v.shares+'. Retention: '+(v.retention!=null?v.retention+'%':'no data (likely low traffic)')+'. CTR: '+(v.ctr!=null?v.ctr+'%':'no data')+'. Avg duration: '+fmtDuration(v.avgDurationSec)+'. Watch hours(30d): '+(v.watchHours||'—')+'.'));
   const lang = _currentLang === 'en' ? 'English' : (_currentLang === 'ar' ? 'Arabic' : 'Russian');
   const prompt=type==='good'
-    ?('Video "'+v.title+'". Metrics: '+mt+'\n\nDescribe 3-4 points WHAT WORKED WELL. If some metrics show "no data", briefly explain this is common for low-traffic videos rather than inventing numbers. Specific, with emoji. Up to 200 words. Answer in '+lang+'.')
-    :('Video "'+v.title+'". Metrics: '+mt+'\n\nDescribe 3-4 points WHAT CAN BE IMPROVED. If some metrics show "no data", briefly explain this is common for low-traffic videos rather than inventing numbers. Specific, with emoji. Up to 200 words. Answer in '+lang+'.');
+    ?('Video "'+v.title+'". Metrics: '+mt+'\n\nDescribe 3-4 points WHAT WORKED WELL, explicitly connecting them to how much time has passed since publishing (e.g. still in the algorithm\'s calibration window vs. already past its main distribution window) — not just the raw numbers. If some metrics show "no data", briefly explain this is common for low-traffic videos rather than inventing numbers. Specific, with emoji. Up to 200 words. Answer in '+lang+'.')
+    :('Video "'+v.title+'". Metrics: '+mt+'\n\nDescribe 3-4 points WHAT CAN BE IMPROVED, explicitly connecting them to how much time has passed since publishing (e.g. still in the algorithm\'s calibration window vs. already past its main distribution window) — not just the raw numbers. If some metrics show "no data", briefly explain this is common for low-traffic videos rather than inventing numbers. Specific, with emoji. Up to 200 words. Answer in '+lang+'.');
   try{
     const answer=await callAI([{role:'user',content:prompt}]);
     block.innerHTML=answer.replace(/\n/g,'<br>');
@@ -4314,11 +4315,11 @@ async function askForecastAI(){
   btn.innerHTML='<span class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></span> '+t('ai_building');
   block.style.display='block';block.className='ai-response-block ai-response-blue';
   block.innerHTML='<div class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+t('analyzing_algorithms')+'</span></div>';
-  const mt=isShort
+  const mt=(videoAgeEN(v.published_at)+'. ')+(isShort
     ?('Type: Shorts. Views: '+v.views+'. Retention: '+(v.retentionShort!=null?v.retentionShort+'%':'no data (likely low traffic)')+'. Swiped: '+(v.swipedRatio!=null?v.swipedRatio+'%':'no data')+'. Avg duration: '+fmtDuration(v.avgDurationSec)+'. Watch hours(30d): '+(v.watchHours||'—')+'.')
-    :('Type: Long-form. Views: '+v.views+'. Retention: '+(v.retention!=null?v.retention+'%':'no data (likely low traffic)')+'. CTR: '+(v.ctr!=null?v.ctr+'%':'no data')+'. Avg duration: '+fmtDuration(v.avgDurationSec)+'. Watch hours(30d): '+(v.watchHours||'—')+'.');
+    :('Type: Long-form. Views: '+v.views+'. Retention: '+(v.retention!=null?v.retention+'%':'no data (likely low traffic)')+'. CTR: '+(v.ctr!=null?v.ctr+'%':'no data')+'. Avg duration: '+fmtDuration(v.avgDurationSec)+'. Watch hours(30d): '+(v.watchHours||'—')+'.'));
   const lang = _currentLang === 'en' ? 'English' : (_currentLang === 'ar' ? 'Arabic' : 'Russian');
-  const prompt='Video "'+v.title+'". Metrics: '+mt+'\n\n1) How the YouTube algorithm behaves with this video. 2) What can drive more views. 3) What to do for more exposure. If metrics show "no data", briefly explain why instead of inventing numbers. With emoji, up to 250 words. Answer in '+lang+'.';
+  const prompt='Video "'+v.title+'". Metrics: '+mt+'\n\nDon\'t just predict future numbers. Instead: 1) Explain HOW THE YOUTUBE ALGORITHM IS TREATING THIS VIDEO RIGHT NOW — ground this explicitly in how much time has passed since publishing (still in the calibration window / in its main distribution window / already past its main window and settling into a final result) combined with the topic and these specific metrics. 2) What that current stage means for what happens next. 3) Concrete actions to take now given this stage. If metrics show "no data", briefly explain why instead of inventing numbers. With emoji, up to 250 words. Answer in '+lang+'.';
   try{
     const answer=await callAI([{role:'user',content:prompt}]);
     block.innerHTML=answer.replace(/\n/g,'<br>');
@@ -4819,7 +4820,7 @@ async function generateScripts(){
     let videos=null,channelInfo=null;
     if(_realVideos&&_realVideos.length>0){
       videos=_realVideos.slice(0,15).map(function(v){
-        return { title:v.title, type:v.type, views:v.views, retention:v.retention, swipedRatio:v.swipedRatio };
+        return { title:v.title, type:v.type, views:v.views, retention:v.retention, swipedRatio:v.swipedRatio, publishedAt:v.published_at };
       });
       channelInfo={ name:(_currentUser&&(_currentUser.channel_name||_currentUser.name))||'', subscribers:(_currentUser&&_currentUser.subscribers)||0 };
     }
@@ -4837,6 +4838,65 @@ async function generateScripts(){
     }else{
       errBlock.style.display='block';
       errBlock.textContent='⚠️ '+t('error_try_later');
+    }
+  }catch(e){
+    errBlock.style.display='block';
+    errBlock.textContent='⚠️ '+t('network_error');
+  }
+  btn.disabled=false;btnTextEl.textContent=origText;
+}
+
+function renderCompetitorResults(results){
+  const wrap=document.getElementById('comp-results');
+  if(!results.length){
+    wrap.innerHTML='<div style="text-align:center;padding:40px 0;font-family:\'DM Mono\',monospace;font-size:13px;color:var(--muted)">'+t('no_videos')+'</div>';
+    return;
+  }
+  wrap.innerHTML=results.map(function(r){
+    const subsText=r.subscribers!=null?fmtSubs(r.subscribers)+' '+t('subs_label'):null;
+    const viewsText=r.views!=null?fmt(r.views)+' '+t('views_label_short'):null;
+    const metaParts=[r.channel_name];
+    if(subsText)metaParts.push(subsText);
+    if(viewsText)metaParts.push(viewsText);
+    metaParts.push(formatRelDate(r.published_at));
+    return '<a href="'+r.video_url+'" target="_blank" rel="noopener" class="video-item" style="text-decoration:none;color:inherit;cursor:pointer">'
+      +(r.thumbnail?'<img src="'+r.thumbnail+'" class="video-item-thumb" onerror="this.style.display=\'none\'">':'<span class="video-item-icon">📺</span>')
+      +'<div class="video-item-info">'
+      +'<div class="video-item-title">'+escapeHtml(r.title)+'</div>'
+      +'<div class="video-item-meta">'+escapeHtml(metaParts.join(' · '))+'</div>'
+      +(r.reason?'<div class="video-item-meta" style="color:var(--accent);margin-top:3px">💡 '+escapeHtml(r.reason)+'</div>':'')
+      +'</div>'
+      +'<a href="'+r.channel_url+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="video-item-badge vib-short" style="text-decoration:none">👤 '+t('open_channel_label')+'</a>'
+      +'</a>';
+  }).join('');
+}
+
+async function searchCompetitors(){
+  const query=(document.getElementById('comp-query-text').value||'').trim();
+  if(!query){ alert(t('feedback_write_text')); return; }
+  const btn=document.getElementById('comp-search-btn');
+  const btnTextEl=document.getElementById('comp-search-btn-text');
+  const origText=btnTextEl.textContent;
+  const errBlock=document.getElementById('comp-error-block');
+  const intentBlock=document.getElementById('comp-intent-block');
+  errBlock.style.display='none';intentBlock.style.display='none';
+  document.getElementById('comp-results').innerHTML='';
+  btn.disabled=true;
+  btnTextEl.innerHTML='<span class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></span> '+t('analyzing_dots');
+  try{
+    const res=await apiFetch('/api/competitors/search',{method:'POST',body:JSON.stringify({ query, lang:_currentLang })});
+    if(res.status===403){handleBanFromResponse();return;}
+    const data=await res.json().catch(function(){return{};});
+    if(!res.ok){
+      errBlock.style.display='block';
+      errBlock.textContent='⚠️ '+aiErrorMessage(res.status,data);
+    }else{
+      if(data.plan&&data.plan.intent){
+        intentBlock.style.display='block';
+        intentBlock.textContent='🔎 '+data.plan.intent;
+      }
+      renderCompetitorResults(data.results||[]);
+      fetchAndRenderLimits();
     }
   }catch(e){
     errBlock.style.display='block';
@@ -4878,6 +4938,7 @@ document.querySelectorAll('.nav-item').forEach(function(item){
     if(tab==='news')loadNews();
     if(tab==='install')initInstallTab();
     if(tab==='scripts')loadScriptProfile();
+    if(tab==='competitors'){}
     if(tab==='admin'&&_isAdmin){loadAdminUsers();loadAdminNotifications();}
     if(tab==='settings'){updatePinStatusBadge();}
   });
@@ -4912,7 +4973,10 @@ async function handleInitAuthMeResponse(res) {
   console.log('YTMetrics init: language loaded');
   
   // Скрываем кнопку скачивания в боковом меню, если открыто внутри установленного приложения
-  if(isRunningAsInstalledApp()){
+  // (старый PWA-режим) или внутри desktop-версии (Electron грузит страницу через file://)
+  const isInstalledPWA=window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
+  const isDesktopApp=window.location.protocol==='file:';
+  if(isInstalledPWA||isDesktopApp){
     const installNav = document.querySelector('[data-tab="install"]');
     if(installNav) installNav.style.display = 'none';
   }

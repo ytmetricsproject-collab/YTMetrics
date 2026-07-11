@@ -33,19 +33,22 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "icon.png"
+      "icon": "icon.png",
+      "artifactName": "YTMetrics-Setup-Windows.exe"
     },
     "mac": {
       "target": "dmg",
       "icon": "icon.png",
       "identity": "-",
       "gatekeeperAssess": false,
-      "hardenedRuntime": false
+      "hardenedRuntime": false,
+      "artifactName": "YTMetrics-macOS.dmg"
     },
     "linux": {
       "target": "AppImage",
       "icon": "icon.png",
-      "category": "Utility"
+      "category": "Utility",
+      "artifactName": "YTMetrics-Linux.AppImage"
     },
     "nsis": {
       "oneClick": false,
