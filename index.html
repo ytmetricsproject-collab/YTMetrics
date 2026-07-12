@@ -249,6 +249,12 @@
     .ai-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:aiDot 1.2s infinite;}
     .ai-dot:nth-child(2){animation-delay:.2s;}.ai-dot:nth-child(3){animation-delay:.4s;}
     @keyframes aiDot{0%,80%,100%{opacity:.2;transform:scale(.8);}40%{opacity:1;transform:scale(1);}}
+    .progress-loader{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:44px 20px;}
+    .progress-bar-track{width:100%;max-width:260px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;position:relative;}
+    .progress-bar-fill{position:absolute;top:0;height:100%;width:35%;border-radius:3px;background:linear-gradient(90deg,transparent,var(--accent) 45%,var(--accent2) 55%,transparent);animation:progressSlide 1.3s cubic-bezier(.4,0,.2,1) infinite;}
+    @keyframes progressSlide{0%{left:-35%;}100%{left:100%;}}
+    .progress-loader-text{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);text-align:center;}
+    .progress-loader-icon{font-size:26px;animation:pulse 1.5s infinite;}
     .ai-counter{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 16px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:14px;}
     .ai-counter-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;transition:background .3s;}
     .ai-counter span.hi{color:var(--text);font-weight:700;}
@@ -1015,9 +1021,8 @@
           <button class="type-tab" id="filter-shorts-btn" data-type="short" onclick="setStatsFilter('short')">⚡ Shorts</button>
         </div>
       </div>
-      <div id="stats-loading" style="display:none;text-align:center;padding:60px 0">
-        <div style="font-size:32px;margin-bottom:14px;animation:pulse 1.5s infinite">⏳</div>
-        <div style="font-family:'DM Mono',monospace;font-size:13px;color:var(--muted)" id="loading-videos-text">Загружаем видео с YouTube...</div>
+      <div id="stats-loading" style="display:none">
+        <div class="progress-loader"><div class="progress-loader-icon">📊</div><div class="progress-bar-track"><div class="progress-bar-fill"></div></div><div class="progress-loader-text" id="loading-videos-text">Загружаем видео с YouTube...</div></div>
       </div>
       <div id="stats-error" style="display:none;background:rgba(255,71,87,.06);border:1px solid rgba(255,71,87,.2);border-radius:14px;padding:20px 24px;margin-bottom:20px">
         <div style="font-size:14px;font-weight:700;color:var(--red);margin-bottom:6px" id="stats-error-title">⚠ Не удалось загрузить видео</div>
@@ -1113,9 +1118,8 @@
           <button class="news-submit-btn" id="news-cancel-btn" style="display:none;background:transparent;border:1px solid var(--border);color:var(--muted)" onclick="cancelNewsEdit()">Отмена</button>
         </div>
       </div>
-      <div id="news-loading" style="display:none;text-align:center;padding:60px 0">
-        <div style="font-size:32px;margin-bottom:14px;animation:pulse 1.5s infinite">⏳</div>
-        <div style="font-family:'DM Mono',monospace;font-size:13px;color:var(--muted)" id="loading-news-text">Загружаем новости...</div>
+      <div id="news-loading" style="display:none">
+        <div class="progress-loader"><div class="progress-loader-icon">📰</div><div class="progress-bar-track"><div class="progress-bar-fill"></div></div><div class="progress-loader-text" id="loading-news-text">Загружаем новости...</div></div>
       </div>
       <div id="news-feed"></div>
     </div>
@@ -1233,6 +1237,19 @@
           <div id="install-unsigned-note" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:18px;line-height:1.7">
             ⚠️ Установщики пока без цифровой подписи. При первом запуске Windows/macOS покажут предупреждение — это нормально для тестовой версии.
           </div>
+        </div>
+
+        <div class="install-hero" id="install-pwa-card" style="margin-top:20px">
+          <div style="font-size:34px;margin-bottom:14px">📱</div>
+          <div class="install-hero-title" id="install-pwa-title">Или установить прямо из браузера (PWA)</div>
+          <div class="install-hero-sub" id="install-pwa-sub">Работает на телефоне (Android/iOS) и на компьютере — без скачивания файла, иконка появится на главном экране/рабочем столе.</div>
+          <button class="install-btn" id="install-pwa-btn" onclick="triggerPWAInstall()">📲 <span id="install-pwa-btn-text">Установить</span></button>
+        </div>
+
+        <div class="install-already-card" id="install-pwa-already" style="display:none;margin-top:20px">
+          <div style="font-size:32px;margin-bottom:10px">✅</div>
+          <div style="font-size:16px;font-weight:800;margin-bottom:6px" id="already-installed-title">Приложение уже установлено</div>
+          <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)" id="already-installed-sub">Вы используете YTMetrics как приложение прямо сейчас.</div>
         </div>
       </div>
     </div>
@@ -1511,6 +1528,14 @@
         <div><div class="perm-row-label">➖ Снятие должности админов</div><div class="perm-row-desc">Снимать права администратора у других</div></div>
         <div class="perm-checkbox" id="perm-cb-remove_admins">✓</div>
       </div>
+      <div class="perm-row" onclick="togglePermCheckbox('manage_billing')" style="border-color:rgba(255,159,71,.25)">
+        <div><div class="perm-row-label">💳 Управление счётом</div><div class="perm-row-desc">Доступ к финансовому разделу и выплатам</div></div>
+        <div class="perm-checkbox" id="perm-cb-manage_billing">✓</div>
+      </div>
+      <div class="perm-row" onclick="togglePermCheckbox('transfer_ownership')" style="border-color:rgba(255,71,87,.25)">
+        <div><div class="perm-row-label">👑 Передать права владельца</div><div class="perm-row-desc">Крайне чувствительное право — полная передача контроля над проектом</div></div>
+        <div class="perm-checkbox" id="perm-cb-transfer_ownership">✓</div>
+      </div>
       <button class="perm-save-btn" onclick="savePermissions()" id="perm-save-btn-text">Сохранить права</button>
       <button class="grant-all-btn" id="grant-all-btn" onclick="grantAllPermissions()" style="display:none">🔥 Передать все права</button>
       <div class="perm-supreme-note" id="perm-supreme-note">Управлять правами других администраторов может только главный администратор.</div>
@@ -1694,7 +1719,7 @@
         <div class="modal-title" style="display:flex;align-items:center;gap:8px;">
           <span>🐛</span> <span id="report-modal-title">Сообщить о проблеме</span>
         </div>
-        <div class="modal-sub" id="report-modal-sub">Мы постараемся исправить ошибку как можно скорее</div>
+        <div class="modal-sub" id="report-modal-sub">Опиши проблему как можно точнее</div>
       </div>
       <button class="modal-close" onclick="closeModal('report-modal')">✕</button>
     </div>
@@ -1706,6 +1731,16 @@
       <div style="display:flex;flex-direction:column;gap:6px;">
         <label style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:var(--muted);" id="report-label-category">Категория проблемы</label>
         <select class="calc-input" id="report-category" style="font-size:13px;padding:10px 14px;cursor:pointer;height:38px;">
+          <option value="Не работает нейросеть (ИИ)">Не работает нейросеть (ИИ)</option>
+          <option value="Не работает премиум-функция">Не работает премиум-функция (только для тех, у кого есть)</option>
+          <option value="Раздел Статистика не работает">Раздел "Статистика" не работает</option>
+          <option value="Раздел Прогноз ролика не работает">Раздел "Прогноз ролика" не работает</option>
+          <option value="Раздел Калькулятор не работает">Раздел "Калькулятор" не работает</option>
+          <option value="Раздел Новости не работает">Раздел "Новости" не работает</option>
+          <option value="Раздел Чат с ИИ не работает">Раздел "Чат с ИИ" не работает</option>
+          <option value="Раздел Сценарии не работает">Раздел "Сценарии" не работает</option>
+          <option value="Раздел Конкуренты не работает">Раздел "Конкуренты" не работает</option>
+          <option value="Раздел Настройки не работает">Раздел "Настройки" не работает</option>
           <option value="Зависает кнопка сделать анализ">Зависает кнопка "Сделать анализ"</option>
           <option value="Кнопка сделать анализ не реагирует">Кнопка не реагирует на нажатие</option>
           <option value="Черный экран при загрузке">Черный экран при загрузке сайта</option>
@@ -1762,7 +1797,8 @@ const API_URL = (window.location.hostname === 'localhost' || window.location.hos
   : (window.location.hostname.endsWith('github.io') || window.location.protocol === 'file:' ? 'https://yt-metrics-seven.vercel.app' : window.location.origin);
 const LS_KEY='ytmetrics_user', LS_TOK='ytmetrics_token', LS_CHAT='ytmetrics_chat';
 const LS_THEME='ytmetrics_theme', LS_FORMAT='ytmetrics_format', LS_LANG='ytmetrics_lang';
-const PERM_KEYS=['read_notifications','view_users','ban_users','view_admins','ban_admins','add_admins','remove_admins'];
+const PERM_KEYS=['read_notifications','view_users','ban_users','view_admins','ban_admins','add_admins','remove_admins','manage_billing','transfer_ownership'];
+const DEFAULT_PERMISSIONS_CLIENT={read_notifications:true,view_users:true,ban_users:false,view_admins:true,ban_admins:false,add_admins:false,remove_admins:false,manage_billing:false,transfer_ownership:false};
 let _banUserId=null, _banEmail=null;
 let _deferredInstallPrompt=null;
 let _installBrowser='chrome';
@@ -1776,6 +1812,60 @@ const DESKTOP_DOWNLOADS=[
   { os:'mac',     label:'macOS',   icon:'🍎', file:'YTMetrics-macOS.dmg' },
   { os:'linux',   label:'Linux',   icon:'🐧', file:'YTMetrics-Linux.AppImage' },
 ];
+
+function isRunningAsInstalledApp(){
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true || window.location.protocol==='file:';
+}
+
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  _deferredInstallPrompt=e;
+  const btn=document.getElementById('install-pwa-btn');
+  if(btn)btn.style.display='inline-flex';
+});
+
+window.addEventListener('appinstalled', function(){
+  _deferredInstallPrompt=null;
+  showPWAAlreadyInstalled();
+});
+
+function detectMobilePlatformForInstall(){
+  const ua=navigator.userAgent;
+  const isIOS=/iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  const isMac=/Macintosh/.test(ua) && !isIOS;
+  const isAndroid=/Android/.test(ua);
+  const isFirefox=/Firefox/.test(ua);
+  const isSafari=/^((?!chrome|android).)*safari/i.test(ua);
+  if(isIOS)return 'safari-ios';
+  if(isSafari&&isMac)return 'safari-mac';
+  if(isAndroid)return 'android';
+  if(isFirefox)return 'firefox';
+  return 'chrome';
+}
+
+async function triggerPWAInstall(){
+  if(_deferredInstallPrompt){
+    _deferredInstallPrompt.prompt();
+    const result=await _deferredInstallPrompt.userChoice;
+    if(result.outcome==='accepted')showPWAAlreadyInstalled();
+    _deferredInstallPrompt=null;
+    return;
+  }
+  const platform=detectMobilePlatformForInstall();
+  let msg='';
+  if(platform==='safari-ios')msg=t('install_safari_ios');
+  else if(platform==='safari-mac')msg=t('install_safari_mac');
+  else if(platform==='android')msg=t('install_android');
+  else msg=t('install_other');
+  alert(msg);
+}
+
+function showPWAAlreadyInstalled(){
+  const card=document.getElementById('install-pwa-card');
+  const already=document.getElementById('install-pwa-already');
+  if(card)card.style.display='none';
+  if(already)already.style.display='block';
+}
 
 function detectPlatformForInstall(){
   const ua=navigator.userAgent;
@@ -1802,6 +1892,7 @@ function renderInstallButtons(){
 
 function initInstallTab(){
   renderInstallButtons();
+  if(isRunningAsInstalledApp())showPWAAlreadyInstalled();
 }
 
 function applyTheme(isDark){
@@ -1960,6 +2051,9 @@ const T={
     terms_p3_title:'Лимиты:', terms_p3:'25 запросов к ИИ в сутки бесплатно.',
     footer_privacy:'Политика конфиденциальности', footer_terms:'Условия использования',
     perms_modal_title:'Права администратора',
+    perms_new_admin_title:'Выберите права для нового админа',
+    perms_new_admin_note:'права можно изменить позже',
+    perms_create_btn:'Назначить с этими правами',
     save_perms:'Сохранить права', grant_all:'🔥 Передать все права',
     supreme_note:'Управлять правами других администраторов может только главный администратор.',
     perms_saved:'Права сохранены!', all_perms_granted:'Переданы ВСЕ права!',
@@ -2083,7 +2177,7 @@ const T={
     report_cta:'Сообщить о проблеме',
     report_title:'Сообщить о проблеме',
     report_sub:'Сообщить о баге или технической ошибке на сайте',
-    report_modal_sub:'Мы постараемся исправить ошибку как можно скорее',
+    report_modal_sub:'Опиши проблему как можно точнее',
     report_label_email:'Ваш Email',
     report_label_category:'Категория проблемы',
     report_label_desc:'Описание проблемы (минимум 10 символов)',
@@ -2091,6 +2185,16 @@ const T={
     report_success_msg:'✓ Сообщение успешно отправлено! Спасибо за помощь.',
     report_email_ph:'example@gmail.com',
     report_comm_ph:'Опишите, что именно пошло не так...',
+    report_cat_ai:'Не работает нейросеть (ИИ)',
+    report_cat_premium:'Не работает премиум-функция',
+    report_cat_sec_stats:'Раздел "Статистика" не работает',
+    report_cat_sec_forecast:'Раздел "Прогноз ролика" не работает',
+    report_cat_sec_calc:'Раздел "Калькулятор" не работает',
+    report_cat_sec_news:'Раздел "Новости" не работает',
+    report_cat_sec_chat:'Раздел "Чат с ИИ" не работает',
+    report_cat_sec_scripts:'Раздел "Сценарии" не работает',
+    report_cat_sec_competitors:'Раздел "Конкуренты" не работает',
+    report_cat_sec_settings:'Раздел "Настройки" не работает',
     report_cat_hangs:'Зависает кнопка "Сделать анализ"',
     report_cat_no_react:'Кнопка не реагирует на нажатие',
     report_cat_black:'Черный экран при загрузке сайта',
@@ -2239,6 +2343,9 @@ const T={
     terms_p3_title:'Limits:', terms_p3:'25 AI requests per day free.',
     footer_privacy:'Privacy Policy', footer_terms:'Terms of Service',
     perms_modal_title:'Admin permissions',
+    perms_new_admin_title:'Choose permissions for the new admin',
+    perms_new_admin_note:'can be changed later',
+    perms_create_btn:'Grant admin with these permissions',
     save_perms:'Save permissions', grant_all:'🔥 Grant all permissions',
     supreme_note:'Only the supreme admin can manage other admins permissions.',
     perms_saved:'Permissions saved!', all_perms_granted:'ALL permissions granted!',
@@ -2362,7 +2469,7 @@ const T={
     report_cta:'Report an issue',
     report_title:'Report an issue',
     report_sub:'Report a bug or technical error on the website',
-    report_modal_sub:'We will try to fix the issue as soon as possible',
+    report_modal_sub:'Describe the issue as precisely as possible',
     report_label_email:'Your Email',
     report_label_category:'Issue Category',
     report_label_desc:'Issue Description (at least 10 characters)',
@@ -2370,6 +2477,16 @@ const T={
     report_success_msg:'✓ Report sent successfully! Thank you for your help.',
     report_email_ph:'example@gmail.com',
     report_comm_ph:'Describe what exactly went wrong...',
+    report_cat_ai:'The AI is not working',
+    report_cat_premium:'A premium feature is not working',
+    report_cat_sec_stats:'"Analytics" section is not working',
+    report_cat_sec_forecast:'"Video Forecast" section is not working',
+    report_cat_sec_calc:'"Calculator" section is not working',
+    report_cat_sec_news:'"News" section is not working',
+    report_cat_sec_chat:'"AI Chat" section is not working',
+    report_cat_sec_scripts:'"Scripts" section is not working',
+    report_cat_sec_competitors:'"Competitors" section is not working',
+    report_cat_sec_settings:'"Settings" section is not working',
     report_cat_hangs:'Analysis button freezes',
     report_cat_no_react:'Button does not react',
     report_cat_black:'Black screen on load',
@@ -2518,6 +2635,9 @@ const T={
     terms_p3_title:'الحدود:', terms_p3:'25 طلب ذكاء اصطناعي يومياً مجاناً.',
     footer_privacy:'سياسة الخصوصية', footer_terms:'شروط الخدمة',
     perms_modal_title:'صلاحيات المسؤول',
+    perms_new_admin_title:'اختر صلاحيات المسؤول الجديد',
+    perms_new_admin_note:'يمكن تغييرها لاحقاً',
+    perms_create_btn:'التعيين بهذه الصلاحيات',
     save_perms:'حفظ الصلاحيات', grant_all:'🔥 منح جميع الصلاحيات',
     supreme_note:'يمكن للمسؤول الرئيسي فقط إدارة صلاحيات المسؤولين الآخرين.',
     perms_saved:'تم حفظ الصلاحيات!', all_perms_granted:'تم منح جميع الصلاحيات!',
@@ -2641,7 +2761,7 @@ const T={
     report_cta:'الإبلاغ عن مشكلة',
     report_title:'الإبلاغ عن مشكلة',
     report_sub:'الإبلاغ عن خلل أو خطأ فني على الموقع',
-    report_modal_sub:'سنحاول إصلاح المشكلة في أقرب وقت ممكن',
+    report_modal_sub:'صف المشكلة بأكبر قدر ممكن من الدقة',
     report_label_email:'بريدك الإلكتروني',
     report_label_category:'فئة المشكلة',
     report_label_desc:'وصف المشكلة (على الأقل 10 أحرف)',
@@ -2649,6 +2769,16 @@ const T={
     report_success_msg:'✓ تم إرسال التقرير بنجاح! شكراً لمساعدتك.',
     report_email_ph:'example@gmail.com',
     report_comm_ph:'صف بالضبط ما الذي حدث بشكل خاطئ...',
+    report_cat_ai:'الذكاء الاصطناعي لا يعمل',
+    report_cat_premium:'ميزة مدفوعة لا تعمل',
+    report_cat_sec_stats:'قسم "الإحصائيات" لا يعمل',
+    report_cat_sec_forecast:'قسم "توقعات الفيديو" لا يعمل',
+    report_cat_sec_calc:'قسم "الحاسبة" لا يعمل',
+    report_cat_sec_news:'قسم "الأخبار" لا يعمل',
+    report_cat_sec_chat:'قسم "الدردشة" لا يعمل',
+    report_cat_sec_scripts:'قسم "السيناريوهات" لا يعمل',
+    report_cat_sec_competitors:'قسم "المنافسون" لا يعمل',
+    report_cat_sec_settings:'قسم "الإعدادات" لا يعمل',
     report_cat_hangs:'زر التحليل يتجمد',
     report_cat_no_react:'الزر لا يتفاعل',
     report_cat_black:'شاشة سوداء عند التحميل',
@@ -2809,12 +2939,22 @@ function applyTranslations(){
   const repEmail=document.getElementById('report-email');if(repEmail)repEmail.placeholder=t('report_email_ph');
   const repComm=document.getElementById('report-comment');if(repComm)repComm.placeholder=t('report_comm_ph');
   const repCat=document.getElementById('report-category');
-  if(repCat&&repCat.options.length>=5){
-    repCat.options[0].text=t('report_cat_hangs');
-    repCat.options[1].text=t('report_cat_no_react');
-    repCat.options[2].text=t('report_cat_black');
-    repCat.options[3].text=t('report_cat_slow');
-    repCat.options[4].text=t('report_cat_other');
+  if(repCat&&repCat.options.length>=15){
+    repCat.options[0].text=t('report_cat_ai');
+    repCat.options[1].text=t('report_cat_premium');
+    repCat.options[2].text=t('report_cat_sec_stats');
+    repCat.options[3].text=t('report_cat_sec_forecast');
+    repCat.options[4].text=t('report_cat_sec_calc');
+    repCat.options[5].text=t('report_cat_sec_news');
+    repCat.options[6].text=t('report_cat_sec_chat');
+    repCat.options[7].text=t('report_cat_sec_scripts');
+    repCat.options[8].text=t('report_cat_sec_competitors');
+    repCat.options[9].text=t('report_cat_sec_settings');
+    repCat.options[10].text=t('report_cat_hangs');
+    repCat.options[11].text=t('report_cat_no_react');
+    repCat.options[12].text=t('report_cat_black');
+    repCat.options[13].text=t('report_cat_slow');
+    repCat.options[14].text=t('report_cat_other');
   }
   const fbBtn=document.getElementById('feedback-submit-btn');if(fbBtn&&!fbBtn.disabled)fbBtn.textContent=t('send_feedback');
   const fbSucc=document.getElementById('feedback-success');if(fbSucc)fbSucc.textContent=t('feedback_success');
@@ -3356,6 +3496,9 @@ function formatNotifDate(iso){
   return new Date(iso).toLocaleDateString(_currentLang==='en'?'en-US':(_currentLang==='ar'?'ar':'ru-RU'),{day:'2-digit',month:'short'});
 }
 
+function progressLoaderHTML(icon,text){
+  return '<div class="progress-loader"><div class="progress-loader-icon">'+(icon||'⏳')+'</div><div class="progress-bar-track"><div class="progress-bar-fill"></div></div><div class="progress-loader-text">'+escapeHtml(text||'')+'</div></div>';
+}
 function escapeHtml(str){if(!str)return'';return str.replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
 function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
 function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
@@ -3747,19 +3890,39 @@ async function adminRemoveAdmin(email,name){
   }catch(e){alert('Error');}
 }
 
-let _currentPermsAdminIdx=null, _currentPermsState=null;
+let _currentPermsAdminIdx=null, _currentPermsState=null, _permsModalMode='edit', _pendingNewAdminUserId=null;
+
+function openPermsModalForNewAdmin(userId, displayName){
+  _permsModalMode='create';
+  _pendingNewAdminUserId=userId;
+  _currentPermsState={...DEFAULT_PERMISSIONS_CLIENT};
+  document.getElementById('perms-modal-sub').textContent=displayName+' — '+t('perms_new_admin_note');
+  document.getElementById('perms-modal-title').textContent=t('perms_new_admin_title');
+  PERM_KEYS.forEach(function(key){
+    const cb=document.getElementById('perm-cb-'+key);
+    if(cb)cb.classList.toggle('checked',!!_currentPermsState[key]);
+  });
+  document.getElementById('grant-all-btn').style.display='none';
+  document.getElementById('perm-supreme-note').style.display='none';
+  document.getElementById('perm-save-btn-text').textContent=t('perms_create_btn');
+  openModal('perms-modal');
+}
+
 function openPermsModal(idx){
   const admins=window._adminsData;if(!admins||!admins[idx])return;
+  _permsModalMode='edit';
   _currentPermsAdminIdx=idx;
   const admin=admins[idx];
   _currentPermsState=Object.assign({},admin.permissions);
   document.getElementById('perms-modal-sub').textContent=admin.name||admin.email;
+  document.getElementById('perms-modal-title').textContent=t('perms_modal_title');
   PERM_KEYS.forEach(function(key){
     const cb=document.getElementById('perm-cb-'+key);
     if(cb)cb.classList.toggle('checked',!!_currentPermsState[key]);
   });
   document.getElementById('grant-all-btn').style.display=_isSupreme?'block':'none';
   document.getElementById('perm-supreme-note').style.display=_isSupreme?'none':'block';
+  document.getElementById('perm-save-btn-text').textContent=t('save_perms');
   openModal('perms-modal');
 }
 function togglePermCheckbox(key){
@@ -3769,14 +3932,25 @@ function togglePermCheckbox(key){
   if(cb)cb.classList.toggle('checked',_currentPermsState[key]);
 }
 async function savePermissions(){
-  const admins=window._adminsData;if(!admins||_currentPermsAdminIdx==null)return;
-  const admin=admins[_currentPermsAdminIdx];
   const btn=document.getElementById('perm-save-btn-text');const origText=btn.textContent;btn.textContent='...';
   try{
-    const res=await apiFetch('/api/admin/set-permissions',{method:'POST',body:JSON.stringify({email:admin.email,permissions:_currentPermsState})});
-    const data=await res.json();
-    if(res.ok){alert(t('perms_saved'));closeModal('perms-modal');renderAdminList();}
-    else alert(data.error||'Error');
+    if(_permsModalMode==='create'){
+      const res=await apiFetch('/api/admin/make-admin',{method:'POST',body:JSON.stringify({userId:_pendingNewAdminUserId,permissions:_currentPermsState})});
+      const data=await res.json();
+      if(res.ok){
+        alert(t('admin_rights_granted'));
+        closeModal('perms-modal');closeModal('admin-user-modal');
+        _pendingNewAdminUserId=null;
+        await loadAdminUsers();
+      }else alert(data.error||'Error');
+    }else{
+      const admins=window._adminsData;if(!admins||_currentPermsAdminIdx==null)return;
+      const admin=admins[_currentPermsAdminIdx];
+      const res=await apiFetch('/api/admin/set-permissions',{method:'POST',body:JSON.stringify({email:admin.email,permissions:_currentPermsState})});
+      const data=await res.json();
+      if(res.ok){alert(t('perms_saved'));closeModal('perms-modal');renderAdminList();}
+      else alert(data.error||'Error');
+    }
   }catch(e){alert('Error');}
   btn.textContent=origText;
 }
@@ -3857,13 +4031,7 @@ async function toggleBanUser(){
 async function makeUserAdmin(){
   const users=window._adminUsersData;if(!users||_currentAdminUserIdx==null)return;
   const u=users[_currentAdminUserIdx];
-  if(!confirm(t('admin_confirm')+': "'+(u.name||u.email)+'"?'))return;
-  try{
-    const res=await apiFetch('/api/admin/make-admin',{method:'POST',body:JSON.stringify({userId:u.id})});
-    const data=await res.json();
-    if(res.ok){closeModal('admin-user-modal');await loadAdminUsers();alert(t('admin_rights_granted'));}
-    else alert(data.error||'Error');
-  }catch(e){alert('Error');}
+  openPermsModalForNewAdmin(u.id, u.name||u.email);
 }
 
 async function deleteUser(){
@@ -4812,7 +4980,7 @@ async function generateScripts(){
   const origText=btnTextEl.textContent;
   const errBlock=document.getElementById('scripts-error-block');
   errBlock.style.display='none';
-  document.getElementById('scripts-results').innerHTML='';
+  document.getElementById('scripts-results').innerHTML=progressLoaderHTML('🎬', t('ai_building'));
   btn.disabled=true;
   btnTextEl.innerHTML='<span class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></span> '+t('ai_building');
   try{
@@ -4879,7 +5047,7 @@ async function searchCompetitors(){
   const errBlock=document.getElementById('comp-error-block');
   const intentBlock=document.getElementById('comp-intent-block');
   errBlock.style.display='none';intentBlock.style.display='none';
-  document.getElementById('comp-results').innerHTML='';
+  document.getElementById('comp-results').innerHTML=progressLoaderHTML('🔎', t('analyzing_dots'));
   btn.disabled=true;
   btnTextEl.innerHTML='<span class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></span> '+t('analyzing_dots');
   try{
