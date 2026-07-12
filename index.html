@@ -1449,8 +1449,47 @@
       <div id="fm-player-wrap" class="video-player-wrap" style="display:none">
         <iframe id="fm-player-iframe" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
       </div>
-      <button class="ai-btn ai-btn-blue" onclick="askForecastAI()" id="btn-ai-forecast">📈 <span id="ai-forecast-btn-text">ИИ: Разбор алгоритмов и прогноз роста</span></button>
-      <div id="ai-forecast-block" style="display:none" class="ai-response-block ai-response-blue"></div>
+      <button class="ai-btn ai-btn-blue" onclick="askForecastAI()" id="btn-ai-forecast">📈 <span id="ai-forecast-btn-text">ИИ: Разбор поведения алгоритма</span></button>
+      <div class="ai-response-block ai-response-blue" id="ai-forecast-block" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="competitor-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <img id="cm-thumb" src="" alt="" class="modal-header-thumb">
+      <div style="flex:1;min-width:0"><div class="modal-title" id="cm-title">—</div><div class="modal-sub" id="cm-meta">—</div></div>
+      <div id="cm-type-badge" style="font-family:'DM Mono',monospace;font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid;flex-shrink:0;margin-right:8px"></div>
+      <button class="modal-close" onclick="closeModal('competitor-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap">
+        <a id="cm-video-link" href="#" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:rgba(255,0,0,.1);border:1px solid rgba(255,0,0,.25);border-radius:8px;font-family:'DM Mono',monospace;font-size:12px;color:#ff4444;text-decoration:none;font-weight:600;">
+          ▶ <span id="cm-open-yt-text">Открыть на YouTube</span>
+        </a>
+        <button class="video-player-toggle" id="cm-toggle-player" onclick="toggleCompetitorVideoPlayer()" style="width:auto;padding:8px 16px;margin-bottom:0">
+          📺 <span id="cm-player-btn-text">Смотреть здесь</span>
+        </button>
+        <a id="cm-channel-link" href="#" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--input-bg);border:1px solid var(--border);border-radius:8px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text);text-decoration:none;font-weight:600;">
+          👤 <span id="cm-open-channel-text">Канал</span>
+        </a>
+      </div>
+      <div id="cm-player-wrap" class="video-player-wrap" style="display:none">
+        <iframe id="cm-player-iframe" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">
+        <div class="metric-card"><div class="metric-icon">👁</div><div class="metric-label">ПРОСМОТРЫ</div><div class="metric-value" id="cm-views">—</div></div>
+        <div class="metric-card"><div class="metric-icon">👍</div><div class="metric-label">ЛАЙКИ</div><div class="metric-value" id="cm-likes">—</div></div>
+        <div class="metric-card"><div class="metric-icon">💬</div><div class="metric-label">КОММЕНТАРИИ</div><div class="metric-value" id="cm-comments">—</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+        <div class="metric-card"><div class="metric-icon">⏱</div><div class="metric-label" id="cm-duration-label">ДЛИТЕЛЬНОСТЬ</div><div class="metric-value" id="cm-duration">—</div></div>
+        <div class="metric-card"><div class="metric-icon">🕐</div><div class="metric-label" id="cm-age-label">ВОЗРАСТ ВИДЕО</div><div class="metric-value" id="cm-age" style="font-size:16px">—</div></div>
+        <div class="metric-card"><div class="metric-icon">👥</div><div class="metric-label">ПОДПИСЧИКИ</div><div class="metric-value" id="cm-subs">—</div></div>
+      </div>
+      <button class="ai-btn ai-btn-violet" onclick="analyzeCompetitorVideo()" id="btn-ai-competitor">🔬 <span id="cm-analyze-btn-text">Сделать анализ этого видео</span></button>
+      <div id="cm-analyze-block" style="display:none" class="ai-response-block" style="border-color:rgba(180,100,255,.2);background:rgba(180,100,255,.05)"></div>
     </div>
   </div>
 </div>
@@ -1914,6 +1953,7 @@ const T={
     nav_stats:'Статистика', nav_forecast:'Прогноз ролика', nav_calc:'Калькулятор',
     nav_news:'Новости', nav_ai:'Чат с ИИ', nav_scripts:'Сценарии', nav_competitors:'Конкуренты', nav_install:'Скачать приложение', nav_settings:'Настройки',
     open_channel_label:'Канал',
+    cm_analyze_btn:'Сделать анализ этого видео',
     nav_admin:'Админ-панель', nav_logout:'Выйти из аккаунта',
     stats_title:'Статистика канала', stats_sub:'Выберите видео для анализа',
     subs_label:'подписчиков', views_total_label:'просмотров', hours_label:'ч просмотрено (30д)',
@@ -2206,6 +2246,7 @@ const T={
     nav_stats:'Analytics', nav_forecast:'Video Forecast', nav_calc:'Calculator',
     nav_news:'News', nav_ai:'AI Chat', nav_scripts:'Scripts', nav_competitors:'Competitors', nav_install:'Download App', nav_settings:'Settings',
     open_channel_label:'Channel',
+    cm_analyze_btn:'Analyze this video',
     nav_admin:'Admin Panel', nav_logout:'Sign out',
     stats_title:'Channel Analytics', stats_sub:'Select a video to analyze',
     subs_label:'subscribers', views_total_label:'views', hours_label:'hrs watched (30d)',
@@ -2498,6 +2539,7 @@ const T={
     nav_stats:'التحليلات', nav_forecast:'توقعات الفيديو', nav_calc:'الحاسبة',
     nav_news:'الأخبار', nav_ai:'الدردشة بالذكاء الاصطناعي', nav_scripts:'السيناريوهات', nav_competitors:'المنافسون', nav_install:'تنزيل التطبيق', nav_settings:'الإعدادات',
     open_channel_label:'القناة',
+    cm_analyze_btn:'تحليل هذا الفيديو',
     nav_admin:'لوحة المسؤول', nav_logout:'تسجيل الخروج',
     stats_title:'تحليلات القناة', stats_sub:'اختر مقطع فيديو للتحليل',
     subs_label:'مشترك', views_total_label:'مشاهدة', hours_label:'ساعة مشاهدة (30 يوم)',
@@ -5013,29 +5055,98 @@ async function generateScripts(){
   btn.disabled=false;btnTextEl.textContent=origText;
 }
 
+let _compResults=[], _currentCompVideo=null, _cmPlayerVisible=false;
+
 function renderCompetitorResults(results){
+  _compResults=results;
   const wrap=document.getElementById('comp-results');
   if(!results.length){
     wrap.innerHTML='<div style="text-align:center;padding:40px 0;font-family:\'DM Mono\',monospace;font-size:13px;color:var(--muted)">'+t('no_videos')+'</div>';
     return;
   }
-  wrap.innerHTML=results.map(function(r){
+  wrap.innerHTML=results.map(function(r,idx){
     const subsText=r.subscribers!=null?fmtSubs(r.subscribers)+' '+t('subs_label'):null;
     const viewsText=r.views!=null?fmt(r.views)+' '+t('views_label_short'):null;
     const metaParts=[r.channel_name];
     if(subsText)metaParts.push(subsText);
     if(viewsText)metaParts.push(viewsText);
     metaParts.push(formatRelDate(r.published_at));
-    return '<a href="'+r.video_url+'" target="_blank" rel="noopener" class="video-item" style="text-decoration:none;color:inherit;cursor:pointer">'
+    return '<div onclick="openCompetitorModal('+idx+')" class="video-item" style="cursor:pointer">'
       +(r.thumbnail?'<img src="'+r.thumbnail+'" class="video-item-thumb" onerror="this.style.display=\'none\'">':'<span class="video-item-icon">📺</span>')
       +'<div class="video-item-info">'
       +'<div class="video-item-title">'+escapeHtml(r.title)+'</div>'
       +'<div class="video-item-meta">'+escapeHtml(metaParts.join(' · '))+'</div>'
       +(r.reason?'<div class="video-item-meta" style="color:var(--accent);margin-top:3px">💡 '+escapeHtml(r.reason)+'</div>':'')
       +'</div>'
-      +'<a href="'+r.channel_url+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="video-item-badge vib-short" style="text-decoration:none">👤 '+t('open_channel_label')+'</a>'
-      +'</a>';
+      +'<span class="video-item-badge '+(r.type==='short'?'vib-short':'vib-long')+'">'+(r.type==='short'?'⚡ Shorts':'📹 Long')+'</span>'
+      +'</div>';
   }).join('');
+}
+
+function openCompetitorModal(idx){
+  const r=_compResults[idx];if(!r)return;
+  _currentCompVideo=r;
+  _cmPlayerVisible=false;
+  document.getElementById('cm-player-wrap').style.display='none';
+  document.getElementById('cm-player-iframe').src='';
+  document.getElementById('cm-player-btn-text').textContent=t('watch_here');
+  document.getElementById('cm-analyze-block').style.display='none';
+  document.getElementById('cm-analyze-block').innerHTML='';
+  document.getElementById('btn-ai-competitor').disabled=false;
+  document.getElementById('cm-analyze-btn-text').textContent=t('cm_analyze_btn');
+  document.getElementById('cm-thumb').src=r.thumbnail||'';
+  document.getElementById('cm-title').textContent=r.title;
+  document.getElementById('cm-meta').textContent=r.channel_name+' · '+formatRelDate(r.published_at);
+  const badge=document.getElementById('cm-type-badge');
+  if(r.type==='short'){badge.textContent='⚡ Shorts';badge.style.cssText="font-family:'DM Mono',monospace;font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid;color:var(--accent2);border-color:rgba(71,200,255,.3);background:rgba(71,200,255,.06)";}
+  else{badge.textContent='📹 Long-form';badge.style.cssText="font-family:'DM Mono',monospace;font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid;color:var(--accent);border-color:rgba(232,255,71,.3);background:rgba(232,255,71,.06)";}
+  document.getElementById('cm-video-link').href=r.video_url;
+  document.getElementById('cm-channel-link').href=r.channel_url;
+  document.getElementById('cm-views').textContent=r.views!=null?fmt(r.views):'—';
+  document.getElementById('cm-likes').textContent=r.likes!=null?fmt(r.likes):'—';
+  document.getElementById('cm-comments').textContent=r.comments!=null?fmt(r.comments):'—';
+  document.getElementById('cm-duration').textContent=r.duration_sec?fmtDuration(r.duration_sec):'—';
+  document.getElementById('cm-age').textContent=formatRelDate(r.published_at);
+  document.getElementById('cm-subs').textContent=r.subscribers!=null?fmtSubs(r.subscribers):'—';
+  openModal('competitor-modal');
+}
+
+function toggleCompetitorVideoPlayer(){
+  _cmPlayerVisible=!_cmPlayerVisible;
+  const wrap=document.getElementById('cm-player-wrap');
+  const iframe=document.getElementById('cm-player-iframe');
+  if(_cmPlayerVisible){
+    wrap.style.display='block';document.getElementById('cm-player-btn-text').textContent=t('close_player');
+    if(_currentCompVideo)iframe.src='https://www.youtube.com/embed/'+_currentCompVideo.video_id+'?autoplay=1';
+  }else{
+    wrap.style.display='none';document.getElementById('cm-player-btn-text').textContent=t('watch_here');iframe.src='';
+  }
+}
+
+async function analyzeCompetitorVideo(){
+  const r=_currentCompVideo;if(!r)return;
+  const btn=document.getElementById('btn-ai-competitor');
+  const block=document.getElementById('cm-analyze-block');
+  btn.disabled=true;
+  btn.innerHTML='<span class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></span> '+t('analyzing_dots');
+  block.style.display='block';
+  block.innerHTML='<div class="ai-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">'+t('analyzing_dots')+'</span></div>';
+  const ageText=videoAgeEN(r.published_at);
+  const mt='Type: '+(r.type==='short'?'Shorts':'Long-form')+'. '+ageText+'. Views: '+(r.views??'no data')+'. Likes: '+(r.likes??'no data')+'. Comments: '+(r.comments??'no data')+'. Duration: '+(r.duration_sec?fmtDuration(r.duration_sec):'no data')+'. Channel subscribers: '+(r.subscribers??'no data')+'.';
+  const lang = _currentLang === 'en' ? 'English' : (_currentLang === 'ar' ? 'Arabic' : 'Russian');
+  const prompt='This is a COMPETITOR\'s video (not mine), found while researching my niche. Title: "'+r.title+'". Channel: "'+r.channel_name+'". Metrics: '+mt+'\n\nAnalyze this as a competitor video: 1) Why is it likely performing this way given its age, topic and these metrics (ground this in the YouTube algorithm\'s current treatment of the video, not a future forecast). 2) What specifically makes it work (or not) — hook, topic, format. 3) What I can learn or borrow for my own channel. With emoji, up to 220 words. Answer in '+lang+'.';
+  try{
+    const answer=await callAI([{role:'user',content:prompt}]);
+    block.innerHTML=answer.replace(/\n/g,'<br>');
+    block.className='ai-response-block';
+    block.style.cssText='border-color:rgba(180,100,255,.2);background:rgba(180,100,255,.05)';
+    btn.innerHTML='🔬 <span>'+t('cm_analyze_btn')+'</span> ✓';
+    fetchAndRenderLimits();
+  }catch(e){
+    block.className='ai-error-block';block.innerHTML='⚠️ '+e.message;
+    btn.innerHTML='🔬 <span>'+t('cm_analyze_btn')+'</span>';
+  }
+  btn.disabled=false;
 }
 
 async function searchCompetitors(){
@@ -5202,6 +5313,18 @@ async function handleInitAuthMeResponse(res) {
   if(urlResult&&urlResult.banned){
     document.getElementById('landing-screen').style.display='none';
     document.getElementById('ban-screen').style.display='flex';return;
+  }
+  if(urlResult&&urlResult.error){
+    console.error('YTMetrics init: OAuth error from backend =', urlResult.error);
+    const errorMessages={
+      oauth_denied:'Вход через Google был отменён или отклонён.',
+      token_exchange:'Google не подтвердил обмен токена (проверь GOOGLE_CLIENT_ID/SECRET и redirect_uri на Vercel).',
+      userinfo:'Не удалось получить данные профиля Google (возможно, истёк токен доступа).',
+      server:'Внутренняя ошибка сервера при обработке входа. Попробуй ещё раз через минуту.',
+    };
+    alert('⚠️ Ошибка входа: '+(errorMessages[urlResult.error]||urlResult.error)+'\n\nКод ошибки для разработчика: '+urlResult.error);
+    document.getElementById('landing-screen').style.display='flex';
+    return;
   }
   if(urlResult&&urlResult.token){
     try{
