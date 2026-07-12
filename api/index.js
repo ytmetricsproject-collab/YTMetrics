@@ -557,18 +557,19 @@ app.post('/api/competitors/search', async (req,res)=>{
     const accessToken=await getValidAccessToken(payload);
     const model=genAI.getGenerativeModel({ model:'gemini-2.5-flash' });
 
-    // Шаг 1 — Gemini превращает описание ниши в точный поисковый запрос для YouTube
-    const planPrompt=`Ты — помощник поиска конкурентов на YouTube. Пользователь описал свою нишу/тему.
-Преврати это в точный поисковый запрос для YouTube Data API, который найдёт релевантные каналы/видео-конкурентов.
+    // Шаг 1 — Gemini превращает описание ниши в ШИРОКИЙ поисковый запрос по ключевым словам
+    const planPrompt=`Ты — помощник поиска конкурентов на YouTube. Пользователь описал свою нишу/тему СВОИМИ словами — это НЕ готовый поисковый запрос, а просто описание того, что ищем.
+
+Твоя задача — понять СМЫСЛ описания и составить запрос из ключевых слов и синонимов темы, который найдёт МАКСИМАЛЬНО РЕЛЕВАНТНЫЙ круг видео на YouTube — а не только видео с точным текстовым совпадением фразы пользователя. Думай как SEO-специалист: используй общеупотребимые в этой нише термины, а не дословный пересказ описания пользователя.
 
 Правила:
-- Убери слова-паразиты ("найди", "покажи конкурентов", "каналы про"), оставь суть темы.
+- НЕ копируй формулировку пользователя дословно — переформулируй в ключевые слова темы.
 - Если пользователь просит "новых"/"свежих" авторов — recentOnly=true, order="date". Если "популярных"/"крупных" — order="viewCount". По умолчанию order="relevance".
 
 Описание пользователя: "${query.trim()}"
 
 Ответь СТРОГО в формате JSON (без markdown, без пояснений):
-{"intent":"краткое описание что ищем","query":"оптимизированный поисковый запрос","order":"relevance или date или viewCount","recentOnly":true или false}`;
+{"intent":"краткое описание что ищем","query":"широкий поисковый запрос из ключевых слов темы (2-5 слов)","order":"relevance или date или viewCount","recentOnly":true или false}`;
 
     const planResult=await model.generateContent(planPrompt);
     let planText=(planResult.response.text()||'').trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```\s*$/,'').trim();
@@ -589,12 +590,19 @@ app.post('/api/competitors/search', async (req,res)=>{
       return res.json({ plan, results:[] });
     }
 
-    // Статистика по найденным видео (просмотры) — одним батч-запросом
+    // Статистика по найденным видео (просмотры, лайки, комментарии, длительность) — одним батч-запросом
     const videoIds=items.map(it=>it.id.videoId).join(',');
     let statsMap={};
     try{
       const statsData=await gFetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics,contentDetails&id=${videoIds}`, accessToken);
-      (statsData.items||[]).forEach(v=>{ statsMap[v.id]={ views: v.statistics?.viewCount ? parseInt(v.statistics.viewCount,10) : null }; });
+      (statsData.items||[]).forEach(v=>{
+        statsMap[v.id]={
+          views: v.statistics?.viewCount ? parseInt(v.statistics.viewCount,10) : null,
+          likes: v.statistics?.likeCount ? parseInt(v.statistics.likeCount,10) : null,
+          comments: v.statistics?.commentCount ? parseInt(v.statistics.commentCount,10) : null,
+          durationSec: parseDurationToSeconds(v.contentDetails?.duration),
+        };
+      });
     }catch(e){ console.warn('competitor stats fetch failed (non-fatal):', e.message); }
 
     // Подписчики каналов — тоже батч-запросом
@@ -636,6 +644,7 @@ ${JSON.stringify(compact)}
     const results=items.map((it,i)=>{
       const rank=byIndex.get(i);
       const vid=it.id.videoId, chId=it.snippet.channelId;
+      const durationSec=statsMap[vid]?.durationSec ?? null;
       return {
         video_id:vid, title:it.snippet.title, description:it.snippet.description||'',
         thumbnail: it.snippet.thumbnails?.medium?.url || it.snippet.thumbnails?.default?.url || null,
@@ -644,6 +653,10 @@ ${JSON.stringify(compact)}
         video_url: `https://www.youtube.com/watch?v=${vid}`,
         published_at: it.snippet.publishedAt,
         views: statsMap[vid]?.views ?? null,
+        likes: statsMap[vid]?.likes ?? null,
+        comments: statsMap[vid]?.comments ?? null,
+        duration_sec: durationSec,
+        type: (durationSec!=null && durationSec>0 && durationSec<=60) ? 'short' : 'long',
         subscribers: channelMap[chId]?.subscribers ?? null,
         relevance: rank?.relevance ?? 0.5,
         reason: rank?.reason ?? '',
