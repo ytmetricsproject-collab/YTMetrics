@@ -28,6 +28,8 @@ const ALL_PERMISSIONS = {
   ban_admins: true,
   add_admins: true,
   remove_admins: true,
+  manage_billing: true,
+  transfer_ownership: true,
 };
 const DEFAULT_PERMISSIONS = {
   read_notifications: true,
@@ -37,6 +39,8 @@ const DEFAULT_PERMISSIONS = {
   ban_admins: false,
   add_admins: false,
   remove_admins: false,
+  manage_billing: false,
+  transfer_ownership: false,
 };
 
 let supabase;
@@ -891,20 +895,26 @@ app.get('/api/admin/admins', async (req,res)=>{
 // POST /api/admin/make-admin — ТОЛЬКО supreme admin
 app.post('/api/admin/make-admin', async (req,res)=>{
   const payload=await requireSupreme(req,res); if(!payload)return;
-  const { userId }=req.body;
+  const { userId, permissions }=req.body;
   if(!userId)return res.status(400).json({ error:'userId required' });
   try{
     const { data:targetUser, error:userErr }=await supabase.from('users').select('id,email,banned').eq('id',userId).single();
     if(userErr||!targetUser)return res.status(404).json({ error:'User not found' });
     if(targetUser.banned)return res.status(400).json({ error:'Cannot make banned user an admin' });
     if(await isAdminEmail(targetUser.email))return res.status(400).json({ error:'User is already an admin' });
+    // Права можно задать сразу при назначении (если не переданы — берутся по умолчанию,
+    // их всегда можно изменить позже через "🔐 Права")
+    let finalPerms={...DEFAULT_PERMISSIONS};
+    if(permissions && typeof permissions==='object'){
+      Object.keys(DEFAULT_PERMISSIONS).forEach(k=>{ finalPerms[k]=!!permissions[k]; });
+    }
     const { error }=await supabase.from('admins').insert({
       user_id:targetUser.id, email:targetUser.email, is_primary:false,
-      added_by:payload.email, permissions:DEFAULT_PERMISSIONS,
+      added_by:payload.email, permissions:finalPerms,
     });
     if(error)return res.status(500).json({ error:'Database error' });
     await createAdminNotification('new_admin','⭐ Новый администратор',`${payload.email} назначил ${targetUser.email} администратором`);
-    return res.json({ ok:true });
+    return res.json({ ok:true, permissions:finalPerms });
   }catch(e){ return res.status(500).json({ error:'Server error' }); }
 });
 
