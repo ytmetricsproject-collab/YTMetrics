@@ -385,6 +385,47 @@
     .prem-step-title{font-weight:700;font-size:14px;margin-bottom:4px;}
     .prem-step-text{font-size:13px;color:var(--muted);line-height:1.6;}
     .prem-step-text code{background:var(--input-bg);border:1px solid var(--border);border-radius:5px;padding:2px 6px;font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);}
+
+    .prem-price-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+    .prem-price-row .prem-input{flex:1;}
+    .prem-price-suffix{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);white-space:nowrap;width:90px;flex-shrink:0;}
+
+    /* ══ ПОИСК ИСКЛЮЧЕНИЙ ПРЕМИУМА ══ */
+    .prem-search-bar{display:flex;gap:8px;margin-bottom:14px;}
+    .prem-search-bar select{background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:0 12px;color:var(--text);font-size:13px;font-family:inherit;}
+    .prem-search-bar input{flex:1;}
+
+    /* ══ КОШЕЛЁК (виджет баланса) ══ */
+    .wallet-widget{margin:0 24px 20px;padding:14px 16px;border-radius:14px;background:linear-gradient(135deg,rgba(232,255,71,.08),rgba(71,200,255,.05));border:1px solid rgba(232,255,71,.25);display:none;}
+    .wallet-widget.show{display:block;}
+    .wallet-widget-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+    .wallet-widget-amount{font-size:20px;font-weight:800;color:var(--accent);}
+    .wallet-widget-amount.na{font-size:12px;color:var(--muted);font-weight:600;}
+
+    /* ══ РЕКЛАМА ══ */
+    .ads-my-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:20px;}
+    .ad-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;transition:all .15s;}
+    .ad-card:hover{border-color:rgba(232,255,71,.3);transform:translateY(-2px);}
+    .ad-card-photo{width:100%;height:100px;object-fit:cover;border-radius:10px;margin-bottom:10px;background:var(--input-bg);}
+    .ad-card-text{font-size:13px;font-weight:600;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .ad-card-status{font-family:'DM Mono',monospace;font-size:10px;padding:4px 9px;border-radius:6px;display:inline-block;font-weight:700;}
+    .ad-card-status.active{background:rgba(71,255,150,.1);color:#47ff96;}
+    .ad-card-status.awaiting_payment{background:rgba(255,180,71,.1);color:#ffb447;}
+    .ad-card-status.pending_review{background:rgba(71,200,255,.1);color:#47c8ff;}
+    .ad-card-status.rejected{background:rgba(255,71,87,.1);color:#ff4757;}
+    .ads-create-fab{width:64px;height:64px;border-radius:50%;background:var(--accent);color:var(--bg);border:none;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 4px 20px rgba(232,255,71,.3);transition:transform .15s;}
+    .ads-create-fab:hover{transform:scale(1.08);}
+    .ads-empty-state{text-align:center;padding:40px 20px;color:var(--muted);font-family:'DM Mono',monospace;font-size:13px;}
+    .ad-photo-upload{border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:all .15s;position:relative;}
+    .ad-photo-upload:hover{border-color:rgba(232,255,71,.4);}
+    .ad-photo-upload img{max-width:100%;max-height:160px;border-radius:8px;}
+    .ad-stat-row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);}
+    .ad-stat-row:last-child{border-bottom:none;}
+    .ad-stat-label{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);}
+    .ad-stat-value{font-weight:800;font-size:15px;}
+    .cooldown-opt-row{display:flex;gap:8px;margin-bottom:10px;}
+    .cooldown-opt{flex:1;padding:10px;text-align:center;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);cursor:pointer;font-size:12px;font-weight:700;transition:all .15s;}
+    .cooldown-opt.active{border-color:var(--accent);background:rgba(232,255,71,.08);color:var(--accent);}
     .admin-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:30px 0;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);}
 
     .notif-block{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px;margin-bottom:24px;}
@@ -1000,6 +1041,10 @@
       <img src="./icon-512.png" alt="Logo" class="sidebar-logo-mark">
       <div class="sidebar-logo-name">YT<span>Metrics</span></div>
     </div>
+    <div class="wallet-widget" id="wallet-widget">
+      <div class="wallet-widget-label">💰 Баланс сайта</div>
+      <div class="wallet-widget-amount" id="wallet-widget-amount">—</div>
+    </div>
     <nav>
       <div class="nav-item active" data-tab="stats"><span class="nav-icon">📊</span> <span class="nav-label" data-key="nav_stats">Статистика</span></div>
       <div class="nav-item" data-tab="forecast"><span class="nav-icon">📈</span> <span class="nav-label" data-key="nav_forecast">Прогноз ролика</span></div>
@@ -1008,6 +1053,7 @@
       <div class="nav-item" data-tab="ai"><span class="nav-icon">✦</span> <span class="nav-label" data-key="nav_ai">Чат с ИИ</span></div>
       <div class="nav-item" data-tab="scripts"><span class="nav-icon">🎬</span> <span class="nav-label" data-key="nav_scripts">Сценарии</span></div>
       <div class="nav-item" data-tab="competitors"><span class="nav-icon">🔎</span> <span class="nav-label" data-key="nav_competitors">Конкуренты</span></div>
+      <div class="nav-item" data-tab="ads"><span class="nav-icon">📣</span> <span class="nav-label">Реклама</span></div>
       <div class="nav-item" data-tab="install"><span class="nav-icon">⬇️</span> <span class="nav-label" data-key="nav_install">Скачать приложение</span></div>
       <div class="nav-item" data-tab="settings"><span class="nav-icon">⚙️</span> <span class="nav-label" data-key="nav_settings">Настройки</span></div>
       <div class="nav-item" data-tab="premium" id="nav-premium" style="display:none">
@@ -1360,10 +1406,54 @@
 
 
 
+    <div class="tab-panel" id="tab-ads">
+      <div class="page-header">
+        <div><h2 class="page-title">Реклама</h2><p class="page-sub">Продвижение вашего YouTube-канала на YTMetrics</p></div>
+      </div>
+
+      <div class="prem-block" id="ads-admin-block" style="display:none;border-color:rgba(255,159,71,.25);">
+        <div class="prem-block-title">👑 Настройки рекламы (админ)</div>
+        <div class="prem-engine-card" id="ads-engine-card" style="margin-bottom:16px;">
+          <div>
+            <div class="prem-engine-title">Реклама на сайте</div>
+            <div class="prem-engine-sub" id="ads-engine-status">Загрузка...</div>
+          </div>
+          <div class="prem-switch" id="ads-engine-switch" onclick="toggleAdsEngine()">
+            <div class="prem-switch-knob"></div>
+          </div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <div class="prem-block-title" style="margin-bottom:8px;">Цена размещения</div>
+          <input type="text" class="prem-input" id="ads-price-text" placeholder="Например: 500 ₽ за размещение">
+        </div>
+        <div style="margin-bottom:16px;">
+          <div class="prem-block-title" style="margin-bottom:8px;">Как часто один пользователь может размещать рекламу</div>
+          <div class="cooldown-opt-row">
+            <div class="cooldown-opt" id="cooldown-opt-week" onclick="setCooldownType('week')">Раз в неделю</div>
+            <div class="cooldown-opt" id="cooldown-opt-month" onclick="setCooldownType('month')">Раз в месяц</div>
+            <div class="cooldown-opt" id="cooldown-opt-custom" onclick="setCooldownType('custom')">Свой срок</div>
+          </div>
+          <input type="number" class="prem-input" id="ads-cooldown-days" placeholder="Количество дней" style="display:none;" min="1" max="365">
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <button class="prem-save-btn" onclick="saveAdsConfig()">Сохранить настройки рекламы</button>
+          <span id="ads-save-status" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);"></span>
+        </div>
+      </div>
+
+      <div id="ads-disabled-banner" class="admin-empty" style="display:none;margin-bottom:20px;">Реклама сейчас отключена администратором сайта</div>
+
+      <div id="ads-my-wrap">
+        <div class="prem-block-title" style="padding:0 4px;">Мои рекламы</div>
+        <div class="ads-my-grid" id="ads-my-grid"><div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div></div>
+        <button class="ads-create-fab" id="ads-create-fab" onclick="openAdCreateModal()" title="Создать рекламу">＋</button>
+      </div>
+    </div>
+
     <div class="tab-panel" id="tab-premium">
       <div class="page-header">
-        <div><h2 class="page-title">Премиум</h2><p class="page-sub">Монетизация сайта — видно только главному администратору</p></div>
-        <div class="badge-live" style="background:rgba(255,159,71,.08);border-color:rgba(255,159,71,.25);color:#ff9f47">👑 OWNER ONLY</div>
+        <div><h2 class="page-title">Премиум</h2><p class="page-sub">Монетизация сайта — доступно главному администратору и админам с правом доступа</p></div>
+        <div class="badge-live" style="background:rgba(255,159,71,.08);border-color:rgba(255,159,71,.25);color:#ff9f47">👑 ADMIN ACCESS</div>
       </div>
 
       <div class="prem-engine-card" id="prem-engine-card">
@@ -1383,15 +1473,28 @@
       </div>
 
       <div class="prem-block">
-        <div class="prem-block-title">💬 Текст цены на сайте</div>
-        <input type="text" class="prem-input" id="prem-price-text" placeholder="Например: 299 ₽ / месяц">
-        <div class="prem-hint">Это просто текст, который увидят пользователи на кнопке оформления премиума. Реальную сумму счёта вы задаёте отдельно — на стороне криптокошелька (CryptoCloud) при создании счёта. Текст и реальная сумма не связаны автоматически, следите, чтобы они совпадали.</div>
+        <div class="prem-block-title">💬 Цена на сайте</div>
+        <div class="prem-price-row">
+          <input type="text" class="prem-input" id="prem-price-month" placeholder="Например: 299 ₽">
+          <div class="prem-price-suffix">/ месяц</div>
+        </div>
+        <div class="prem-price-row">
+          <input type="text" class="prem-input" id="prem-price-6months" placeholder="Например: 1490 ₽">
+          <div class="prem-price-suffix">/ 6 месяцев</div>
+        </div>
+        <div class="prem-price-row">
+          <input type="text" class="prem-input" id="prem-price-year" placeholder="Например: 2490 ₽">
+          <div class="prem-price-suffix">/ год</div>
+        </div>
+        <div class="prem-hint">Это просто текст, который увидят пользователи на кнопках оформления премиума для каждого периода. Реальную сумму счёта задаёт сам CryptoCloud при создании счёта — при оплате будет использована цифра, введённая здесь (система парсит число из текста автоматически).</div>
       </div>
 
       <div class="prem-block">
-        <div class="prem-block-title">⭐ VIP-пользователи (без ограничений)</div>
-        <div class="prem-vip-list" id="prem-vip-list"><div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">Загрузка...</span></div></div>
-        <div class="prem-hint">Выбранные пользователи получают полный доступ ко всем разделам, даже если монетизация включена. Администраторы сайта всегда имеют полный доступ автоматически.</div>
+        <div class="prem-block-title">🚫 Исключения из премиума</div>
+        <button class="prem-instr-btn" style="background:rgba(232,255,71,.06);border-color:rgba(232,255,71,.25);color:var(--accent);" onclick="openPremiumExcludeModal()">
+          ⭐ Отключить премиум для: <span id="prem-excluded-count" style="margin-left:6px;font-weight:800;">0 выбрано</span>
+        </button>
+        <div class="prem-hint">Выбранные пользователи получают полный доступ ко всем разделам, даже если монетизация включена. Администраторы сайта всегда имеют полный доступ автоматически, и их нельзя выбрать в этом списке.</div>
       </div>
 
       <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:24px;">
@@ -1652,6 +1755,14 @@
         <div><div class="perm-row-label">💳 Управление счётом</div><div class="perm-row-desc">Доступ к финансовому разделу и выплатам</div></div>
         <div class="perm-checkbox" id="perm-cb-manage_billing">✓</div>
       </div>
+      <div class="perm-row" onclick="togglePermCheckbox('access_admin_panel')" style="border-color:rgba(71,200,255,.25)">
+        <div><div class="perm-row-label">🛠️ Доступ к разделу «Админ-панель»</div><div class="perm-row-desc">Может открывать вкладку управления пользователями</div></div>
+        <div class="perm-checkbox" id="perm-cb-access_admin_panel">✓</div>
+      </div>
+      <div class="perm-row" onclick="togglePermCheckbox('access_premium_panel')" style="border-color:rgba(232,255,71,.25)">
+        <div><div class="perm-row-label">👑 Доступ к разделу «Премиум»</div><div class="perm-row-desc">Может настраивать монетизацию и рекламу сайта</div></div>
+        <div class="perm-checkbox" id="perm-cb-access_premium_panel">✓</div>
+      </div>
       <div class="perm-row" onclick="togglePermCheckbox('transfer_ownership')" style="border-color:rgba(255,71,87,.25)">
         <div><div class="perm-row-label">👑 Передать права владельца</div><div class="perm-row-desc">Крайне чувствительное право — полная передача контроля над проектом</div></div>
         <div class="perm-checkbox" id="perm-cb-transfer_ownership">✓</div>
@@ -1805,6 +1916,77 @@
       </div>
 
       <div class="prem-hint" style="margin-top:6px;">Пока переменные окружения не заданы, кнопка оплаты на сайте будет показывать ошибку — это ожидаемо до завершения настройки.</div>
+    </div>
+  </div>
+</div>
+
+<!-- СОЗДАНИЕ РЕКЛАМЫ -->
+<div class="modal-overlay" id="ad-create-modal">
+  <div class="modal-box modal-sm" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-title">📣 Создать рекламу</div>
+      <button class="modal-close" onclick="closeModal('ad-create-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:10px;">
+      <div style="margin-bottom:14px;">
+        <div class="prem-block-title" style="margin-bottom:8px;">Ссылка на ваш YouTube-канал</div>
+        <input type="text" class="prem-input" id="ad-form-channel-url" placeholder="https://www.youtube.com/@ваш_канал">
+      </div>
+      <div style="margin-bottom:14px;">
+        <div class="prem-block-title" style="margin-bottom:8px;">Текст объявления</div>
+        <textarea class="prem-input" id="ad-form-text" rows="4" placeholder="Расскажите о своём канале..." style="resize:vertical;font-family:inherit;"></textarea>
+      </div>
+      <div style="margin-bottom:14px;">
+        <div class="prem-block-title" style="margin-bottom:8px;">Фото (необязательно)</div>
+        <div class="ad-photo-upload" id="ad-photo-upload-zone" onclick="document.getElementById('ad-form-photo-input').click()">
+          <div id="ad-photo-placeholder">📷 Нажмите, чтобы выбрать фото</div>
+          <img id="ad-photo-preview" style="display:none;">
+        </div>
+        <input type="file" id="ad-form-photo-input" accept="image/*" style="display:none;" onchange="handleAdPhotoSelect(event)">
+      </div>
+      <div class="prem-hint" style="margin-bottom:14px;">После отправки текст, фото и канал автоматически проверяются модератором. Если всё в порядке — вы получите ссылку на оплату размещения, и после оплаты объявление появится в разделе «Новости».</div>
+      <button class="prem-save-btn" id="ad-form-submit-btn" onclick="submitAdCreate()" style="width:100%;">Отправить на проверку</button>
+      <div id="ad-form-status" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);margin-top:10px;text-align:center;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ДЕТАЛИ РЕКЛАМЫ -->
+<div class="modal-overlay" id="ad-details-modal">
+  <div class="modal-box modal-sm" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">Моя реклама</div>
+      <button class="modal-close" onclick="closeModal('ad-details-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:10px;">
+      <img id="ad-details-photo" style="display:none;width:100%;border-radius:12px;margin-bottom:14px;">
+      <div style="font-size:14px;font-weight:600;margin-bottom:14px;" id="ad-details-text">—</div>
+      <div id="ad-details-status-wrap" style="margin-bottom:14px;"></div>
+      <div id="ad-details-stats"></div>
+      <div id="ad-details-pay-wrap" style="margin-top:14px;display:none;">
+        <a id="ad-details-pay-link" class="prem-save-btn" style="width:100%;display:block;text-align:center;text-decoration:none;" target="_blank">Перейти к оплате</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ПОИСК ИСКЛЮЧЕНИЙ ПРЕМИУМА -->
+<div class="modal-overlay" id="prem-exclude-modal">
+  <div class="modal-box modal-sm" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-title">🚫 Отключить премиум для...</div>
+      <button class="modal-close" onclick="closeModal('prem-exclude-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:10px;">
+      <div class="prem-search-bar">
+        <select id="prem-exclude-search-type">
+          <option value="email">По почте</option>
+          <option value="channel">По названию канала</option>
+        </select>
+        <input type="text" class="prem-input" id="prem-exclude-search-input" placeholder="Начните вводить..." oninput="renderPremiumVipList()">
+      </div>
+      <div class="prem-vip-list" id="prem-vip-list"><div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div></div>
+      <button class="prem-save-btn" style="width:100%;" onclick="closeModal('prem-exclude-modal')">Готово</button>
     </div>
   </div>
 </div>
@@ -1981,8 +2163,8 @@ const API_URL = (window.location.hostname === 'localhost' || window.location.hos
   : (window.location.hostname.endsWith('github.io') || window.location.protocol === 'file:' ? 'https://yt-metrics-seven.vercel.app' : window.location.origin);
 const LS_KEY='ytmetrics_user', LS_TOK='ytmetrics_token', LS_CHAT='ytmetrics_chat';
 const LS_THEME='ytmetrics_theme', LS_FORMAT='ytmetrics_format', LS_LANG='ytmetrics_lang';
-const PERM_KEYS=['read_notifications','view_users','ban_users','view_admins','ban_admins','add_admins','remove_admins','manage_billing','transfer_ownership'];
-const DEFAULT_PERMISSIONS_CLIENT={read_notifications:true,view_users:true,ban_users:false,view_admins:true,ban_admins:false,add_admins:false,remove_admins:false,manage_billing:false,transfer_ownership:false};
+const PERM_KEYS=['read_notifications','view_users','ban_users','view_admins','ban_admins','add_admins','remove_admins','manage_billing','transfer_ownership','access_admin_panel','access_premium_panel'];
+const DEFAULT_PERMISSIONS_CLIENT={read_notifications:true,view_users:true,ban_users:false,view_admins:true,ban_admins:false,add_admins:false,remove_admins:false,manage_billing:false,transfer_ownership:false,access_admin_panel:false,access_premium_panel:false};
 let _banUserId=null, _banEmail=null;
 let _deferredInstallPrompt=null;
 let _installBrowser='chrome';
@@ -3911,6 +4093,7 @@ function cancelNewsEdit(){
   document.getElementById('news-form-title').textContent=t('new_post');document.getElementById('news-form-icon').textContent='✏️';
   document.getElementById('news-submit-btn').textContent=t('publish');document.getElementById('news-cancel-btn').style.display='none';
 }
+let _seenAdViews=new Set();
 async function loadNews(){
   const loading=document.getElementById('news-loading'),feed=document.getElementById('news-feed');
   loading.style.display='block';feed.innerHTML='';
@@ -3923,9 +4106,41 @@ async function loadNews(){
     document.getElementById('news-create-card').style.display=_isAdminForNews?'block':'none';
     loading.style.display='none';
     const posts=data.posts||[];
-    if(!posts.length){feed.innerHTML='<div class="news-empty">'+t('no_news')+'</div>';return;}
-    feed.innerHTML=posts.map(renderNewsPost).join('');
+    let ads=[];
+    try{const adsRes=await apiFetch('/api/ads/active');if(adsRes.ok){const adsData=await adsRes.json();ads=adsData.ads||[];}}catch(e){}
+    if(!posts.length&&!ads.length){feed.innerHTML='<div class="news-empty">'+t('no_news')+'</div>';return;}
+    // Реклама вставляется через каждые 3 поста новостей
+    const items=[];
+    let adIdx=0;
+    posts.forEach(function(p,i){
+      items.push(renderNewsPost(p));
+      if(ads.length&&(i+1)%3===0&&adIdx<ads.length){ items.push(renderAdInFeed(ads[adIdx])); adIdx++; }
+    });
+    while(adIdx<ads.length){ items.push(renderAdInFeed(ads[adIdx])); adIdx++; }
+    feed.innerHTML=items.join('');
+    trackAdViews(ads);
   }catch(e){loading.style.display='none';feed.innerHTML='<div class="news-empty">'+t('news_error')+'</div>';}
+}
+function renderAdInFeed(ad){
+  const photoHtml=ad.photo_data?('<img class="news-post-media" src="'+ad.photo_data+'" alt="" loading="lazy">'):'';
+  return '<div class="news-post" style="border-color:rgba(232,255,71,.25);" data-ad-id="'+ad.id+'">'
+    +'<div class="news-post-meta" style="color:var(--accent);font-weight:700;">📣 Реклама</div>'
+    +photoHtml
+    +'<div class="news-post-content">'+escapeHtml(ad.ad_text)+'</div>'
+    +'<div class="news-post-actions">'
+    +'<button class="news-react-btn" onclick="clickAdInFeed(\''+ad.id+'\',\''+ad.youtube_channel_url.replace(/'/g,"\\'")+'\')">▶ Перейти на канал</button>'
+    +'</div></div>';
+}
+function trackAdViews(ads){
+  ads.forEach(function(ad){
+    if(_seenAdViews.has(ad.id))return;
+    _seenAdViews.add(ad.id);
+    apiFetch('/api/ads/'+ad.id+'/view',{method:'POST'}).catch(function(){});
+  });
+}
+function clickAdInFeed(id,url){
+  apiFetch('/api/ads/'+id+'/click',{method:'POST'}).catch(function(){});
+  window.open(url,'_blank');
 }
 function renderNewsPost(p){
   let mediaHtml='';
@@ -3981,16 +4196,39 @@ async function deleteNewsComment(commentId){if(!confirm(t('delete_comment_confir
 
 let _isAdmin=false, _currentAdminUserIdx=null, _myPermissions=null, _isSupreme=false, _isPrimary=false;
 
-function enableAdminMode(isSupreme){
-  if(!_isAdmin){
-    _isAdmin=true;
-    const btn=document.getElementById('nav-admin');if(btn)btn.style.display='flex';
-    setInterval(pollNotifCount,30000);
-  }
-  if(isSupreme){
-    _isSupreme=true;
-    const pBtn=document.getElementById('nav-premium');if(pBtn)pBtn.style.display='flex';
-  }
+function enableAdminMode(){
+  if(_isAdmin)return;
+  _isAdmin=true;
+  setInterval(pollNotifCount,30000);
+  refreshAdminNavAccess();
+}
+
+async function refreshAdminNavAccess(){
+  await loadMyPermissions();
+  const canAdmin = _isSupreme || (_myPermissions&&_myPermissions.access_admin_panel);
+  const canPremium = _isSupreme || (_myPermissions&&_myPermissions.access_premium_panel);
+  const canBilling = _isSupreme || (_myPermissions&&_myPermissions.manage_billing);
+  const navAdmin=document.getElementById('nav-admin'); if(navAdmin)navAdmin.style.display=canAdmin?'flex':'none';
+  const navPremium=document.getElementById('nav-premium'); if(navPremium)navPremium.style.display=canPremium?'flex':'none';
+  const adsAdminBlock=document.getElementById('ads-admin-block'); if(adsAdminBlock)adsAdminBlock.style.display=canPremium?'block':'none';
+  if(canPremium)loadAdsAdminConfig();
+  if(canBilling)loadWalletBalance();
+}
+
+async function loadWalletBalance(){
+  const widget=document.getElementById('wallet-widget');
+  const amountEl=document.getElementById('wallet-widget-amount');
+  if(!widget)return;
+  widget.classList.add('show');
+  try{
+    const res=await apiFetch('/api/premium/wallet-balance');
+    if(!res.ok)return;
+    const data=await res.json();
+    if(!data.configured){ amountEl.className='wallet-widget-amount na'; amountEl.textContent='CryptoCloud ещё не настроен'; return; }
+    if(data.total_usd===null){ amountEl.className='wallet-widget-amount na'; amountEl.textContent='Ошибка получения баланса'; return; }
+    amountEl.className='wallet-widget-amount';
+    amountEl.textContent='$'+data.total_usd.toFixed(2);
+  }catch(e){ amountEl.className='wallet-widget-amount na'; amountEl.textContent='—'; }
 }
 
 async function loadMyPermissions(){
@@ -4005,9 +4243,9 @@ async function loadMyPermissions(){
 }
 
 // ════════════════════════════════════════════════════════
-// ПРЕМИУМ / МОНЕТИЗАЦИЯ (только главный админ)
+// ПРЕМИУМ / МОНЕТИЗАЦИЯ
 // ════════════════════════════════════════════════════════
-let _premConfig={enabled:false,premium_sections:[],price_text:'',vip_emails:[]};
+let _premConfig={enabled:false,premium_sections:[],price_month:'',price_6months:'',price_year:'',excluded_emails:[]};
 let _premLockableSections=[];
 let _premAllUsers=[];
 
@@ -4015,7 +4253,7 @@ async function loadPremiumConfig(){
   try{
     const res=await apiFetch('/api/premium/config');
     if(res.status===403){
-      document.getElementById('prem-sections-list').innerHTML='<div class="admin-empty">Доступно только главному администратору</div>';
+      document.getElementById('prem-sections-list').innerHTML='<div class="admin-empty">Недостаточно прав для этого раздела</div>';
       return;
     }
     if(!res.ok)return;
@@ -4024,9 +4262,17 @@ async function loadPremiumConfig(){
     _premLockableSections=data.lockable_sections||[];
     renderPremiumEngine();
     renderPremiumSections();
-    document.getElementById('prem-price-text').value=_premConfig.price_text||'';
+    document.getElementById('prem-price-month').value=_premConfig.price_month||'';
+    document.getElementById('prem-price-6months').value=_premConfig.price_6months||'';
+    document.getElementById('prem-price-year').value=_premConfig.price_year||'';
+    updateExcludedCount();
     await loadPremiumUsersForVip();
   }catch(e){}
+}
+
+function updateExcludedCount(){
+  const el=document.getElementById('prem-excluded-count');
+  if(el)el.textContent=(_premConfig.excluded_emails||[]).length+' выбрано';
 }
 
 function renderPremiumEngine(){
@@ -4065,35 +4311,50 @@ function togglePremiumSection(key){
 }
 
 async function loadPremiumUsersForVip(){
-  const list=document.getElementById('prem-vip-list');
   try{
     const res=await apiFetch('/api/admin/users');
-    if(!res.ok){list.innerHTML='<div class="admin-empty">Не удалось загрузить пользователей</div>';return;}
+    if(!res.ok)return;
     const data=await res.json();
     _premAllUsers=data.users||[];
-    renderPremiumVipList();
-  }catch(e){list.innerHTML='<div class="admin-empty">Ошибка загрузки</div>';}
+  }catch(e){}
+}
+
+function openPremiumExcludeModal(){
+  document.getElementById('prem-exclude-search-input').value='';
+  renderPremiumVipList();
+  openModal('prem-exclude-modal');
 }
 
 function renderPremiumVipList(){
   const list=document.getElementById('prem-vip-list');
-  if(!_premAllUsers.length){list.innerHTML='<div class="admin-empty">Пока нет зарегистрированных пользователей</div>';return;}
-  list.innerHTML=_premAllUsers.map(function(u){
+  if(!list)return;
+  const query=(document.getElementById('prem-exclude-search-input')?.value||'').trim().toLowerCase();
+  const type=document.getElementById('prem-exclude-search-type')?.value||'email';
+  let users=_premAllUsers.filter(u=>u.email!==SUPREME_ADMIN_EMAIL_CLIENT);
+  if(query){
+    users=users.filter(function(u){
+      const field=type==='channel'?(u.youtube_channel_name||''):(u.email||'');
+      return field.toLowerCase().includes(query);
+    });
+  }
+  if(!users.length){list.innerHTML='<div class="admin-empty">Никого не найдено</div>';return;}
+  list.innerHTML=users.map(function(u){
     const email=u.email||'';
-    const name=u.name||email||'—';
-    const selected=_premConfig.vip_emails.includes(email);
+    const name=u.youtube_channel_name||u.name||email||'—';
+    const selected=_premConfig.excluded_emails.includes(email);
     return '<div class="prem-vip-row'+(selected?' selected':'')+'" onclick="togglePremiumVip(\''+email.replace(/'/g,"\\'")+'\')">'
-      +'<div class="prem-checkbox-sq'+(selected?' checked':'')+'" id="prem-vip-cb-'+btoa(email).replace(/=/g,'')+'">'+(selected?'✓':'')+'</div>'
+      +'<div class="prem-checkbox-sq'+(selected?' checked':'')+'">'+(selected?'✓':'')+'</div>'
       +'<div style="min-width:0;flex:1;"><div class="prem-vip-name">'+escapeHtml(name)+'</div><div class="prem-vip-email">'+escapeHtml(email)+'</div></div>'
       +'</div>';
   }).join('');
 }
 
 function togglePremiumVip(email){
-  const idx=_premConfig.vip_emails.indexOf(email);
-  if(idx===-1)_premConfig.vip_emails.push(email);
-  else _premConfig.vip_emails.splice(idx,1);
+  const idx=_premConfig.excluded_emails.indexOf(email);
+  if(idx===-1)_premConfig.excluded_emails.push(email);
+  else _premConfig.excluded_emails.splice(idx,1);
   renderPremiumVipList();
+  updateExcludedCount();
 }
 
 async function savePremiumConfig(){
@@ -4101,15 +4362,173 @@ async function savePremiumConfig(){
   const status=document.getElementById('prem-save-status');
   btn.disabled=true;status.textContent='Сохранение...';
   try{
-    _premConfig.price_text=document.getElementById('prem-price-text').value.trim();
+    _premConfig.price_month=document.getElementById('prem-price-month').value.trim();
+    _premConfig.price_6months=document.getElementById('prem-price-6months').value.trim();
+    _premConfig.price_year=document.getElementById('prem-price-year').value.trim();
     const res=await apiFetch('/api/premium/config',{method:'POST',body:JSON.stringify(_premConfig)});
     if(!res.ok){const err=await res.json().catch(function(){return {};});status.textContent='Ошибка: '+(err.error||res.status);btn.disabled=false;return;}
     const data=await res.json();
     _premConfig=data.settings||_premConfig;
+    updateExcludedCount();
     status.textContent='✓ Сохранено';
     setTimeout(function(){status.textContent='';},3000);
   }catch(e){status.textContent='Ошибка сети';}
   btn.disabled=false;
+}
+
+// ════════════════════════════════════════════════════════
+// РЕКЛАМА
+// ════════════════════════════════════════════════════════
+const SUPREME_ADMIN_EMAIL_CLIENT='ytmetrics.project@gmail.com'; // для фронтовой фильтрации в поиске исключений
+let _adsConfig={enabled:false,price_text:'',cooldown_type:'week',cooldown_custom_days:30};
+let _adPhotoBase64=null;
+let _adsMyList=[];
+let _adDetailsCurrentId=null;
+
+async function loadAdsAdminConfig(){
+  try{
+    const res=await apiFetch('/api/ads/admin-config');
+    if(!res.ok)return;
+    const data=await res.json();
+    _adsConfig=data.settings||_adsConfig;
+    renderAdsEngine();
+    document.getElementById('ads-price-text').value=_adsConfig.price_text||'';
+    setCooldownType(_adsConfig.cooldown_type||'week',true);
+    document.getElementById('ads-cooldown-days').value=_adsConfig.cooldown_custom_days||30;
+  }catch(e){}
+}
+
+function renderAdsEngine(){
+  const card=document.getElementById('ads-engine-card');
+  const sw=document.getElementById('ads-engine-switch');
+  const status=document.getElementById('ads-engine-status');
+  const on=!!_adsConfig.enabled;
+  card.classList.toggle('on',on);
+  sw.classList.toggle('on',on);
+  status.textContent=on?'Включена — пользователи могут создавать рекламу':'Выключена — раздел скрыт от пользователей';
+}
+function toggleAdsEngine(){ _adsConfig.enabled=!_adsConfig.enabled; renderAdsEngine(); }
+
+function setCooldownType(type,skipInputToggle){
+  _adsConfig.cooldown_type=type;
+  ['week','month','custom'].forEach(function(t){
+    const el=document.getElementById('cooldown-opt-'+t);
+    if(el)el.classList.toggle('active',t===type);
+  });
+  const daysInput=document.getElementById('ads-cooldown-days');
+  if(daysInput)daysInput.style.display=(type==='custom')?'block':'none';
+}
+
+async function saveAdsConfig(){
+  const status=document.getElementById('ads-save-status');
+  status.textContent='Сохранение...';
+  try{
+    _adsConfig.price_text=document.getElementById('ads-price-text').value.trim();
+    _adsConfig.cooldown_custom_days=parseInt(document.getElementById('ads-cooldown-days').value)||30;
+    const res=await apiFetch('/api/ads/admin-config',{method:'POST',body:JSON.stringify(_adsConfig)});
+    if(!res.ok){const err=await res.json().catch(()=>({}));status.textContent='Ошибка: '+(err.error||res.status);return;}
+    const data=await res.json();
+    _adsConfig=data.settings||_adsConfig;
+    status.textContent='✓ Сохранено';
+    setTimeout(function(){status.textContent='';},3000);
+  }catch(e){status.textContent='Ошибка сети';}
+}
+
+async function loadAdsMy(){
+  const grid=document.getElementById('ads-my-grid');
+  const disabledBanner=document.getElementById('ads-disabled-banner');
+  const myWrap=document.getElementById('ads-my-wrap');
+  try{
+    const settingsRes=await apiFetch('/api/ads/settings');
+    const settings=settingsRes.ok?await settingsRes.json():{enabled:false};
+    if(!settings.enabled&&!(_isSupreme||(_myPermissions&&_myPermissions.access_premium_panel))){
+      disabledBanner.style.display='block'; myWrap.style.display='none'; return;
+    }
+    disabledBanner.style.display='none'; myWrap.style.display='block';
+    const res=await apiFetch('/api/ads/my');
+    if(!res.ok){grid.innerHTML='<div class="ads-empty-state">Не удалось загрузить рекламу</div>';return;}
+    const data=await res.json();
+    _adsMyList=data.ads||[];
+    if(!_adsMyList.length){grid.innerHTML='<div class="ads-empty-state">У вас пока нет рекламы. Нажмите ＋, чтобы создать первую.</div>';return;}
+    const statusLabels={active:'Активна',awaiting_payment:'Ждёт оплаты',pending_review:'На проверке',rejected:'Отклонена'};
+    grid.innerHTML=_adsMyList.map(function(a){
+      return '<div class="ad-card" onclick="openAdDetails(\''+a.id+'\')">'
+        +(a.has_photo?'<div class="ad-card-photo" style="display:flex;align-items:center;justify-content:center;">🖼️</div>':'')
+        +'<div class="ad-card-text">'+escapeHtml(a.ad_text)+'</div>'
+        +'<div class="ad-card-status '+a.status+'">'+(statusLabels[a.status]||a.status)+'</div>'
+        +'</div>';
+    }).join('');
+  }catch(e){grid.innerHTML='<div class="ads-empty-state">Ошибка загрузки</div>';}
+}
+
+function openAdCreateModal(){
+  document.getElementById('ad-form-channel-url').value='';
+  document.getElementById('ad-form-text').value='';
+  document.getElementById('ad-photo-preview').style.display='none';
+  document.getElementById('ad-photo-placeholder').style.display='block';
+  document.getElementById('ad-form-status').textContent='';
+  _adPhotoBase64=null;
+  openModal('ad-create-modal');
+}
+
+function handleAdPhotoSelect(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  if(file.size>4*1024*1024){alert('Фото слишком большое (максимум 4 МБ)');return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    _adPhotoBase64=e.target.result;
+    const preview=document.getElementById('ad-photo-preview');
+    preview.src=_adPhotoBase64; preview.style.display='block';
+    document.getElementById('ad-photo-placeholder').style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function submitAdCreate(){
+  const btn=document.getElementById('ad-form-submit-btn');
+  const status=document.getElementById('ad-form-status');
+  const channelUrl=document.getElementById('ad-form-channel-url').value.trim();
+  const adText=document.getElementById('ad-form-text').value.trim();
+  if(!channelUrl||!adText){status.textContent='Заполните ссылку на канал и текст объявления';return;}
+  btn.disabled=true;status.textContent='Проверяем канал, текст и фото...';
+  try{
+    const res=await apiFetch('/api/ads/create',{method:'POST',body:JSON.stringify({ ad_text:adText, photo_base64:_adPhotoBase64, youtube_channel_url:channelUrl })});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){status.textContent='Ошибка: '+(data.error||res.status);btn.disabled=false;return;}
+    if(data.status==='rejected'){
+      status.textContent='❌ Отклонено модератором: '+(data.reason||'нарушение правил');
+      btn.disabled=false;
+      setTimeout(function(){loadAdsMy();},2500);
+      return;
+    }
+    if(data.pay_url){
+      status.textContent='✓ Проверка пройдена! Открываем страницу оплаты...';
+      window.open(data.pay_url,'_blank');
+    }else{
+      status.textContent='✓ Проверка пройдена. '+(data.note||'Ожидайте оплату.');
+    }
+    setTimeout(function(){closeModal('ad-create-modal');loadAdsMy();},1500);
+  }catch(e){status.textContent='Ошибка сети';btn.disabled=false;}
+}
+
+function openAdDetails(id){
+  const ad=_adsMyList.find(a=>a.id===id);
+  if(!ad)return;
+  _adDetailsCurrentId=id;
+  document.getElementById('ad-details-text').textContent=ad.ad_text;
+  const photoEl=document.getElementById('ad-details-photo');
+  photoEl.style.display='none'; // фото не отдаётся списком /my ради экономии трафика
+  const statusLabels={active:'🟢 Активна',awaiting_payment:'🟡 Ждёт оплаты',pending_review:'🔵 На проверке',rejected:'🔴 Отклонена'};
+  document.getElementById('ad-details-status-wrap').innerHTML='<span class="ad-card-status '+ad.status+'">'+(statusLabels[ad.status]||ad.status)+'</span>'
+    +(ad.rejection_reason?'<div class="prem-hint" style="margin-top:8px;">Причина отклонения: '+escapeHtml(ad.rejection_reason)+'</div>':'');
+  document.getElementById('ad-details-stats').innerHTML=
+    '<div class="ad-stat-row"><div class="ad-stat-label">👁 Просмотров</div><div class="ad-stat-value">'+(ad.views||0)+'</div></div>'
+    +'<div class="ad-stat-row"><div class="ad-stat-label">🔗 Переходов по ссылке</div><div class="ad-stat-value">'+(ad.clicks||0)+'</div></div>'
+    +'<div class="ad-stat-row"><div class="ad-stat-label">⏱ Дней размещена</div><div class="ad-stat-value">'+(ad.days_live!==null?ad.days_live:'—')+'</div></div>';
+  const payWrap=document.getElementById('ad-details-pay-wrap');
+  payWrap.style.display='none'; // ссылка на оплату доступна сразу после создания через модалку создания
+  openModal('ad-details-modal');
 }
 
 async function loadAdminUsers(){
@@ -5477,7 +5896,8 @@ document.querySelectorAll('.nav-item').forEach(function(item){
     if(tab==='scripts')loadScriptProfile();
     if(tab==='competitors'){}
     if(tab==='admin'&&_isAdmin){loadAdminUsers();loadAdminNotifications();}
-    if(tab==='premium'&&_isSupreme){loadPremiumConfig();}
+    if(tab==='premium'&&(_isSupreme||(_myPermissions&&_myPermissions.access_premium_panel))){loadPremiumConfig();}
+    if(tab==='ads'){loadAdsMy();}
     if(tab==='settings'){updatePinStatusBadge();}
   });
 });
