@@ -351,6 +351,40 @@
     .admin-user-email{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .admin-banned-badge{font-family:'DM Mono',monospace;font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;background:rgba(255,71,87,.15);border:1px solid rgba(255,71,87,.3);color:var(--red);flex-shrink:0;margin-left:auto;}
     .admin-empty{display:flex;align-items:center;justify-content:center;height:120px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);border:1px dashed var(--border);border-radius:12px;}
+
+    /* ══ ПРЕМИУМ ══ */
+    .prem-engine-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+    .prem-engine-card.on{border-color:rgba(232,255,71,.35);background:rgba(232,255,71,.04);}
+    .prem-engine-title{font-size:16px;font-weight:800;margin-bottom:4px;}
+    .prem-engine-sub{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);}
+    .prem-switch{position:relative;width:52px;height:30px;border-radius:20px;background:var(--input-bg);border:1px solid var(--border);cursor:pointer;flex-shrink:0;transition:all .2s;}
+    .prem-switch.on{background:var(--accent);border-color:var(--accent);}
+    .prem-switch-knob{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+    .prem-switch.on .prem-switch-knob{left:25px;background:var(--bg);}
+    .prem-block{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px;margin-bottom:20px;}
+    .prem-block-title{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:16px;}
+    .prem-section-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;background:var(--input-bg);border:1px solid var(--border);margin-bottom:8px;cursor:pointer;transition:all .15s;}
+    .prem-section-row:hover{border-color:rgba(232,255,71,.3);}
+    .prem-checkbox-sq{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--bg);transition:all .15s;}
+    .prem-checkbox-sq.checked{background:var(--accent);border-color:var(--accent);}
+    .prem-input{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;font-family:inherit;outline:none;transition:border-color .15s;}
+    .prem-input:focus{border-color:var(--accent);}
+    .prem-hint{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6;}
+    .prem-vip-list{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;margin-bottom:12px;}
+    .prem-vip-row{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:10px;background:var(--input-bg);border:1px solid var(--border);}
+    .prem-vip-row.selected{border-color:rgba(232,255,71,.4);background:rgba(232,255,71,.05);}
+    .prem-vip-name{font-size:13px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .prem-vip-email{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
+    .prem-instr-btn{width:100%;padding:14px;border-radius:12px;background:rgba(71,200,255,.08);border:1px solid rgba(71,200,255,.3);color:var(--accent2);font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;}
+    .prem-instr-btn:hover{background:rgba(71,200,255,.16);}
+    .prem-save-btn{padding:13px 28px;border-radius:12px;background:var(--accent);border:none;color:var(--bg);font-weight:800;font-size:14px;cursor:pointer;transition:all .15s;}
+    .prem-save-btn:hover{transform:translateY(-1px);}
+    .prem-save-btn:disabled{opacity:.5;cursor:default;transform:none;}
+    .prem-step{display:flex;gap:14px;margin-bottom:20px;}
+    .prem-step-num{width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;}
+    .prem-step-title{font-weight:700;font-size:14px;margin-bottom:4px;}
+    .prem-step-text{font-size:13px;color:var(--muted);line-height:1.6;}
+    .prem-step-text code{background:var(--input-bg);border:1px solid var(--border);border-radius:5px;padding:2px 6px;font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);}
     .admin-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:30px 0;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);}
 
     .notif-block{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px;margin-bottom:24px;}
@@ -976,6 +1010,9 @@
       <div class="nav-item" data-tab="competitors"><span class="nav-icon">🔎</span> <span class="nav-label" data-key="nav_competitors">Конкуренты</span></div>
       <div class="nav-item" data-tab="install"><span class="nav-icon">⬇️</span> <span class="nav-label" data-key="nav_install">Скачать приложение</span></div>
       <div class="nav-item" data-tab="settings"><span class="nav-icon">⚙️</span> <span class="nav-label" data-key="nav_settings">Настройки</span></div>
+      <div class="nav-item" data-tab="premium" id="nav-premium" style="display:none">
+        <span class="nav-icon">👑</span> <span class="nav-label">Премиум</span>
+      </div>
       <div class="nav-item" data-tab="admin" id="nav-admin" style="display:none">
         <span class="nav-icon">🛡️</span> <span class="nav-label" data-key="nav_admin">Админ-панель</span>
         <span class="nav-badge" id="nav-admin-badge" style="display:none">0</span>
@@ -1323,6 +1360,50 @@
 
 
 
+    <div class="tab-panel" id="tab-premium">
+      <div class="page-header">
+        <div><h2 class="page-title">Премиум</h2><p class="page-sub">Монетизация сайта — видно только главному администратору</p></div>
+        <div class="badge-live" style="background:rgba(255,159,71,.08);border-color:rgba(255,159,71,.25);color:#ff9f47">👑 OWNER ONLY</div>
+      </div>
+
+      <div class="prem-engine-card" id="prem-engine-card">
+        <div>
+          <div class="prem-engine-title">Монетизация сайта</div>
+          <div class="prem-engine-sub" id="prem-engine-status">Загрузка...</div>
+        </div>
+        <div class="prem-switch" id="prem-engine-switch" onclick="togglePremiumEngine()">
+          <div class="prem-switch-knob"></div>
+        </div>
+      </div>
+
+      <div class="prem-block">
+        <div class="prem-block-title">🔒 Разделы только для премиума</div>
+        <div id="prem-sections-list"><div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">Загрузка...</span></div></div>
+        <div class="prem-hint">Выбранные разделы будут закрыты для обычных пользователей — им покажется экран с предложением оформить премиум. Настройки сохраняются независимо от того, включён движок монетизации сейчас или нет.</div>
+      </div>
+
+      <div class="prem-block">
+        <div class="prem-block-title">💬 Текст цены на сайте</div>
+        <input type="text" class="prem-input" id="prem-price-text" placeholder="Например: 299 ₽ / месяц">
+        <div class="prem-hint">Это просто текст, который увидят пользователи на кнопке оформления премиума. Реальную сумму счёта вы задаёте отдельно — на стороне криптокошелька (CryptoCloud) при создании счёта. Текст и реальная сумма не связаны автоматически, следите, чтобы они совпадали.</div>
+      </div>
+
+      <div class="prem-block">
+        <div class="prem-block-title">⭐ VIP-пользователи (без ограничений)</div>
+        <div class="prem-vip-list" id="prem-vip-list"><div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px">Загрузка...</span></div></div>
+        <div class="prem-hint">Выбранные пользователи получают полный доступ ко всем разделам, даже если монетизация включена. Администраторы сайта всегда имеют полный доступ автоматически.</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:24px;">
+        <button class="prem-save-btn" id="prem-save-btn" onclick="savePremiumConfig()">Сохранить настройки</button>
+        <span id="prem-save-status" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);"></span>
+      </div>
+
+      <button class="prem-instr-btn" onclick="openModal('prem-instructions-modal')">
+        📖 Инструкция: как подключить приём платежей
+      </button>
+    </div>
+
     <div class="tab-panel" id="tab-admin">
       <div class="page-header">
         <div><h2 class="page-title" id="admin-page-title">Админ-панель</h2><p class="page-sub" id="admin-sub">Управление пользователями YTMetrics</p></div>
@@ -1664,6 +1745,70 @@
 </div>
 
 <!-- THEME SETTINGS MODAL -->
+<!-- ИНСТРУКЦИЯ ПО ПОДКЛЮЧЕНИЮ ПРИЁМА ПЛАТЕЖЕЙ -->
+<div class="modal-overlay" id="prem-instructions-modal">
+  <div class="modal-box modal-sm" style="max-width:560px;">
+    <div class="modal-header">
+      <div class="modal-title">📖 Как подключить приём платежей</div>
+      <button class="modal-close" onclick="closeModal('prem-instructions-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:10px;">
+
+      <div class="prem-step">
+        <div class="prem-step-num">1</div>
+        <div>
+          <div class="prem-step-title">Зарегистрируйтесь в CryptoCloud</div>
+          <div class="prem-step-text">Перейдите на <code>cryptocloud.plus</code> и зарегистрируйте аккаунт по email. ИП/самозанятость/номер телефона не требуются.</div>
+        </div>
+      </div>
+
+      <div class="prem-step">
+        <div class="prem-step-num">2</div>
+        <div>
+          <div class="prem-step-title">Создайте проект (магазин)</div>
+          <div class="prem-step-text">В личном кабинете создайте новый проект. После создания вам будет доступен <code>SHOP ID</code> — уникальный идентификатор магазина.</div>
+        </div>
+      </div>
+
+      <div class="prem-step">
+        <div class="prem-step-num">3</div>
+        <div>
+          <div class="prem-step-title">Возьмите API-ключ и секрет</div>
+          <div class="prem-step-text">В разделе настроек проекта / «Безопасность» сгенерируйте <code>API KEY</code> (для создания счетов) и секретный ключ для проверки уведомлений об оплате (<code>POSTBACK SECRET</code>). Сохраните оба значения сразу — некоторые ключи показываются только один раз.</div>
+        </div>
+      </div>
+
+      <div class="prem-step">
+        <div class="prem-step-num">4</div>
+        <div>
+          <div class="prem-step-title">Укажите адрес для уведомлений (Postback URL)</div>
+          <div class="prem-step-text">В настройках проекта CryptoCloud укажите URL для автоматических уведомлений об оплате:<br><code>https://youtube-analytics-ruddy.vercel.app/api/payments/postback</code></div>
+        </div>
+      </div>
+
+      <div class="prem-step">
+        <div class="prem-step-num">5</div>
+        <div>
+          <div class="prem-step-title">Вставьте ключи в Vercel</div>
+          <div class="prem-step-text">Откройте проект на <code>vercel.com</code> → Settings → Environment Variables и добавьте:<br>
+          <code>CRYPTOCLOUD_API_KEY</code>, <code>CRYPTOCLOUD_SHOP_ID</code>, <code>CRYPTOCLOUD_SECRET</code><br>
+          После сохранения переменных сделайте Redeploy проекта, чтобы изменения применились.</div>
+        </div>
+      </div>
+
+      <div class="prem-step">
+        <div class="prem-step-num">6</div>
+        <div>
+          <div class="prem-step-title">Задайте реальную цену</div>
+          <div class="prem-step-text">Сумма счёта, которую увидит покупатель при оплате, задаётся не здесь, а на стороне CryptoCloud/в коде создания счёта. Текст цены в этом разделе — просто надпись на сайте, её нужно менять вручную вместе с реальной суммой.</div>
+        </div>
+      </div>
+
+      <div class="prem-hint" style="margin-top:6px;">Пока переменные окружения не заданы, кнопка оплаты на сайте будет показывать ошибку — это ожидаемо до завершения настройки.</div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="theme-settings-modal">
   <div class="modal-box modal-sm" style="max-width:400px;">
     <div class="modal-header">
@@ -3836,10 +3981,16 @@ async function deleteNewsComment(commentId){if(!confirm(t('delete_comment_confir
 
 let _isAdmin=false, _currentAdminUserIdx=null, _myPermissions=null, _isSupreme=false, _isPrimary=false;
 
-function enableAdminMode(){
-  if(_isAdmin)return;_isAdmin=true;
-  const btn=document.getElementById('nav-admin');if(btn)btn.style.display='flex';
-  setInterval(pollNotifCount,30000);
+function enableAdminMode(isSupreme){
+  if(!_isAdmin){
+    _isAdmin=true;
+    const btn=document.getElementById('nav-admin');if(btn)btn.style.display='flex';
+    setInterval(pollNotifCount,30000);
+  }
+  if(isSupreme){
+    _isSupreme=true;
+    const pBtn=document.getElementById('nav-premium');if(pBtn)pBtn.style.display='flex';
+  }
 }
 
 async function loadMyPermissions(){
@@ -3851,6 +4002,114 @@ async function loadMyPermissions(){
     _isSupreme=!!data.isSupreme;
     _isPrimary=!!data.isPrimary;
   }catch(e){}
+}
+
+// ════════════════════════════════════════════════════════
+// ПРЕМИУМ / МОНЕТИЗАЦИЯ (только главный админ)
+// ════════════════════════════════════════════════════════
+let _premConfig={enabled:false,premium_sections:[],price_text:'',vip_emails:[]};
+let _premLockableSections=[];
+let _premAllUsers=[];
+
+async function loadPremiumConfig(){
+  try{
+    const res=await apiFetch('/api/premium/config');
+    if(res.status===403){
+      document.getElementById('prem-sections-list').innerHTML='<div class="admin-empty">Доступно только главному администратору</div>';
+      return;
+    }
+    if(!res.ok)return;
+    const data=await res.json();
+    _premConfig=data.settings||_premConfig;
+    _premLockableSections=data.lockable_sections||[];
+    renderPremiumEngine();
+    renderPremiumSections();
+    document.getElementById('prem-price-text').value=_premConfig.price_text||'';
+    await loadPremiumUsersForVip();
+  }catch(e){}
+}
+
+function renderPremiumEngine(){
+  const card=document.getElementById('prem-engine-card');
+  const sw=document.getElementById('prem-engine-switch');
+  const status=document.getElementById('prem-engine-status');
+  const on=!!_premConfig.enabled;
+  card.classList.toggle('on',on);
+  sw.classList.toggle('on',on);
+  status.textContent=on?'Включена — закрытые разделы недоступны обычным пользователям':'Выключена — весь сайт открыт всем';
+}
+
+function togglePremiumEngine(){
+  _premConfig.enabled=!_premConfig.enabled;
+  renderPremiumEngine();
+}
+
+function renderPremiumSections(){
+  const list=document.getElementById('prem-sections-list');
+  if(!_premLockableSections.length){list.innerHTML='<div class="admin-empty">—</div>';return;}
+  list.innerHTML=_premLockableSections.map(function(s){
+    const checked=_premConfig.premium_sections.includes(s.key);
+    return '<div class="prem-section-row" onclick="togglePremiumSection(\''+s.key+'\')">'
+      +'<div class="prem-checkbox-sq'+(checked?' checked':'')+'" id="prem-sec-cb-'+s.key+'">'+(checked?'✓':'')+'</div>'
+      +'<div style="font-size:14px;font-weight:600;">'+escapeHtml(s.label)+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function togglePremiumSection(key){
+  const idx=_premConfig.premium_sections.indexOf(key);
+  if(idx===-1)_premConfig.premium_sections.push(key);
+  else _premConfig.premium_sections.splice(idx,1);
+  const cb=document.getElementById('prem-sec-cb-'+key);
+  if(cb){cb.classList.toggle('checked');cb.textContent=cb.classList.contains('checked')?'✓':'';}
+}
+
+async function loadPremiumUsersForVip(){
+  const list=document.getElementById('prem-vip-list');
+  try{
+    const res=await apiFetch('/api/admin/users');
+    if(!res.ok){list.innerHTML='<div class="admin-empty">Не удалось загрузить пользователей</div>';return;}
+    const data=await res.json();
+    _premAllUsers=data.users||[];
+    renderPremiumVipList();
+  }catch(e){list.innerHTML='<div class="admin-empty">Ошибка загрузки</div>';}
+}
+
+function renderPremiumVipList(){
+  const list=document.getElementById('prem-vip-list');
+  if(!_premAllUsers.length){list.innerHTML='<div class="admin-empty">Пока нет зарегистрированных пользователей</div>';return;}
+  list.innerHTML=_premAllUsers.map(function(u){
+    const email=u.email||'';
+    const name=u.name||email||'—';
+    const selected=_premConfig.vip_emails.includes(email);
+    return '<div class="prem-vip-row'+(selected?' selected':'')+'" onclick="togglePremiumVip(\''+email.replace(/'/g,"\\'")+'\')">'
+      +'<div class="prem-checkbox-sq'+(selected?' checked':'')+'" id="prem-vip-cb-'+btoa(email).replace(/=/g,'')+'">'+(selected?'✓':'')+'</div>'
+      +'<div style="min-width:0;flex:1;"><div class="prem-vip-name">'+escapeHtml(name)+'</div><div class="prem-vip-email">'+escapeHtml(email)+'</div></div>'
+      +'</div>';
+  }).join('');
+}
+
+function togglePremiumVip(email){
+  const idx=_premConfig.vip_emails.indexOf(email);
+  if(idx===-1)_premConfig.vip_emails.push(email);
+  else _premConfig.vip_emails.splice(idx,1);
+  renderPremiumVipList();
+}
+
+async function savePremiumConfig(){
+  const btn=document.getElementById('prem-save-btn');
+  const status=document.getElementById('prem-save-status');
+  btn.disabled=true;status.textContent='Сохранение...';
+  try{
+    _premConfig.price_text=document.getElementById('prem-price-text').value.trim();
+    const res=await apiFetch('/api/premium/config',{method:'POST',body:JSON.stringify(_premConfig)});
+    if(!res.ok){const err=await res.json().catch(function(){return {};});status.textContent='Ошибка: '+(err.error||res.status);btn.disabled=false;return;}
+    const data=await res.json();
+    _premConfig=data.settings||_premConfig;
+    status.textContent='✓ Сохранено';
+    setTimeout(function(){status.textContent='';},3000);
+  }catch(e){status.textContent='Ошибка сети';}
+  btn.disabled=false;
 }
 
 async function loadAdminUsers(){
@@ -5218,6 +5477,7 @@ document.querySelectorAll('.nav-item').forEach(function(item){
     if(tab==='scripts')loadScriptProfile();
     if(tab==='competitors'){}
     if(tab==='admin'&&_isAdmin){loadAdminUsers();loadAdminNotifications();}
+    if(tab==='premium'&&_isSupreme){loadPremiumConfig();}
     if(tab==='settings'){updatePinStatusBadge();}
   });
 });
@@ -5335,7 +5595,7 @@ async function handleInitAuthMeResponse(res) {
       if(res.ok){
         const user=await res.json();
         if(user.fresh_token)saveToken(user.fresh_token);
-        if(user.is_admin)enableAdminMode();
+        if(user.is_admin)enableAdminMode(user.is_supreme_admin);
         if(user.channels&&user.channels.length>1){
           saveUser(user);
           checkUserAccess(user, function(){ showChannelSelect(user); });
@@ -5368,7 +5628,7 @@ async function handleInitAuthMeResponse(res) {
     apiFetch('/api/auth/me').then(async function(r){
       const handled = await handleInitAuthMeResponse(r);
       if(handled) return;
-      if(r.ok)r.json().then(function(u){if(u.fresh_token)saveToken(u.fresh_token);if(u.is_admin)enableAdminMode();}).catch(function(){});
+      if(r.ok)r.json().then(function(u){if(u.fresh_token)saveToken(u.fresh_token);if(u.is_admin)enableAdminMode(u.is_supreme_admin);}).catch(function(){});
     }).catch(function(){});
     return;
   }
@@ -5382,7 +5642,7 @@ async function handleInitAuthMeResponse(res) {
     if(res.ok){
       const user=await res.json();
       if(user.fresh_token)saveToken(user.fresh_token);
-      if(user.is_admin)enableAdminMode();
+      if(user.is_admin)enableAdminMode(user.is_supreme_admin);
       if(user.channels&&user.channels.length>1){
         saveUser(user);
         checkUserAccess(user, function(){ showChannelSelect(user); });
