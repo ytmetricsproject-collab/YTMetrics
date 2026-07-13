@@ -995,6 +995,91 @@ app.post('/api/admin/grant-all-permissions', async (req,res)=>{
 });
 
 // ════════════════════════════════════════════════════════
+// ПРЕМИУМ / МОНЕТИЗАЦИЯ
+// ════════════════════════════════════════════════════════
+// Список вкладок сайта, которые можно закрыть премиумом. Ключи совпадают
+// с data-tab в index.html. Вкладки stats/settings/install/admin/premium
+// сюда намеренно не входят — они всегда открыты.
+const PREMIUM_LOCKABLE_SECTIONS = [
+  { key:'forecast',    label:'Прогноз ролика' },
+  { key:'calc',        label:'Калькулятор метрик' },
+  { key:'news',        label:'Новости' },
+  { key:'ai',          label:'Чат с ИИ' },
+  { key:'scripts',     label:'Сценарии' },
+  { key:'competitors', label:'Конкуренты' },
+];
+const DEFAULT_PREMIUM_SETTINGS = {
+  enabled:false,
+  premium_sections:[],
+  price_text:'',
+  vip_emails:[],
+};
+
+async function getPremiumSettings() {
+  try{
+    const { data, error }=await supabase.from('premium_settings').select('*').eq('id',1).single();
+    if(error||!data)return { ...DEFAULT_PREMIUM_SETTINGS };
+    return {
+      enabled: !!data.enabled,
+      premium_sections: Array.isArray(data.premium_sections)?data.premium_sections:[],
+      price_text: data.price_text||'',
+      vip_emails: Array.isArray(data.vip_emails)?data.vip_emails:[],
+    };
+  }catch(e){ return { ...DEFAULT_PREMIUM_SETTINGS }; }
+}
+
+// GET /api/premium/config — полная конфигурация. ТОЛЬКО главный (supreme) админ.
+app.get('/api/premium/config', async (req,res)=>{
+  const payload=await requireSupreme(req,res); if(!payload)return;
+  try{
+    const settings=await getPremiumSettings();
+    return res.json({ settings, lockable_sections:PREMIUM_LOCKABLE_SECTIONS });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+// POST /api/premium/config — сохранить конфигурацию. ТОЛЬКО главный (supreme) админ.
+app.post('/api/premium/config', async (req,res)=>{
+  const payload=await requireSupreme(req,res); if(!payload)return;
+  const { enabled, premium_sections, price_text, vip_emails }=req.body||{};
+  try{
+    const allowedKeys=PREMIUM_LOCKABLE_SECTIONS.map(s=>s.key);
+    const cleanSections=Array.isArray(premium_sections)?premium_sections.filter(k=>allowedKeys.includes(k)):[];
+    const cleanVips=Array.isArray(vip_emails)?vip_emails.filter(e=>typeof e==='string').slice(0,500):[];
+    const cleanPriceText=typeof price_text==='string'?price_text.slice(0,200):'';
+    const record={
+      id:1,
+      enabled:!!enabled,
+      premium_sections:cleanSections,
+      price_text:cleanPriceText,
+      vip_emails:cleanVips,
+      updated_at:new Date().toISOString(),
+      updated_by:payload.email,
+    };
+    const { error }=await supabase.from('premium_settings').upsert(record,{ onConflict:'id' });
+    if(error)return res.status(500).json({ error:'Database error', details:error.message });
+    return res.json({ ok:true, settings:{ enabled:record.enabled, premium_sections:record.premium_sections, price_text:record.price_text, vip_emails:record.vip_emails } });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+// GET /api/premium/status — облегчённая версия для ЛЮБОГО залогиненного пользователя:
+// какие вкладки закрыты и какая цена показывается. Списки VIP-почт наружу не отдаём.
+app.get('/api/premium/status', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  try{
+    const settings=await getPremiumSettings();
+    const isVip=settings.vip_emails.includes(payload.email);
+    const isAdmin=await isAdminEmail(payload.email);
+    return res.json({
+      enabled:settings.enabled,
+      premium_sections: settings.enabled?settings.premium_sections:[],
+      price_text:settings.price_text,
+      // Админы и VIP-пользователи не видят ограничений
+      exempt: isAdmin||isVip,
+    });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+// ════════════════════════════════════════════════════════
 // АПЕЛЛЯЦИИ
 // ════════════════════════════════════════════════════════
 app.post('/api/admin/appeals', async (req,res)=>{
