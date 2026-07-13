@@ -30,6 +30,8 @@ const ALL_PERMISSIONS = {
   remove_admins: true,
   manage_billing: true,
   transfer_ownership: true,
+  access_admin_panel: true,
+  access_premium_panel: true,
 };
 const DEFAULT_PERMISSIONS = {
   read_notifications: true,
@@ -41,6 +43,8 @@ const DEFAULT_PERMISSIONS = {
   remove_admins: false,
   manage_billing: false,
   transfer_ownership: false,
+  access_admin_panel: false,
+  access_premium_panel: false,
 };
 
 let supabase;
@@ -369,7 +373,7 @@ async function moderateVideoContent(video, channelName, userEmail, userId) {
 // EXPRESS
 // ════════════════════════════════════════════════════════
 const app = express();
-app.use(express.json({ limit:'5mb' }));
+app.use(express.json({ limit:'10mb' }));
 app.use(cors({
   origin:['https://ytmetricsproject-collab.github.io','https://jakjuk523.github.io','https://nightsightr.github.io','http://localhost:3000','http://127.0.0.1:5500'],
   credentials:true, methods:['GET','POST','PUT','DELETE','OPTIONS'], allowedHeaders:['Content-Type','Authorization'],
@@ -995,15 +999,68 @@ app.post('/api/admin/grant-all-permissions', async (req,res)=>{
 });
 
 // ════════════════════════════════════════════════════════
+// ОПЛАТА — CRYPTOCLOUD
+// ════════════════════════════════════════════════════════
+const CRYPTOCLOUD_API_KEY = process.env.CRYPTOCLOUD_API_KEY || '';
+const CRYPTOCLOUD_SHOP_ID = process.env.CRYPTOCLOUD_SHOP_ID || '';
+const CRYPTOCLOUD_SECRET  = process.env.CRYPTOCLOUD_SECRET  || '';
+
+// Создать счёт в CryptoCloud. purpose/reference_id — что именно оплачивается (см. таблицу payments).
+async function createCryptoCloudInvoice({ amountUsd, orderId, email }) {
+  if(!CRYPTOCLOUD_API_KEY||!CRYPTOCLOUD_SHOP_ID)throw new Error('CRYPTOCLOUD_NOT_CONFIGURED');
+  const res=await fetch('https://api.cryptocloud.plus/v2/invoice/create',{
+    method:'POST',
+    headers:{ 'Authorization':'Token '+CRYPTOCLOUD_API_KEY, 'Content-Type':'application/json' },
+    body:JSON.stringify({ amount:amountUsd, shop_id:CRYPTOCLOUD_SHOP_ID, currency:'USD', order_id:orderId, email:email||undefined }),
+  });
+  const data=await res.json();
+  if(!res.ok||data.status!=='success')throw new Error('CryptoCloud invoice error: '+JSON.stringify(data));
+  return data.result; // { uuid, pay_url, ... }
+}
+
+// Проверка postback-уведомления. CryptoCloud присылает JWT-токен (HS256), подписанный секретом проекта.
+function verifyCryptoCloudPostback(token) {
+  if(!CRYPTOCLOUD_SECRET)throw new Error('CRYPTOCLOUD_NOT_CONFIGURED');
+  return jwt.verify(token, CRYPTOCLOUD_SECRET, { algorithms:['HS256'] });
+}
+
+// Реальный баланс кошелька (уже за вычетом всех выводов) — чтобы счётчик на сайте
+// не копил "виртуальные" деньги, которые владелец уже вывел себе.
+async function getCryptoCloudBalance() {
+  if(!CRYPTOCLOUD_API_KEY)return { configured:false, total_usd:0, currencies:[] };
+  const res=await fetch('https://api.cryptocloud.plus/v2/merchant/wallet/balance/all',{
+    method:'POST', headers:{ 'Authorization':'Token '+CRYPTOCLOUD_API_KEY },
+  });
+  const data=await res.json();
+  if(!res.ok||data.status!=='success')throw new Error('CryptoCloud balance error: '+JSON.stringify(data));
+  const list=data.result||[];
+  const total=list.reduce((sum,c)=>sum+(parseFloat(c.available_balance_usd||c.balance_usd||0)),0);
+  return { configured:true, total_usd:Math.round(total*100)/100, currencies:list };
+}
+
+// Создать запись платежа + счёт в CryptoCloud. purpose: 'subscription' | 'ad'
+async function initiatePayment({ userId, email, purpose, referenceId, amountUsd }) {
+  const orderId=purpose+'_'+(referenceId||userId)+'_'+Date.now();
+  const invoice=await createCryptoCloudInvoice({ amountUsd, orderId, email });
+  const record={
+    user_id:userId, user_email:email, purpose, reference_id:referenceId||null,
+    amount_usd:amountUsd, status:'pending', invoice_uuid:invoice.uuid, pay_url:invoice.pay_url,
+    created_at:new Date().toISOString(),
+  };
+  const { data, error }=await supabase.from('payments').insert(record).select().single();
+  if(error)throw new Error('DB error creating payment: '+error.message);
+  return { payment:data, pay_url:invoice.pay_url };
+}
+
+// ════════════════════════════════════════════════════════
 // ПРЕМИУМ / МОНЕТИЗАЦИЯ
 // ════════════════════════════════════════════════════════
 // Список вкладок сайта, которые можно закрыть премиумом. Ключи совпадают
-// с data-tab в index.html. Вкладки stats/settings/install/admin/premium
-// сюда намеренно не входят — они всегда открыты.
+// с data-tab в index.html. Вкладка "news" сюда намеренно НЕ входит — там
+// как раз показывается реклама, раздел всегда открыт всем.
 const PREMIUM_LOCKABLE_SECTIONS = [
   { key:'forecast',    label:'Прогноз ролика' },
   { key:'calc',        label:'Калькулятор метрик' },
-  { key:'news',        label:'Новости' },
   { key:'ai',          label:'Чат с ИИ' },
   { key:'scripts',     label:'Сценарии' },
   { key:'competitors', label:'Конкуренты' },
@@ -1011,8 +1068,10 @@ const PREMIUM_LOCKABLE_SECTIONS = [
 const DEFAULT_PREMIUM_SETTINGS = {
   enabled:false,
   premium_sections:[],
-  price_text:'',
-  vip_emails:[],
+  price_month:'',
+  price_6months:'',
+  price_year:'',
+  excluded_emails:[],
 };
 
 async function getPremiumSettings() {
@@ -1022,60 +1081,337 @@ async function getPremiumSettings() {
     return {
       enabled: !!data.enabled,
       premium_sections: Array.isArray(data.premium_sections)?data.premium_sections:[],
-      price_text: data.price_text||'',
-      vip_emails: Array.isArray(data.vip_emails)?data.vip_emails:[],
+      price_month: data.price_month||'',
+      price_6months: data.price_6months||'',
+      price_year: data.price_year||'',
+      excluded_emails: Array.isArray(data.excluded_emails)?data.excluded_emails:[],
     };
   }catch(e){ return { ...DEFAULT_PREMIUM_SETTINGS }; }
 }
 
-// GET /api/premium/config — полная конфигурация. ТОЛЬКО главный (supreme) админ.
+// Доступ к разделу «Премиум»: главный (supreme) админ ИЛИ админ с правом access_premium_panel
+async function requirePremiumAccess(req,res) {
+  const payload=await requireAdmin(req,res); if(!payload)return null;
+  const ok=await hasPermission(payload.email,'access_premium_panel');
+  if(!ok){ res.status(403).json({ error:'Insufficient permissions', required:'access_premium_panel' }); return null; }
+  return payload;
+}
+
+// GET /api/premium/config — полная конфигурация.
 app.get('/api/premium/config', async (req,res)=>{
-  const payload=await requireSupreme(req,res); if(!payload)return;
+  const payload=await requirePremiumAccess(req,res); if(!payload)return;
   try{
     const settings=await getPremiumSettings();
     return res.json({ settings, lockable_sections:PREMIUM_LOCKABLE_SECTIONS });
   }catch(e){ return res.status(500).json({ error:'Server error' }); }
 });
 
-// POST /api/premium/config — сохранить конфигурацию. ТОЛЬКО главный (supreme) админ.
+// POST /api/premium/config — сохранить конфигурацию.
 app.post('/api/premium/config', async (req,res)=>{
-  const payload=await requireSupreme(req,res); if(!payload)return;
-  const { enabled, premium_sections, price_text, vip_emails }=req.body||{};
+  const payload=await requirePremiumAccess(req,res); if(!payload)return;
+  const { enabled, premium_sections, price_month, price_6months, price_year, excluded_emails }=req.body||{};
   try{
     const allowedKeys=PREMIUM_LOCKABLE_SECTIONS.map(s=>s.key);
     const cleanSections=Array.isArray(premium_sections)?premium_sections.filter(k=>allowedKeys.includes(k)):[];
-    const cleanVips=Array.isArray(vip_emails)?vip_emails.filter(e=>typeof e==='string').slice(0,500):[];
-    const cleanPriceText=typeof price_text==='string'?price_text.slice(0,200):'';
+    // Главного админа исключить из списка "отключить премиум для" нельзя — он и так не ограничен
+    const cleanExcluded=Array.isArray(excluded_emails)?excluded_emails.filter(e=>typeof e==='string'&&e!==SUPREME_ADMIN_EMAIL).slice(0,1000):[];
+    const clean=s=>typeof s==='string'?s.slice(0,120):'';
     const record={
       id:1,
       enabled:!!enabled,
       premium_sections:cleanSections,
-      price_text:cleanPriceText,
-      vip_emails:cleanVips,
+      price_month:clean(price_month),
+      price_6months:clean(price_6months),
+      price_year:clean(price_year),
+      excluded_emails:cleanExcluded,
       updated_at:new Date().toISOString(),
       updated_by:payload.email,
     };
     const { error }=await supabase.from('premium_settings').upsert(record,{ onConflict:'id' });
     if(error)return res.status(500).json({ error:'Database error', details:error.message });
-    return res.json({ ok:true, settings:{ enabled:record.enabled, premium_sections:record.premium_sections, price_text:record.price_text, vip_emails:record.vip_emails } });
+    const { id,updated_at,updated_by, ...settings }=record;
+    return res.json({ ok:true, settings });
   }catch(e){ return res.status(500).json({ error:'Server error' }); }
 });
 
-// GET /api/premium/status — облегчённая версия для ЛЮБОГО залогиненного пользователя:
-// какие вкладки закрыты и какая цена показывается. Списки VIP-почт наружу не отдаём.
+// GET /api/premium/status — облегчённая версия для ЛЮБОГО залогиненного пользователя.
 app.get('/api/premium/status', async (req,res)=>{
   const payload=await requireAuth(req,res); if(!payload)return;
   try{
     const settings=await getPremiumSettings();
-    const isVip=settings.vip_emails.includes(payload.email);
+    const isExcluded=settings.excluded_emails.includes(payload.email);
     const isAdmin=await isAdminEmail(payload.email);
     return res.json({
       enabled:settings.enabled,
       premium_sections: settings.enabled?settings.premium_sections:[],
-      price_text:settings.price_text,
-      // Админы и VIP-пользователи не видят ограничений
-      exempt: isAdmin||isVip,
+      price_month:settings.price_month,
+      price_6months:settings.price_6months,
+      price_year:settings.price_year,
+      exempt: isAdmin||isExcluded,
     });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+// GET /api/premium/wallet-balance — реальный остаток на кошельке CryptoCloud
+// (за вычетом уже выведенных средств). Доступно supreme-админу и админам с manage_billing.
+app.get('/api/premium/wallet-balance', async (req,res)=>{
+  const payload=await requireAdmin(req,res); if(!payload)return;
+  const ok=await hasPermission(payload.email,'manage_billing');
+  if(!ok)return res.status(403).json({ error:'Insufficient permissions', required:'manage_billing' });
+  try{
+    const balance=await getCryptoCloudBalance();
+    return res.json(balance);
+  }catch(e){ return res.status(200).json({ configured:true, total_usd:null, error:e.message }); }
+});
+
+// POST /api/payments/create-invoice — создать счёт на оплату подписки-премиум пользователем.
+// Сумма берётся из текстового поля цены (админ пишет её сам) — парсим число из строки.
+app.post('/api/payments/create-invoice', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  const { plan }=req.body||{}; // 'month' | '6months' | 'year'
+  if(!['month','6months','year'].includes(plan))return res.status(400).json({ error:'Invalid plan' });
+  try{
+    const settings=await getPremiumSettings();
+    if(!settings.enabled)return res.status(400).json({ error:'Premium is disabled' });
+    const priceField={ month:'price_month', '6months':'price_6months', year:'price_year' }[plan];
+    const amount=parseFloat(String(settings[priceField]).replace(/[^\d.]/g,''));
+    if(!amount||amount<=0)return res.status(400).json({ error:'Price is not set for this plan' });
+    const { pay_url }=await initiatePayment({ userId:payload.sub, email:payload.email, purpose:'subscription', referenceId:plan, amountUsd:amount });
+    return res.json({ ok:true, pay_url });
+  }catch(e){
+    if(e.message==='CRYPTOCLOUD_NOT_CONFIGURED')return res.status(503).json({ error:'Payment provider is not configured yet' });
+    return res.status(500).json({ error:'Server error', details:e.message });
+  }
+});
+
+// POST /api/payments/postback — сюда CryptoCloud шлёт уведомление об успешной оплате
+app.post('/api/payments/postback', async (req,res)=>{
+  try{
+    const { status, invoice_id, token }=req.body||{};
+    if(status!=='success'&&status!=='paid')return res.status(200).json({ ok:true }); // игнорируем неуспешные статусы
+    if(token){ try{ verifyCryptoCloudPostback(token); }catch(e){ return res.status(403).json({ error:'Invalid signature' }); } }
+    const { data:payment, error }=await supabase.from('payments').select('*').eq('invoice_uuid',invoice_id).single();
+    if(error||!payment)return res.status(404).json({ error:'Payment not found' });
+    if(payment.status==='paid')return res.json({ ok:true }); // уже обработано, защита от повторных postback
+
+    await supabase.from('payments').update({ status:'paid', paid_at:new Date().toISOString() }).eq('id',payment.id);
+
+    if(payment.purpose==='subscription'){
+      const days={ month:30, '6months':182, year:365 }[payment.reference_id]||30;
+      const periodEnd=new Date(Date.now()+days*86400000).toISOString();
+      await supabase.from('subscriptions').upsert({
+        user_id:payment.user_id, user_email:payment.user_email, status:'active',
+        current_period_end:periodEnd, last_invoice_uuid:invoice_id, updated_at:new Date().toISOString(),
+      },{ onConflict:'user_id' });
+    }
+    if(payment.purpose==='ad'){
+      await supabase.from('ads').update({ status:'active', published_at:new Date().toISOString() }).eq('id',payment.reference_id);
+    }
+    return res.json({ ok:true });
+  }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
+});
+
+// ════════════════════════════════════════════════════════
+// РЕКЛАМА
+// ════════════════════════════════════════════════════════
+const DEFAULT_AD_SETTINGS = { enabled:false, price_text:'', cooldown_type:'week', cooldown_custom_days:30 };
+
+const AD_MODERATION_SYSTEM_PROMPT = `Ты — модератор рекламных объявлений платформы YTMetrics. Тебе присылают: текст объявления и данные YouTube-канала, который рекламируют (название, описание, иногда — статистика). Проверь на нарушения правил площадки.
+
+ПРАВИЛА ПЛОЩАДКИ:
+1. Нецензурная лексика
+2. Оскорбительный, дискриминационный контент
+3. Контент 18+ (сексуальный, шокирующий, жестокий)
+4. Мошенничество (казино, финансовые пирамиды, фишинг, "быстрый заработок")
+5. Экстремизм, пропаganda насилия
+6. Явно вводящий в заблуждение текст объявления (кликбейт с ложными обещаниями)
+
+Отвечай ТОЛЬКО в JSON:
+{"violation": true/false, "severity": "low"/"medium"/"high"/"none", "reason": "описание или null", "category": "profanity"/"discrimination"/"adult"/"fraud"/"violence"/"misleading"/"none"}`;
+
+const AD_IMAGE_MODERATION_PROMPT = `Ты — модератор изображений рекламных объявлений. Проверь картинку на: контент 18+, шокирующий/жестокий контент, экстремистскую символику, явно мошеннический визуал (поддельные "казино выигрыши" и т.п.). Отвечай ТОЛЬКО в JSON: {"violation": true/false, "severity":"low"/"medium"/"high"/"none", "reason": "описание или null"}`;
+
+async function getAdSettings() {
+  try{
+    const { data, error }=await supabase.from('ad_settings').select('*').eq('id',1).single();
+    if(error||!data)return { ...DEFAULT_AD_SETTINGS };
+    return {
+      enabled: !!data.enabled,
+      price_text: data.price_text||'',
+      cooldown_type: data.cooldown_type||'week',
+      cooldown_custom_days: data.cooldown_custom_days||30,
+    };
+  }catch(e){ return { ...DEFAULT_AD_SETTINGS }; }
+}
+function cooldownDays(settings){
+  if(settings.cooldown_type==='month')return 30;
+  if(settings.cooldown_type==='custom')return settings.cooldown_custom_days||30;
+  return 7; // week
+}
+
+// Достаём channel_id из произвольной ссылки на YouTube-канал (/channel/UC.., /@handle, /c/Name, /user/Name)
+async function resolveChannelFromUrl(url, accessToken){
+  const cleaned=(url||'').trim();
+  let m=cleaned.match(/youtube\.com\/channel\/([\w-]+)/);
+  if(m)return gFetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${m[1]}`,accessToken);
+  m=cleaned.match(/youtube\.com\/@([\w.-]+)/);
+  if(m)return gFetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&forHandle=@${m[1]}`,accessToken);
+  m=cleaned.match(/youtube\.com\/(?:c|user)\/([\w.-]+)/);
+  if(m)return gFetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&forUsername=${m[1]}`,accessToken);
+  throw new Error('Не удалось распознать ссылку на канал');
+}
+
+// GET /api/ads/settings — доступно любому залогиненному (чтобы показать цену/статус)
+app.get('/api/ads/settings', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  try{ return res.json(await getAdSettings()); }
+  catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+// GET/POST /api/ads/admin-config — управление настройками рекламы (та же зона доступа, что и премиум)
+app.get('/api/ads/admin-config', async (req,res)=>{
+  const payload=await requirePremiumAccess(req,res); if(!payload)return;
+  try{ return res.json({ settings:await getAdSettings() }); }
+  catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+app.post('/api/ads/admin-config', async (req,res)=>{
+  const payload=await requirePremiumAccess(req,res); if(!payload)return;
+  const { enabled, price_text, cooldown_type, cooldown_custom_days }=req.body||{};
+  try{
+    const record={
+      id:1, enabled:!!enabled,
+      price_text: typeof price_text==='string'?price_text.slice(0,120):'',
+      cooldown_type: ['week','month','custom'].includes(cooldown_type)?cooldown_type:'week',
+      cooldown_custom_days: Math.max(1,Math.min(365,parseInt(cooldown_custom_days)||30)),
+      updated_at:new Date().toISOString(), updated_by:payload.email,
+    };
+    const { error }=await supabase.from('ad_settings').upsert(record,{ onConflict:'id' });
+    if(error)return res.status(500).json({ error:'Database error', details:error.message });
+    const { id,updated_at,updated_by, ...settings }=record;
+    return res.json({ ok:true, settings });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+// GET /api/ads/my — список объявлений текущего пользователя + статистика
+app.get('/api/ads/my', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  try{
+    const { data, error }=await supabase.from('ads').select('*').eq('user_id',payload.sub).order('created_at',{ ascending:false });
+    if(error)return res.status(500).json({ error:'Database error' });
+    const ads=(data||[]).map(a=>({
+      id:a.id, ad_text:a.ad_text, has_photo:!!a.photo_data, youtube_channel_url:a.youtube_channel_url,
+      status:a.status, rejection_reason:a.rejection_reason, views:a.views, clicks:a.clicks,
+      created_at:a.created_at, published_at:a.published_at,
+      days_live: a.published_at? Math.floor((Date.now()-new Date(a.published_at).getTime())/86400000) : null,
+    }));
+    return res.json({ ads });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+// POST /api/ads/create — создать объявление: модерация канала + текста + фото, затем — оплата
+app.post('/api/ads/create', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  const { ad_text, photo_base64, youtube_channel_url }=req.body||{};
+  if(!ad_text||!ad_text.trim())return res.status(400).json({ error:'Текст объявления обязателен' });
+  if(!youtube_channel_url||!youtube_channel_url.trim())return res.status(400).json({ error:'Ссылка на канал обязательна' });
+  try{
+    const adSettings=await getAdSettings();
+    if(!adSettings.enabled)return res.status(400).json({ error:'Реклама сейчас отключена на сайте' });
+
+    // Проверка кулдауна
+    const { data:lastAds }=await supabase.from('ads').select('created_at').eq('user_id',payload.sub).order('created_at',{ ascending:false }).limit(1);
+    if(lastAds&&lastAds.length){
+      const daysSince=(Date.now()-new Date(lastAds[0].created_at).getTime())/86400000;
+      const needDays=cooldownDays(adSettings);
+      if(daysSince<needDays)return res.status(429).json({ error:'Слишком рано для новой рекламы', retry_in_days:Math.ceil(needDays-daysSince) });
+    }
+
+    // Модерация канала
+    let channelInfo;
+    try{
+      const accessToken=await getValidAccessToken(payload);
+      channelInfo=await resolveChannelFromUrl(youtube_channel_url, accessToken);
+    }catch(e){ return res.status(400).json({ error:'Не удалось проверить канал: '+e.message }); }
+    const ch=(channelInfo.items||[])[0];
+    if(!ch)return res.status(400).json({ error:'Канал не найден по указанной ссылке' });
+
+    let rejection=null;
+    try{
+      const model=genAI.getGenerativeModel({ model:'gemini-2.5-flash', systemInstruction:AD_MODERATION_SYSTEM_PROMPT });
+      const prompt=`Текст объявления: "${ad_text}"\nКанал: "${ch.snippet.title}"\nОписание канала: "${(ch.snippet.description||'').slice(0,500)}"`;
+      const result=await model.generateContent(prompt);
+      const jsonMatch=result.response.text().trim().match(/\{[\s\S]*\}/);
+      if(jsonMatch){
+        const verdict=JSON.parse(jsonMatch[0]);
+        if(verdict.violation&&(verdict.severity==='medium'||verdict.severity==='high'))rejection=verdict.reason||'Нарушение правил площадки';
+      }
+    }catch(e){ console.warn('Ad text moderation (non-fatal):',e.message); }
+
+    if(!rejection&&photo_base64){
+      try{
+        const model=genAI.getGenerativeModel({ model:'gemini-2.5-flash', systemInstruction:AD_IMAGE_MODERATION_PROMPT });
+        const match=photo_base64.match(/^data:(image\/\w+);base64,(.+)$/);
+        if(match){
+          const result=await model.generateContent([{ inlineData:{ mimeType:match[1], data:match[2] } },'Проверь это изображение.']);
+          const jsonMatch=result.response.text().trim().match(/\{[\s\S]*\}/);
+          if(jsonMatch){
+            const verdict=JSON.parse(jsonMatch[0]);
+            if(verdict.violation&&(verdict.severity==='medium'||verdict.severity==='high'))rejection=verdict.reason||'Изображение нарушает правила площадки';
+          }
+        }
+      }catch(e){ console.warn('Ad photo moderation (non-fatal):',e.message); }
+    }
+
+    const record={
+      user_id:payload.sub, user_email:payload.email, ad_text:ad_text.trim().slice(0,500),
+      photo_data: photo_base64? String(photo_base64).slice(0,7_000_000) : null,
+      youtube_channel_url:youtube_channel_url.trim(),
+      status: rejection?'rejected':'awaiting_payment',
+      rejection_reason: rejection,
+      created_at:new Date().toISOString(),
+    };
+    const { data:inserted, error:insErr }=await supabase.from('ads').insert(record).select().single();
+    if(insErr)return res.status(500).json({ error:'Database error', details:insErr.message });
+
+    if(rejection)return res.json({ ok:true, status:'rejected', reason:rejection });
+
+    // Прошло модерацию — создаём счёт на оплату
+    const amount=parseFloat(String(adSettings.price_text).replace(/[^\d.]/g,''));
+    if(!amount||amount<=0)return res.json({ ok:true, status:'awaiting_payment', ad_id:inserted.id, pay_url:null, note:'Цена рекламы не задана администратором' });
+    try{
+      const { pay_url }=await initiatePayment({ userId:payload.sub, email:payload.email, purpose:'ad', referenceId:inserted.id, amountUsd:amount });
+      return res.json({ ok:true, status:'awaiting_payment', ad_id:inserted.id, pay_url });
+    }catch(e){
+      return res.json({ ok:true, status:'awaiting_payment', ad_id:inserted.id, pay_url:null, note:'Платёжная система ещё не настроена' });
+    }
+  }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
+});
+
+// POST /api/ads/:id/view — засчитать просмотр объявления (вызывается лентой Новостей)
+app.post('/api/ads/:id/view', async (req,res)=>{
+  try{
+    await supabase.rpc('increment_ad_counter',{ ad_id:req.params.id, field:'views' }).catch(async()=>{
+      const { data }=await supabase.from('ads').select('views').eq('id',req.params.id).single();
+      if(data)await supabase.from('ads').update({ views:(data.views||0)+1 }).eq('id',req.params.id);
+    });
+    return res.json({ ok:true });
+  }catch(e){ return res.status(200).json({ ok:false }); }
+});
+// POST /api/ads/:id/click — засчитать переход по ссылке
+app.post('/api/ads/:id/click', async (req,res)=>{
+  try{
+    const { data }=await supabase.from('ads').select('clicks').eq('id',req.params.id).single();
+    if(data)await supabase.from('ads').update({ clicks:(data.clicks||0)+1 }).eq('id',req.params.id);
+    return res.json({ ok:true });
+  }catch(e){ return res.status(200).json({ ok:false }); }
+});
+// GET /api/ads/active — активные объявления для показа в ленте Новостей
+app.get('/api/ads/active', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  try{
+    const { data, error }=await supabase.from('ads').select('id,ad_text,photo_data,youtube_channel_url,published_at').eq('status','active').order('published_at',{ ascending:false }).limit(20);
+    if(error)return res.status(500).json({ error:'Database error' });
+    return res.json({ ads:data||[] });
   }catch(e){ return res.status(500).json({ error:'Server error' }); }
 });
 
