@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
@@ -11,6 +12,7 @@ const SUPABASE_URL         = process.env.SUPABASE_URL         || '';
 const SUPABASE_KEY         = process.env.SUPABASE_KEY         || '';
 const APP_URL              = process.env.APP_URL              || 'https://jakjuk523.github.io/youtube-analytics';
 const REDIRECT_URI         = process.env.REDIRECT_URI         || 'https://yt-metrics-seven.vercel.app/api/auth/callback';
+const YOUTUBE_CONNECT_REDIRECT_URI = process.env.YOUTUBE_CONNECT_REDIRECT_URI || REDIRECT_URI.replace('/api/auth/callback','/api/auth/youtube/callback');
 const GEMINI_API_KEY       = process.env.GEMINI_API_KEY       || '';
 
 const USER_DAILY_LIMIT     = 25;
@@ -159,6 +161,26 @@ const MODERATION_SYSTEM_PROMPT = `Ты — модератор платформы
 function buildCookieHeader(token) { return 'ytm_session='+token+'; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=31536000'; }
 function buildClearCookie() { return 'ytm_session=deleted; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=0'; }
 function signSession(payload) { return jwt.sign(payload, JWT_SECRET, { expiresIn:'365d' }); }
+
+// ── Email + пароль: хэширование через встроенный в Node scrypt (без внешних npm-пакетов) ──
+function hashPassword(password){
+  const salt=crypto.randomBytes(16).toString('hex');
+  const hash=crypto.scryptSync(password, salt, 64).toString('hex');
+  return salt+':'+hash;
+}
+function verifyPassword(password, stored){
+  if(!stored||!stored.includes(':'))return false;
+  const [salt, hash]=stored.split(':');
+  const check=crypto.scryptSync(password, salt, 64).toString('hex');
+  try{ return crypto.timingSafeEqual(Buffer.from(hash,'hex'), Buffer.from(check,'hex')); }catch(e){ return false; }
+}
+// Домены, запрещённые для регистрации по email — это Google/Apple, вход через которые
+// в России теперь не должен использоваться для аутентификации (закон №199-ФЗ, июль 2026)
+const BLOCKED_EMAIL_DOMAINS=['gmail.com','googlemail.com','icloud.com','me.com','mac.com'];
+function isBlockedEmailDomain(email){
+  const domain=(email||'').split('@')[1]?.toLowerCase()||'';
+  return BLOCKED_EMAIL_DOMAINS.includes(domain);
+}
 function extractToken(req) {
   const raw=req.headers.cookie||'';
   const match=raw.match(/ytm_session=([^;]+)/);
@@ -1780,6 +1802,196 @@ const YOUTUBE_SCOPES=[
   'https://www.googleapis.com/auth/yt-analytics.readonly',
   'https://www.googleapis.com/auth/yt-analytics-monetary.readonly',
 ].join(' ');
+
+const UNISENDER_GO_API_KEY = process.env.UNISENDER_GO_API_KEY || '';
+const EMAIL_FROM           = process.env.EMAIL_FROM           || '';
+const EMAIL_FROM_NAME      = process.env.EMAIL_FROM_NAME      || 'YTMetrics';
+const YANDEX_CAPTCHA_SERVER_KEY = process.env.YANDEX_CAPTCHA_SERVER_KEY || '';
+const YANDEX_CAPTCHA_CLIENT_KEY = process.env.YANDEX_CAPTCHA_CLIENT_KEY || '';
+
+// Проверка капчи Yandex SmartCaptcha (server-side валидация токена, полученного от виджета на фронте)
+async function verifyCaptcha(token, userIp) {
+  if(!YANDEX_CAPTCHA_SERVER_KEY)return { ok:false, reason:'CAPTCHA_NOT_CONFIGURED' };
+  if(!token)return { ok:false, reason:'NO_TOKEN' };
+  try{
+    const params=new URLSearchParams({ secret:YANDEX_CAPTCHA_SERVER_KEY, token, ip:userIp||'' });
+    const res=await fetch('https://smartcaptcha.yandexcloud.net/validate?'+params.toString());
+    const data=await res.json();
+    return { ok:data.status==='ok', reason:data.message||data.status };
+  }catch(e){ return { ok:false, reason:'CAPTCHA_ERROR' }; }
+}
+
+// Отправка письма через Unisender Go (транзакционные письма — подтверждение почты)
+async function sendEmail({ to, subject, html }) {
+  if(!UNISENDER_GO_API_KEY||!EMAIL_FROM)throw new Error('EMAIL_NOT_CONFIGURED');
+  const res=await fetch('https://go1.unisender.ru/ru/transactional/api/v1/email/send.json',{
+    method:'POST', headers:{ 'Content-Type':'application/json', 'X-API-KEY':UNISENDER_GO_API_KEY },
+    body:JSON.stringify({ message:{
+      recipients:[{ email:to }],
+      body:{ html },
+      subject, from_email:EMAIL_FROM, from_name:EMAIL_FROM_NAME,
+    } }),
+  });
+  const data=await res.json();
+  if(!res.ok||data.status==='error')throw new Error('Email send error: '+JSON.stringify(data));
+  return data;
+}
+
+// ════════════════════════════════════════════════════════
+// ВХОД ПО EMAIL + ПАРОЛЬ
+// (не Google/Apple — согласно 199-ФЗ такие сервисы нельзя использовать для входа в РФ)
+// Регистрация: email → пароль → повтор пароля → капча → письмо-подтверждение
+// ════════════════════════════════════════════════════════
+app.post('/api/auth/email/register', async (req,res)=>{
+  const { email, password, password_confirm, captcha_token }=req.body||{};
+  if(!email||!password||!password_confirm)return res.status(400).json({ error:'Заполните все поля' });
+  const cleanEmail=String(email).trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail))return res.status(400).json({ error:'Некорректный email' });
+  if(isBlockedEmailDomain(cleanEmail))return res.status(400).json({ error:'Регистрация через Gmail/iCloud не поддерживается. Используйте другую почту.' });
+  if(String(password).length<8)return res.status(400).json({ error:'Пароль должен быть не короче 8 символов' });
+  if(password!==password_confirm)return res.status(400).json({ error:'Пароли не совпадают' });
+
+  const captcha=await verifyCaptcha(captcha_token, req.headers['x-forwarded-for']||req.socket.remoteAddress);
+  if(!captcha.ok)return res.status(400).json({ error:'Проверка «Я не робот» не пройдена, попробуйте ещё раз' });
+
+  try{
+    const { data:existing }=await supabase.from('users').select('id').eq('email',cleanEmail).single();
+    if(existing)return res.status(409).json({ error:'Пользователь с такой почтой уже зарегистрирован' });
+
+    const userId=crypto.randomUUID();
+    const passwordHash=hashPassword(String(password));
+    const displayName=cleanEmail.split('@')[0].slice(0,100);
+    const { error }=await supabase.from('users').insert({
+      id:userId, email:cleanEmail, name:displayName,
+      auth_provider:'email', password_hash:passwordHash, email_verified:false,
+      created_at:new Date().toISOString(),
+    });
+    if(error)return res.status(500).json({ error:'Database error', details:error.message });
+
+    // Токен подтверждения почты (24 часа)
+    const verifyToken=crypto.randomBytes(32).toString('hex');
+    await supabase.from('email_verifications').insert({
+      user_id:userId, token:verifyToken,
+      expires_at:new Date(Date.now()+24*3600*1000).toISOString(),
+    });
+    const verifyUrl=`${REDIRECT_URI.replace('/api/auth/callback','')}/api/auth/email/verify?token=${verifyToken}`;
+    try{
+      await sendEmail({
+        to:cleanEmail, subject:'Подтвердите почту — YTMetrics',
+        html:`<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+          <h2 style="color:#111">Добро пожаловать в YTMetrics!</h2>
+          <p>Подтвердите почту, перейдя по ссылке ниже:</p>
+          <p><a href="${verifyUrl}" style="display:inline-block;padding:12px 24px;background:#e2ff33;color:#111;text-decoration:none;border-radius:8px;font-weight:700">Подтвердить почту</a></p>
+          <p style="color:#888;font-size:12px">Ссылка действует 24 часа. Если вы не регистрировались на YTMetrics — просто проигнорируйте это письмо.</p>
+        </div>`,
+      });
+    }catch(emailErr){ console.warn('Email send failed (non-fatal):',emailErr.message); }
+
+    await createAdminNotification('new_user','👤 Новый пользователь',`Email: ${cleanEmail}\nСпособ входа: Email\nПочта подтверждена: нет`,userId);
+
+    return res.json({ ok:true, message:'Регистрация прошла успешно! Проверьте почту и перейдите по ссылке для подтверждения.' });
+  }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
+});
+
+// GET /api/auth/email/verify?token=... — подтверждение почты по ссылке из письма
+app.get('/api/auth/email/verify', async (req,res)=>{
+  const token=req.query.token;
+  const appBase=APP_URL.endsWith('/')?APP_URL.slice(0,-1):APP_URL;
+  if(!token){ res.writeHead(302,{ Location:appBase+'/?verify=missing_token' }); return res.end(); }
+  try{
+    const { data:record }=await supabase.from('email_verifications').select('*').eq('token',token).single();
+    if(!record||record.verified_at){ res.writeHead(302,{ Location:appBase+'/?verify=invalid' }); return res.end(); }
+    if(new Date(record.expires_at)<new Date()){ res.writeHead(302,{ Location:appBase+'/?verify=expired' }); return res.end(); }
+    await supabase.from('email_verifications').update({ verified_at:new Date().toISOString() }).eq('token',token);
+    await supabase.from('users').update({ email_verified:true }).eq('id',record.user_id);
+    res.writeHead(302,{ Location:appBase+'/?verify=success' });
+    res.end();
+  }catch(e){ res.writeHead(302,{ Location:appBase+'/?verify=error' }); res.end(); }
+});
+
+app.post('/api/auth/email/login', async (req,res)=>{
+  const { email, password }=req.body||{};
+  if(!email||!password)return res.status(400).json({ error:'Email и пароль обязательны' });
+  const cleanEmail=String(email).trim().toLowerCase();
+  try{
+    const { data:user, error }=await supabase.from('users').select('*').eq('email',cleanEmail).eq('auth_provider','email').single();
+    if(error||!user)return res.status(401).json({ error:'Неверная почта или пароль' });
+    if(!verifyPassword(String(password), user.password_hash||''))return res.status(401).json({ error:'Неверная почта или пароль' });
+    if(user.banned)return res.status(403).json({ error:'BANNED' });
+    if(!user.email_verified)return res.status(403).json({ error:'EMAIL_NOT_VERIFIED', message:'Подтвердите почту — мы отправили письмо со ссылкой при регистрации' });
+
+    // Если раньше уже подключали YouTube-канал — токены сохранены в этих же полях users
+    const jwtPayload={
+      sub:user.id, email:user.email, name:user.name, auth_provider:'email',
+      channel_id:user.channel_id||null, channel_name:user.youtube_channel_name||null,
+      channel_url:user.channel_url||null, avatar_url:user.youtube_channel_avatar||null,
+      subscribers:user.subscriber_count||0, channels:[],
+      access_token:user.youtube_access_token||undefined, refresh_token:user.youtube_refresh_token||undefined,
+    };
+    const sessionToken=signSession(jwtPayload);
+    res.setHeader('Set-Cookie', buildCookieHeader(sessionToken));
+    return res.json({ ok:true, token:sessionToken, ...jwtPayload, access_token:undefined, refresh_token:undefined });
+  }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
+});
+
+// GET /api/config/public — публичные (не секретные) ключи, нужные фронту (капча client key)
+app.get('/api/config/public', (req,res)=>{
+  res.json({ captcha_client_key:YANDEX_CAPTCHA_CLIENT_KEY||null });
+});
+
+
+// ════════════════════════════════════════════════════════
+// ПОДКЛЮЧЕНИЕ YOUTUBE-КАНАЛА (данные, НЕ вход) — доступно любому уже вошедшему пользователю
+// ════════════════════════════════════════════════════════
+app.get('/api/auth/youtube/connect', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  const state=jwt.sign({ uid:payload.sub, origin:req.query.origin||'' }, JWT_SECRET, { expiresIn:'10m' });
+  const params=new URLSearchParams({ client_id:GOOGLE_CLIENT_ID, redirect_uri:YOUTUBE_CONNECT_REDIRECT_URI, response_type:'code', scope:YOUTUBE_SCOPES, access_type:'offline', prompt:'consent', include_granted_scopes:'true', state });
+  res.writeHead(302,{ Location:'https://accounts.google.com/o/oauth2/v2/auth?'+params.toString() });
+  res.end();
+});
+
+app.get('/api/auth/youtube/callback', async (req,res)=>{
+  const { code, error, state }=req.query;
+  let redirectTarget=APP_URL;
+  let uid=null, origin='';
+  try{ const decoded=jwt.verify(state, JWT_SECRET); uid=decoded.uid; origin=decoded.origin||''; }catch(e){}
+  if(origin&&(origin.startsWith('http://')||origin.startsWith('https://')))redirectTarget=origin;
+  if(redirectTarget.endsWith('/'))redirectTarget=redirectTarget.slice(0,-1);
+  if(error||!code||!uid){ res.writeHead(302,{ Location:redirectTarget+'/?error=oauth_denied' }); return res.end(); }
+  try{
+    const tokenRes=await fetch('https://oauth2.googleapis.com/token',{ method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams({ code, client_id:GOOGLE_CLIENT_ID, client_secret:GOOGLE_CLIENT_SECRET, redirect_uri:YOUTUBE_CONNECT_REDIRECT_URI, grant_type:'authorization_code' }) });
+    const tokens=await tokenRes.json();
+    if(!tokenRes.ok||tokens.error){ res.writeHead(302,{ Location:redirectTarget+'/?error=token_exchange' }); return res.end(); }
+    const { access_token, refresh_token=null }=tokens;
+    const channels=await fetchChannels(access_token);
+    const primary=channels[0]||null;
+
+    const { data:userRow }=await supabase.from('users').select('*').eq('id',uid).single();
+    if(!userRow){ res.writeHead(302,{ Location:redirectTarget+'/?error=user_not_found' }); return res.end(); }
+
+    await supabase.from('users').update({
+      youtube_channel_name:primary?.channel_name||null,
+      youtube_channel_avatar:primary?.avatar_url||null,
+      subscriber_count:primary?.subscribers||0,
+      channel_description:primary?.channel_description||null,
+      channel_id:primary?.channel_id||null,
+      channel_url:primary?.channel_url||null,
+      youtube_access_token:access_token,
+      youtube_refresh_token: refresh_token||userRow.youtube_refresh_token||null, // Google не всегда присылает новый refresh_token повторно
+    }).eq('id',uid);
+
+    const jwtPayload={
+      sub:uid, email:userRow.email, name:userRow.name, auth_provider:userRow.auth_provider||'email',
+      channel_id:primary?.channel_id||null, channel_name:primary?.channel_name||null, channel_url:primary?.channel_url||null,
+      avatar_url:primary?.avatar_url||null, subscribers:primary?.subscribers||0, channels,
+      access_token, refresh_token: refresh_token||userRow.youtube_refresh_token||null,
+    };
+    const sessionToken=signSession(jwtPayload);
+    res.writeHead(302,{ 'Set-Cookie':buildCookieHeader(sessionToken), Location:redirectTarget+'/?token='+encodeURIComponent(sessionToken)+'&youtube_connected=1' });
+    res.end();
+  }catch(e){ console.error('YouTube connect callback error:',e); res.writeHead(302,{ Location:redirectTarget+'/?error=server' }); res.end(); }
+});
 
 app.get('/api/auth/google', (req,res)=>{
   const origin = req.query.origin || '';
