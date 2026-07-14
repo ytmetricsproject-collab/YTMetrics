@@ -108,7 +108,27 @@ const AI_SYSTEM_PROMPT = `Ты — ИИ-продюсер и аналитик You
 - 0 просмотров 24-48ч = технический лаг. Не удалять!
 - Резкое падение = перекалибровка, не бан.
 
-Когда пользователь отправляет данные видео (JSON или текст с метриками) — давай развёрнутый анализ каждого видео с учётом его возраста (сколько времени прошло с публикации). Указывай конкретные проблемы и решения.`;
+Когда пользователь отправляет данные видео (JSON или текст с метриками) — давай развёрнутый анализ каждого видео с учётом его возраста (сколько времени прошло с публикации). Указывай конкретные проблемы и решения.
+
+═══════════════════════════════════════
+УПРАВЛЕНИЕ САЙТОМ ЧЕРЕЗ ЧАТ
+═══════════════════════════════════════
+Помимо анализа видео, ты умеешь выполнять действия на сайте по просьбе пользователя. Если пользователь ЯВНО просит одно из следующих действий, ответь коротким дружелюбным подтверждением и в САМОМ КОНЦЕ ответа, отдельной последней строкой, добавь служебный тег в точном формате — пользователь его не увидит, интерфейс сам его обработает и удалит:
+
+- Сменить тему на тёмную → [ACTION:change_theme:dark]
+- Сменить тему на светлую → [ACTION:change_theme:light]
+- Сменить язык на русский → [ACTION:change_language:ru]
+- Сменить язык на английский → [ACTION:change_language:en]
+- Сменить язык на арабский → [ACTION:change_language:ar]
+- Открыть настройки PIN-кода (пользователь просит сменить/сбросить/поставить PIN-код входа) → [ACTION:open_pin_settings]
+- Пользователь описывает баг/ошибку/что-то не работает и явно просит отправить отчёт разработчику → [ACTION:submit_bug_report]
+
+ВАЖНО:
+- Добавляй тег ТОЛЬКО если пользователь явно просит именно это действие, а не просто упоминает тему/язык в разговоре.
+- Никогда не объясняй пользователю формат тега и не показывай его как текст совета — только как служебную последнюю строку.
+- Для смены PIN/пароля ты не можешь сам ввести код — только открываешь для пользователя нужное окно настроек, дальше он вводит код сам.
+- Для баг-репорта — просто добавь тег, сам текст последнего сообщения пользователя будет автоматически отправлен разработчику вместе с тегом.
+- Никогда не добавляй более одного тега за раз.`;
 
 const MODERATION_SYSTEM_PROMPT = `Ты — модератор платформы YTMetrics. Анализируй метаданные YouTube-видео на нарушения правил платформы.
 
@@ -365,8 +385,19 @@ async function moderateVideoContent(video, channelName, userEmail, userId) {
         `Пользователь: ${userEmail}\nКанал: ${channelName}\nВидео: "${video.title}"\nСсылка: https://www.youtube.com/watch?v=${video.id}\nНарушение: ${categoryMap[verdict.category]||verdict.category}\nПодробности: ${verdict.reason}`,
         userId
       );
+      await sendUserMessage(userId,'violation_warning',
+        `⚠️ Предупреждение о нарушении правил`,
+        `Видео «${video.title}» нарушает правила площадки (${categoryMap[verdict.category]||verdict.category}). ${verdict.reason||''}`
+      );
     }
   }catch(e){ console.warn('Moderation bot (non-fatal):',e.message); }
+}
+
+// Личное системное сообщение пользователю (раздел «Сообщения»)
+async function sendUserMessage(userId, type, title, body) {
+  try{
+    await supabase.from('user_messages').insert({ user_id:userId, type, title, body, created_at:new Date().toISOString(), read:false });
+  }catch(e){ console.warn('sendUserMessage (non-fatal):',e.message); }
 }
 
 // ════════════════════════════════════════════════════════
@@ -1373,7 +1404,10 @@ app.post('/api/ads/create', async (req,res)=>{
     const { data:inserted, error:insErr }=await supabase.from('ads').insert(record).select().single();
     if(insErr)return res.status(500).json({ error:'Database error', details:insErr.message });
 
-    if(rejection)return res.json({ ok:true, status:'rejected', reason:rejection });
+    if(rejection){
+      await sendUserMessage(payload.sub,'violation_warning','⚠️ Реклама отклонена модератором',`Ваша реклама не прошла проверку: ${rejection}`);
+      return res.json({ ok:true, status:'rejected', reason:rejection });
+    }
 
     // Прошло модерацию — создаём счёт на оплату
     const amount=parseFloat(String(adSettings.price_text).replace(/[^\d.]/g,''));
@@ -1412,6 +1446,61 @@ app.get('/api/ads/active', async (req,res)=>{
     const { data, error }=await supabase.from('ads').select('id,ad_text,photo_data,youtube_channel_url,published_at').eq('status','active').order('published_at',{ ascending:false }).limit(20);
     if(error)return res.status(500).json({ error:'Database error' });
     return res.json({ ads:data||[] });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+// ════════════════════════════════════════════════════════
+// СООБЩЕНИЯ (личные системные уведомления пользователю)
+// ════════════════════════════════════════════════════════
+// GET /api/messages/my — все сообщения текущего пользователя
+app.get('/api/messages/my', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  try{
+    const { data, error }=await supabase.from('user_messages').select('*').eq('user_id',payload.sub).order('created_at',{ ascending:false }).limit(100);
+    if(error)return res.status(500).json({ error:'Database error' });
+    return res.json({ messages:data||[] });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+// GET /api/messages/unread-count
+app.get('/api/messages/unread-count', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  try{
+    const { count, error }=await supabase.from('user_messages').select('id',{ count:'exact', head:true }).eq('user_id',payload.sub).eq('read',false);
+    if(error)return res.status(500).json({ error:'Database error' });
+    return res.json({ count:count||0 });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+// POST /api/messages/:id/read
+app.post('/api/messages/:id/read', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  try{
+    await supabase.from('user_messages').update({ read:true }).eq('id',req.params.id).eq('user_id',payload.sub);
+    return res.json({ ok:true });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+// POST /api/messages/read-all
+app.post('/api/messages/read-all', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  try{
+    await supabase.from('user_messages').update({ read:true }).eq('user_id',payload.sub).eq('read',false);
+    return res.json({ ok:true });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+// POST /api/admin/updates/broadcast — админ рассылает уведомление об обновлении всем пользователям
+app.post('/api/admin/updates/broadcast', async (req,res)=>{
+  const payload=await requireAdmin(req,res); if(!payload)return;
+  const { title, body }=req.body||{};
+  if(!title||!title.trim())return res.status(400).json({ error:'Заголовок обновления обязателен' });
+  try{
+    const { data:users, error }=await supabase.from('users').select('id');
+    if(error)return res.status(500).json({ error:'Database error' });
+    const rows=(users||[]).map(u=>({ user_id:u.id, type:'update', title:title.trim().slice(0,200), body:(body||'').trim().slice(0,2000), created_at:new Date().toISOString(), read:false }));
+    if(rows.length){
+      const { error:insErr }=await supabase.from('user_messages').insert(rows);
+      if(insErr)return res.status(500).json({ error:'Database error', details:insErr.message });
+    }
+    return res.json({ ok:true, sent_to:rows.length });
   }catch(e){ return res.status(500).json({ error:'Server error' }); }
 });
 
@@ -1934,7 +2023,12 @@ app.get('/api/youtube/videos', async (req,res)=>{
       const a=analyticsMap[vid];
       if(a&&a.retentionPct!=null){
         const viewedPct=Math.min(100,a.retentionPct);
-        swipeMap[vid]={ viewedRatio:parseFloat(viewedPct.toFixed(1)), swipedRatio:parseFloat(Math.max(0,100-viewedPct).toFixed(1)), avgDurSec:a.avgDurSec };
+        swipeMap[vid]={
+          viewedRatio:parseFloat(viewedPct.toFixed(1)),
+          swipedRatio:parseFloat(Math.max(0,100-viewedPct).toFixed(1)),
+          avgDurSec:a.avgDurSec,
+          rewatched:a.retentionPct>=100, // зрители пересматривают ролик целиком и больше — свайп-отток статистически ~0%
+        };
       }
     }
 
@@ -1986,6 +2080,7 @@ app.get('/api/youtube/videos', async (req,res)=>{
         retention_short: isShort ? retentionShort : null,
         swiped_ratio:    isShort ? (swipe.swipedRatio??null) : null,
         viewed_ratio:    isShort ? (swipe.viewedRatio??null) : null,
+        rewatched:       isShort ? !!swipe.rewatched : false,
         avg_duration_sec: analytics.avgDurSec!=null ? analytics.avgDurSec : (swipe.avgDurSec!=null?swipe.avgDurSec:null),
         watch_hours: watchMinutes>0 ? parseFloat((watchMinutes/60).toFixed(1)) : null,
         subscribers_gained: analytics.subscribersGained||0,
@@ -2007,6 +2102,131 @@ app.get('/api/youtube/videos', async (req,res)=>{
     console.error('Videos error:',e.message);
     res.status(502).json({ error:e.message });
   }
+});
+
+// GET /api/youtube/playlists — список плейлистов канала (для категории "Плейлисты" в Статистике/Прогнозе)
+app.get('/api/youtube/playlists', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  const channelId=req.query.channel_id||payload.channel_id;
+  if(!channelId)return res.status(400).json({ error:'channel_id required' });
+  try{
+    const accessToken=await getValidAccessToken(payload);
+    const data=await gFetch(`https://www.googleapis.com/youtube/v3/playlists?part=snippet,contentDetails&channelId=${encodeURIComponent(channelId)}&maxResults=50`,accessToken);
+    const playlists=(data.items||[]).map(p=>{
+      const th=(p.snippet&&p.snippet.thumbnails)||{};
+      return {
+        id:p.id,
+        title:(p.snippet&&p.snippet.title)||'Без названия',
+        thumbnail:(th.medium&&th.medium.url)||(th.default&&th.default.url)||null,
+        item_count:(p.contentDetails&&p.contentDetails.itemCount)||0,
+        published_at:(p.snippet&&p.snippet.publishedAt)||null,
+      };
+    });
+    return res.json({ playlists });
+  }catch(e){ return res.status(502).json({ error:e.message }); }
+});
+
+// GET /api/youtube/playlists/:playlistId/videos — видео внутри плейлиста с полной аналитикой.
+// Формат ответа идентичен /api/youtube/videos, чтобы фронт мог использовать ту же normalizeVideo().
+app.get('/api/youtube/playlists/:playlistId/videos', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  const channelId=req.query.channel_id||payload.channel_id;
+  const playlistId=req.params.playlistId;
+  if(!channelId)return res.status(400).json({ error:'channel_id required' });
+  try{
+    const accessToken=await getValidAccessToken(payload);
+
+    const itemsData=await gFetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${encodeURIComponent(playlistId)}&maxResults=50`,accessToken);
+    const videoIds=(itemsData.items||[]).map(i=>i.contentDetails&&i.contentDetails.videoId).filter(Boolean);
+    if(!videoIds.length)return res.json({ videos:[], summary:{ total_views:0, total_watch_hours:0, video_count:0 } });
+
+    const statsData=await gFetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds.join(',')}`,accessToken);
+    const endDate=getTodayString(), startDate=getDateDaysAgo(30);
+
+    let analyticsMap={};
+    try{
+      const analyticsData=await gFetch(
+        `https://youtubeanalytics.googleapis.com/v2/reports?ids=channel%3D%3D${encodeURIComponent(channelId)}&startDate=${startDate}&endDate=${endDate}&metrics=views,likes,comments,shares,averageViewPercentage,averageViewDuration,estimatedMinutesWatched,subscribersGained&dimensions=video&filters=video%3D%3D${videoIds.join('%2C')}&maxResults=${videoIds.length}`,
+        accessToken
+      );
+      const headers=(analyticsData.columnHeaders||[]).map(h=>h.name); const gi=n=>headers.indexOf(n);
+      for(const row of (analyticsData.rows||[])){
+        const vid=row[gi('video')]; if(!vid)continue;
+        const mins=gi('estimatedMinutesWatched')>=0?safeFloat(row[gi('estimatedMinutesWatched')]):0;
+        analyticsMap[vid]={
+          retentionPct: gi('averageViewPercentage')>=0&&row[gi('averageViewPercentage')]!=null ? parseFloat(safeFloat(row[gi('averageViewPercentage')]).toFixed(1)) : null,
+          shares: gi('shares')>=0 ? safeInt(row[gi('shares')]) : 0,
+          avgDurSec: gi('averageViewDuration')>=0&&row[gi('averageViewDuration')]!=null ? parseFloat(safeFloat(row[gi('averageViewDuration')]).toFixed(1)) : null,
+          watchMinutes: mins,
+          subscribersGained: gi('subscribersGained')>=0 ? safeInt(row[gi('subscribersGained')]) : 0,
+        };
+      }
+    }catch(e){ console.warn('Playlist analytics (non-fatal):',e.message); }
+
+    try{
+      const ctrData=await gFetch(
+        `https://youtubeanalytics.googleapis.com/v2/reports?ids=channel%3D%3D${encodeURIComponent(channelId)}&startDate=${startDate}&endDate=${endDate}&metrics=impressions,impressionClickThroughRate&dimensions=video&filters=video%3D%3D${videoIds.join('%2C')}&maxResults=${videoIds.length}`,
+        accessToken
+      );
+      const cH=(ctrData.columnHeaders||[]).map(h=>h.name); const gi=n=>cH.indexOf(n);
+      for(const row of (ctrData.rows||[])){
+        const vid=row[gi('video')]; if(!vid)continue;
+        const ctrPct=gi('impressionClickThroughRate')>=0&&row[gi('impressionClickThroughRate')]!=null ? parseFloat((safeFloat(row[gi('impressionClickThroughRate')])*100).toFixed(2)) : null;
+        if(!analyticsMap[vid])analyticsMap[vid]={};
+        analyticsMap[vid].ctrPct=ctrPct;
+      }
+    }catch(e){}
+
+    const shortCandidates=(statsData.items||[]).filter(item=>{ const dur=parseDurationToSeconds((item.contentDetails||{}).duration); return dur>0&&dur<=60; }).map(i=>i.id);
+    let swipeMap={};
+    for(const vid of shortCandidates){
+      const a=analyticsMap[vid];
+      if(a&&a.retentionPct!=null){
+        const viewedPct=Math.min(100,a.retentionPct);
+        swipeMap[vid]={ viewedRatio:parseFloat(viewedPct.toFixed(1)), swipedRatio:parseFloat(Math.max(0,100-viewedPct).toFixed(1)), avgDurSec:a.avgDurSec, rewatched:a.retentionPct>=100 };
+      }
+    }
+
+    const videos=(statsData.items||[]).map(item=>{
+      const sn=item.snippet||{},st=item.statistics||{},cd=item.contentDetails||{},th=sn.thumbnails||{};
+      const durationSec=parseDurationToSeconds(cd.duration);
+      const isShort=durationSec>0&&durationSec<=60;
+      const views=safeInt(st.viewCount),likes=safeInt(st.likeCount),comments=safeInt(st.commentCount);
+      const analytics=analyticsMap[item.id]||{};
+      const swipe=swipeMap[item.id]||{};
+      const shares=analytics.shares||0;
+      const watchMinutes=analytics.watchMinutes||0;
+      let retentionShort=null;
+      if(isShort){
+        const avgDur=swipe.avgDurSec!=null?swipe.avgDurSec:analytics.avgDurSec;
+        if(avgDur!=null&&durationSec>0) retentionShort=parseFloat(((avgDur/durationSec)*100).toFixed(1));
+        else if(analytics.retentionPct!=null) retentionShort=analytics.retentionPct;
+      }
+      return {
+        id:item.id, type:isShort?'short':'long', title:sn.title||'Без названия',
+        thumbnail:(th.medium&&th.medium.url)||(th.default&&th.default.url)||null,
+        published_at:sn.publishedAt||null, duration_sec:durationSec,
+        views, likes, comments, shares,
+        retention_pct: !isShort&&analytics.retentionPct!=null?analytics.retentionPct:null,
+        ctr_pct: !isShort&&analytics.ctrPct!=null?analytics.ctrPct:null,
+        retention_short: isShort?retentionShort:null,
+        swiped_ratio: isShort?(swipe.swipedRatio??null):null,
+        viewed_ratio: isShort?(swipe.viewedRatio??null):null,
+        rewatched: isShort?!!swipe.rewatched:false,
+        avg_duration_sec: analytics.avgDurSec!=null?analytics.avgDurSec:(swipe.avgDurSec!=null?swipe.avgDurSec:null),
+        watch_hours: watchMinutes>0?parseFloat((watchMinutes/60).toFixed(1)):null,
+        subscribers_gained: analytics.subscribersGained||0,
+        no_data_reason: null,
+        video_url:'https://www.youtube.com/watch?v='+item.id,
+        channel_url: payload.channel_url||('https://www.youtube.com/channel/'+channelId),
+        score: calcVideoScore({ views,likes,comments,shares,retentionPct:analytics.retentionPct||null,ctrPct:analytics.ctrPct||null,isShort,swipedRatio:swipe.swipedRatio??null,retentionShort }),
+      };
+    });
+
+    const totalViews=videos.reduce((s,v)=>s+v.views,0);
+    const totalWatchHours=videos.reduce((s,v)=>s+(v.watch_hours||0),0);
+    res.json({ videos, summary:{ total_views:totalViews, total_watch_hours:parseFloat(totalWatchHours.toFixed(1)), video_count:videos.length } });
+  }catch(e){ res.status(502).json({ error:e.message }); }
 });
 
 app.get('/api/youtube/channel-analytics', async (req,res)=>{
