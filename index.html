@@ -397,6 +397,27 @@
 
     /* ══ КОШЕЛЁК (виджет баланса) ══ */
     .wallet-widget{margin:0 24px 20px;padding:14px 16px;border-radius:14px;background:linear-gradient(135deg,rgba(232,255,71,.08),rgba(71,200,255,.05));border:1px solid rgba(232,255,71,.25);display:none;}
+
+    /* ══ ФИОЛЕТОВАЯ КНОПКА ПРЕМИУМА (для обычных пользователей) ══ */
+    .premium-cta-btn{margin:0 24px 20px;padding:13px 16px;border-radius:14px;background:linear-gradient(135deg,#8b5cf6,#a855f7);border:none;color:#fff;font-weight:800;font-size:13px;cursor:pointer;display:none;align-items:center;justify-content:center;gap:8px;width:calc(100% - 48px);transition:transform .15s,box-shadow .15s;box-shadow:0 4px 16px rgba(139,92,246,.25);}
+    .premium-cta-btn.show{display:flex;}
+    .premium-cta-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(139,92,246,.4);}
+
+    .locked-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 24px;min-height:340px;}
+    .locked-screen-icon{font-size:52px;margin-bottom:18px;}
+    .locked-screen-title{font-size:20px;font-weight:800;margin-bottom:10px;}
+    .locked-screen-sub{font-family:'DM Mono',monospace;font-size:13px;color:var(--muted);margin-bottom:28px;max-width:380px;}
+    .locked-premium-btn{padding:15px 32px;border-radius:14px;background:linear-gradient(135deg,#8b5cf6,#a855f7);border:none;color:#fff;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 20px rgba(139,92,246,.3);transition:transform .15s;}
+    .locked-premium-btn:hover{transform:translateY(-2px);}
+
+    /* ══ МОДАЛКА ОФОРМЛЕНИЯ ПОДПИСКИ ══ */
+    .sub-plan-card{background:var(--input-bg);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:14px;transition:border-color .15s;}
+    .sub-plan-card:hover{border-color:rgba(139,92,246,.4);}
+    .sub-plan-name{font-size:14px;font-weight:800;margin-bottom:3px;}
+    .sub-plan-price{font-family:'DM Mono',monospace;font-size:13px;color:var(--muted);}
+    .sub-plan-buy-btn{padding:10px 20px;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#a855f7);border:none;color:#fff;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;transition:transform .15s;}
+    .sub-plan-buy-btn:hover{transform:translateY(-1px);}
+    .sub-plan-buy-btn:disabled{opacity:.4;cursor:default;transform:none;}
     .wallet-widget.show{display:block;}
     .wallet-widget-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
     .wallet-widget-amount{font-size:20px;font-weight:800;color:var(--accent);}
@@ -1045,6 +1066,7 @@
       <div class="wallet-widget-label">💰 Баланс сайта</div>
       <div class="wallet-widget-amount" id="wallet-widget-amount">—</div>
     </div>
+    <button class="premium-cta-btn" id="premium-cta-btn" onclick="openSubscribeModal()">👑 Оформить премиум</button>
     <nav>
       <div class="nav-item active" data-tab="stats"><span class="nav-icon">📊</span> <span class="nav-label" data-key="nav_stats">Статистика</span></div>
       <div class="nav-item" data-tab="forecast"><span class="nav-icon">📈</span> <span class="nav-label" data-key="nav_forecast">Прогноз ролика</span></div>
@@ -1054,6 +1076,7 @@
       <div class="nav-item" data-tab="scripts"><span class="nav-icon">🎬</span> <span class="nav-label" data-key="nav_scripts">Сценарии</span></div>
       <div class="nav-item" data-tab="competitors"><span class="nav-icon">🔎</span> <span class="nav-label" data-key="nav_competitors">Конкуренты</span></div>
       <div class="nav-item" data-tab="ads"><span class="nav-icon">📣</span> <span class="nav-label">Реклама</span></div>
+      <div class="nav-item" data-tab="messages"><span class="nav-icon">✉️</span> <span class="nav-label">Сообщения</span> <span id="messages-unread-badge" style="display:none;background:var(--red);color:#fff;font-size:9px;padding:2px 6px;border-radius:5px;margin-left:6px;">0</span></div>
       <div class="nav-item" data-tab="install"><span class="nav-icon">⬇️</span> <span class="nav-label" data-key="nav_install">Скачать приложение</span></div>
       <div class="nav-item" data-tab="settings"><span class="nav-icon">⚙️</span> <span class="nav-label" data-key="nav_settings">Настройки</span></div>
       <div class="nav-item" data-tab="premium" id="nav-premium" style="display:none">
@@ -1102,6 +1125,7 @@
           <button class="type-tab active" data-type="all" onclick="setStatsFilter('all')" id="filter-all-btn">📋 Все</button>
           <button class="type-tab" data-type="long" onclick="setStatsFilter('long')" id="filter-long-btn">📹 Видео</button>
           <button class="type-tab" id="filter-shorts-btn" data-type="short" onclick="setStatsFilter('short')">⚡ Shorts</button>
+          <button class="type-tab" id="filter-playlist-btn" data-type="playlist" onclick="setStatsFilter('playlist')">🗂️ Плейлисты</button>
         </div>
       </div>
       <div id="stats-loading" style="display:none">
@@ -1111,6 +1135,7 @@
         <div style="font-size:14px;font-weight:700;color:var(--red);margin-bottom:6px" id="stats-error-title">⚠ Не удалось загрузить видео</div>
         <div id="stats-error-msg" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)"></div>
       </div>
+      <div id="stats-playlist-picker" style="display:none;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:28px"></div>
       <div id="stats-video-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:28px"></div>
     </div>
 
@@ -1123,7 +1148,9 @@
           <button class="type-tab active" data-ftype="all" onclick="setForecastFilter('all')" id="fc-filter-all-btn">📋 Все</button>
           <button class="type-tab" data-ftype="long" onclick="setForecastFilter('long')" id="fc-filter-long-btn">📹 Видео</button>
           <button class="type-tab" id="fc-filter-shorts-btn" data-ftype="short" onclick="setForecastFilter('short')">⚡ Shorts</button>
+          <button class="type-tab" id="fc-filter-playlist-btn" data-ftype="playlist" onclick="setForecastFilter('playlist')">🗂️ Плейлисты</button>
         </div>
+        <div id="forecast-playlist-picker" style="display:none;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:20px"></div>
         <div id="forecast-video-container"></div>
       </div>
     </div>
@@ -1307,24 +1334,14 @@
 
     <div class="tab-panel" id="tab-install">
       <div class="page-header">
-        <div><h2 class="page-title" id="install-page-title">Скачать приложение</h2><p class="page-sub" id="install-page-sub">Установите YTMetrics как приложение на устройство</p></div>
-        <div class="badge-live" style="background:rgba(232,255,71,.08);border-color:rgba(232,255,71,.25);color:var(--accent)">⬇️ DESKTOP</div>
+        <div><h2 class="page-title" id="install-page-title">Скачать приложение</h2><p class="page-sub" id="install-page-sub">Установите YTMetrics как PWA-приложение на устройство</p></div>
+        <div class="badge-live" style="background:rgba(232,255,71,.08);border-color:rgba(232,255,71,.25);color:var(--accent)">📱 PWA</div>
       </div>
 
       <div id="install-main-content">
-        <div class="install-hero">
+        <div class="install-hero" id="install-pwa-card">
           <img src="./icon-192.png" alt="YTMetrics" class="install-hero-icon" onerror="this.style.display='none'">
-          <div class="install-hero-title" id="install-hero-title">Установите YTMetrics на компьютер</div>
-          <div class="install-hero-sub" id="install-hero-sub">Полноценное приложение для Windows, macOS и Linux — без браузера, работает как обычная программа.</div>
-          <div id="install-os-buttons" style="display:flex;flex-direction:column;gap:10px;max-width:340px;margin:0 auto"></div>
-          <div id="install-unsigned-note" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:18px;line-height:1.7">
-            ⚠️ Установщики пока без цифровой подписи. При первом запуске Windows/macOS покажут предупреждение — это нормально для тестовой версии.
-          </div>
-        </div>
-
-        <div class="install-hero" id="install-pwa-card" style="margin-top:20px">
-          <div style="font-size:34px;margin-bottom:14px">📱</div>
-          <div class="install-hero-title" id="install-pwa-title">Или установить прямо из браузера (PWA)</div>
+          <div class="install-hero-title" id="install-pwa-title">Установите YTMetrics как приложение</div>
           <div class="install-hero-sub" id="install-pwa-sub">Работает на телефоне (Android/iOS) и на компьютере — без скачивания файла, иконка появится на главном экране/рабочем столе.</div>
           <button class="install-btn" id="install-pwa-btn" onclick="triggerPWAInstall()">📲 <span id="install-pwa-btn-text">Установить</span></button>
         </div>
@@ -1405,6 +1422,23 @@
 
 
 
+
+    <div class="tab-panel" id="tab-messages">
+      <div class="page-header">
+        <div><h2 class="page-title">Сообщения</h2><p class="page-sub">Личные уведомления: предупреждения и обновления сайта</p></div>
+        <button class="notif-read-all-btn" onclick="markAllMessagesRead()">✓ Прочитать все</button>
+      </div>
+      <div class="notif-list" id="messages-list"><div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div></div>
+    </div>
+
+    <div class="tab-panel" id="tab-locked">
+      <div class="locked-screen">
+        <div class="locked-screen-icon">🔒</div>
+        <div class="locked-screen-title" id="locked-screen-title">Раздел «—» доступен только по премиум-подписке</div>
+        <div class="locked-screen-sub">Оформите премиум-подписку, чтобы открыть этот и другие закрытые разделы сайта.</div>
+        <button class="locked-premium-btn" onclick="openSubscribeModal()">👑 Оформить премиум</button>
+      </div>
+    </div>
 
     <div class="tab-panel" id="tab-ads">
       <div class="page-header">
@@ -1512,6 +1546,23 @@
         <div><h2 class="page-title" id="admin-page-title">Админ-панель</h2><p class="page-sub" id="admin-sub">Управление пользователями YTMetrics</p></div>
         <div class="badge-live" style="background:rgba(255,71,87,.08);border-color:rgba(255,71,87,.25);color:var(--red)">🛡️ ADMIN ONLY</div>
       </div>
+      <div class="prem-block" id="admin-balance-block" style="display:none;border-color:rgba(232,255,71,.25);">
+        <div class="prem-block-title">💰 Счёт — заработано с пользователей</div>
+        <div style="font-size:32px;font-weight:800;color:var(--accent);margin-bottom:6px;" id="admin-balance-amount">—</div>
+        <div class="prem-hint" id="admin-balance-hint">Реальный остаток на кошельке CryptoCloud, уже за вычетом выведенных средств.</div>
+      </div>
+
+      <div class="prem-block" style="border-color:rgba(71,200,255,.25);">
+        <div class="prem-block-title">📢 Отправить запрос на обновление</div>
+        <div class="prem-hint" style="margin-bottom:10px;">Все пользователи получат уведомление в разделе «Сообщения» с описанием, что нового.</div>
+        <input type="text" class="prem-input" id="update-broadcast-title" placeholder="Заголовок, например: Вышло обновление 2.4" style="margin-bottom:10px;">
+        <textarea class="prem-input" id="update-broadcast-body" rows="3" placeholder="Что изменилось..." style="resize:vertical;font-family:inherit;margin-bottom:10px;"></textarea>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <button class="prem-save-btn" onclick="sendUpdateBroadcast()">Отправить всем пользователям</button>
+          <span id="update-broadcast-status" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);"></span>
+        </div>
+      </div>
+
       <div class="notif-block" id="admin-notif-block">
         <div class="notif-block-header">
           <div class="notif-block-title">🔔 <span id="notif-block-title-text">Сообщения</span> <span id="admin-notif-unread-badge" style="display:none;background:var(--red);color:#fff;font-size:9px;padding:2px 6px;border-radius:5px;margin-left:4px">0</span></div>
@@ -1595,7 +1646,6 @@
             <div><div class="swipe-title" id="swipe-title-text">Просмотрено vs Свайпнуто</div><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:3px" id="swipe-sub-text">Ключевой сигнал алгоритма Shorts</div></div>
             <div class="swipe-pct-txt" id="sm-swipe-txt">—</div>
           </div>
-          <div class="swipe-track"><div class="swipe-viewed-bar" id="sm-swipe-viewed" style="width:70%"></div><div class="swipe-swiped-bar" id="sm-swipe-swiped" style="width:30%"></div></div>
           <div class="swipe-labels"><span class="swipe-lbl" style="color:var(--accent2)" id="watched-label-text">👁 Досмотрели</span><span class="swipe-lbl" style="color:var(--red)" id="swiped-label-text">↕ Свайпнули</span></div>
         </div>
       </div>
@@ -1916,6 +1966,22 @@
       </div>
 
       <div class="prem-hint" style="margin-top:6px;">Пока переменные окружения не заданы, кнопка оплаты на сайте будет показывать ошибку — это ожидаемо до завершения настройки.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ОФОРМЛЕНИЕ ПРЕМИУМ-ПОДПИСКИ -->
+<div class="modal-overlay" id="subscribe-modal">
+  <div class="modal-box modal-sm" style="max-width:440px;">
+    <div class="modal-header">
+      <div class="modal-title">👑 Оформить премиум</div>
+      <button class="modal-close" onclick="closeModal('subscribe-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:10px;">
+      <div id="subscribe-plans-list">
+        <div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div>
+      </div>
+      <div id="subscribe-status" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);margin-top:10px;text-align:center;"></div>
     </div>
   </div>
 </div>
@@ -2257,7 +2323,6 @@ function renderInstallButtons(){
 }
 
 function initInstallTab(){
-  renderInstallButtons();
   if(isRunningAsInstalledApp())showPWAAlreadyInstalled();
 }
 
@@ -3789,12 +3854,33 @@ async function sendChatMessage(){
       }));
       channelInfo={ name:(_currentUser&&(_currentUser.channel_name||_currentUser.name))||'', subscribers:(_currentUser&&_currentUser.subscribers)||0 };
     }
-    const answer=await callAI(chatHistory,null,videos,channelInfo);
+    let answer=await callAI(chatHistory,null,videos,channelInfo);
     chatHistory.push({role:'assistant',content:answer});
+    const actionMatch=answer.match(/\[ACTION:([a-z_]+)(?::([a-z]+))?\]\s*$/i);
+    if(actionMatch){
+      answer=answer.slice(0,actionMatch.index).trim();
+      runAssistantAction(actionMatch[1],actionMatch[2],msg);
+    }
     updateChatMsg(lid,answer.replace(/\n/g,'<br>'),false);
     saveChatHistory();
   }catch(e){updateChatMsg(lid,'⚠️ '+e.message,true);chatHistory.pop();}
   sendBtn.disabled=false;input.focus();
+}
+
+function runAssistantAction(action,arg,lastUserMsg){
+  try{
+    if(action==='change_theme'){ toggleTheme(arg==='dark'); }
+    else if(action==='change_language'){ if(['ru','en','ar'].includes(arg))setLanguage(arg); }
+    else if(action==='open_pin_settings'){
+      const settingsNav=document.querySelector('.nav-item[data-tab="settings"]');
+      if(settingsNav)settingsNav.click();
+      openPinSetupModal();
+    }
+    else if(action==='submit_bug_report'){
+      const email=(_currentUser&&_currentUser.email)||'';
+      apiFetch('/api/reports',{method:'POST',body:JSON.stringify({ email, category:'Через ИИ-чат', comment:lastUserMsg })}).catch(function(){});
+    }
+  }catch(e){}
 }
 function appendChatMsg(role,html,id){
   const msgs=document.getElementById('ai-chat-messages');
@@ -4211,6 +4297,7 @@ async function refreshAdminNavAccess(){
   const navAdmin=document.getElementById('nav-admin'); if(navAdmin)navAdmin.style.display=canAdmin?'flex':'none';
   const navPremium=document.getElementById('nav-premium'); if(navPremium)navPremium.style.display=canPremium?'flex':'none';
   const adsAdminBlock=document.getElementById('ads-admin-block'); if(adsAdminBlock)adsAdminBlock.style.display=canPremium?'block':'none';
+  const balanceBlock=document.getElementById('admin-balance-block'); if(balanceBlock)balanceBlock.style.display=canBilling?'block':'none';
   if(canPremium)loadAdsAdminConfig();
   if(canBilling)loadWalletBalance();
 }
@@ -4218,17 +4305,19 @@ async function refreshAdminNavAccess(){
 async function loadWalletBalance(){
   const widget=document.getElementById('wallet-widget');
   const amountEl=document.getElementById('wallet-widget-amount');
-  if(!widget)return;
-  widget.classList.add('show');
+  const adminAmountEl=document.getElementById('admin-balance-amount');
+  if(widget)widget.classList.add('show');
   try{
     const res=await apiFetch('/api/premium/wallet-balance');
     if(!res.ok)return;
     const data=await res.json();
-    if(!data.configured){ amountEl.className='wallet-widget-amount na'; amountEl.textContent='CryptoCloud ещё не настроен'; return; }
-    if(data.total_usd===null){ amountEl.className='wallet-widget-amount na'; amountEl.textContent='Ошибка получения баланса'; return; }
-    amountEl.className='wallet-widget-amount';
-    amountEl.textContent='$'+data.total_usd.toFixed(2);
-  }catch(e){ amountEl.className='wallet-widget-amount na'; amountEl.textContent='—'; }
+    let text;
+    if(!data.configured){ text='CryptoCloud ещё не настроен'; if(amountEl)amountEl.className='wallet-widget-amount na'; }
+    else if(data.total_usd===null){ text='Ошибка получения баланса'; if(amountEl)amountEl.className='wallet-widget-amount na'; }
+    else{ text='$'+data.total_usd.toFixed(2); if(amountEl)amountEl.className='wallet-widget-amount'; }
+    if(amountEl)amountEl.textContent=text;
+    if(adminAmountEl)adminAmountEl.textContent=text;
+  }catch(e){ if(amountEl){amountEl.className='wallet-widget-amount na';amountEl.textContent='—';} if(adminAmountEl)adminAmountEl.textContent='—'; }
 }
 
 async function loadMyPermissions(){
@@ -4531,6 +4620,23 @@ function openAdDetails(id){
   openModal('ad-details-modal');
 }
 
+async function sendUpdateBroadcast(){
+  const status=document.getElementById('update-broadcast-status');
+  const title=document.getElementById('update-broadcast-title').value.trim();
+  const body=document.getElementById('update-broadcast-body').value.trim();
+  if(!title){status.textContent='Введите заголовок';return;}
+  status.textContent='Отправляем...';
+  try{
+    const res=await apiFetch('/api/admin/updates/broadcast',{method:'POST',body:JSON.stringify({ title, body })});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){status.textContent='Ошибка: '+(data.error||res.status);return;}
+    status.textContent='✓ Отправлено '+data.sent_to+' пользователям';
+    document.getElementById('update-broadcast-title').value='';
+    document.getElementById('update-broadcast-body').value='';
+    setTimeout(function(){status.textContent='';},4000);
+  }catch(e){status.textContent='Ошибка сети';}
+}
+
 async function loadAdminUsers(){
   const list=document.getElementById('admin-users-list'),countEl=document.getElementById('admin-users-count');
   if(!list)return;
@@ -4825,6 +4931,7 @@ function normalizeVideo(v,idx){
     retentionShort: isShort&&v.retention_short!=null ? v.retention_short : null,
     swipedRatio:    isShort&&v.swiped_ratio!=null  ? v.swiped_ratio  : null,
     viewedRatio:    isShort&&v.viewed_ratio!=null  ? v.viewed_ratio  : null,
+    rewatched:      isShort&&!!v.rewatched,
     avgDurationSec: v.avg_duration_sec!=null ? v.avg_duration_sec : null,
     watchHours:     v.watch_hours!=null ? v.watch_hours : null,
     subscribersGained: v.subscribers_gained!=null ? v.subscribers_gained : 0,
@@ -4953,10 +5060,106 @@ async function loadRealVideos(user){
   }
 }
 
-function setStatsFilter(type){_statsFilter=type;document.querySelectorAll('[data-type]').forEach(function(b){b.classList.toggle('active',b.dataset.type===type);});renderStatsVideoGrid();}
-function setForecastFilter(type){_fcFilter=type;document.querySelectorAll('[data-ftype]').forEach(function(b){b.classList.toggle('active',b.dataset.ftype===type);});renderForecastGrid();}
-function getFilteredStats(){return _statsFilter==='all'?_realVideos:_realVideos.filter(function(v){return v.type===_statsFilter;});}
-function getFilteredForecast(){return _fcFilter==='all'?_realVideos:_realVideos.filter(function(v){return v.type===_fcFilter;});}
+let _channelPlaylists=null; // null=ещё не загружали, [] = загрузили, пусто
+let _playlistVideoIds=null; // массив id видео активного открытого плейлиста, null = плейлист не открыт
+let _currentPlaylistTitle='';
+
+function setStatsFilter(type){
+  _statsFilter=type;
+  document.querySelectorAll('#tab-stats [data-type]').forEach(function(b){b.classList.toggle('active',b.dataset.type===type);});
+  if(type==='playlist'){ _playlistVideoIds=null; showPlaylistPicker('stats'); }
+  else{ hidePlaylistPicker('stats'); renderStatsVideoGrid(); }
+}
+function setForecastFilter(type){
+  _fcFilter=type;
+  document.querySelectorAll('#tab-forecast [data-ftype]').forEach(function(b){b.classList.toggle('active',b.dataset.ftype===type);});
+  if(type==='playlist'){ _playlistVideoIds=null; showPlaylistPicker('forecast'); }
+  else{ hidePlaylistPicker('forecast'); renderForecastGrid(); }
+}
+function getFilteredStats(){
+  if(_statsFilter==='playlist')return _playlistVideoIds?_realVideos.filter(function(v){return _playlistVideoIds.includes(v.id);}):[];
+  return _statsFilter==='all'?_realVideos:_realVideos.filter(function(v){return v.type===_statsFilter;});
+}
+function getFilteredForecast(){
+  if(_fcFilter==='playlist')return _playlistVideoIds?_realVideos.filter(function(v){return _playlistVideoIds.includes(v.id);}):[];
+  return _fcFilter==='all'?_realVideos:_realVideos.filter(function(v){return v.type===_fcFilter;});
+}
+
+async function showPlaylistPicker(context){
+  const pickerId=context==='stats'?'stats-playlist-picker':'forecast-playlist-picker';
+  const gridId=context==='stats'?'stats-video-grid':'forecast-video-container';
+  const picker=document.getElementById(pickerId), grid=document.getElementById(gridId);
+  if(grid)grid.style.display='none';
+  picker.style.display='grid';
+  if(_channelPlaylists===null){
+    picker.innerHTML='<div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div>';
+    try{
+      const res=await apiFetch('/api/youtube/playlists?channel_id='+encodeURIComponent(_currentUser.channel_id));
+      const data=await res.json();
+      _channelPlaylists=data.playlists||[];
+    }catch(e){ _channelPlaylists=[]; }
+  }
+  renderPlaylistPicker(context);
+}
+function hidePlaylistPicker(context){
+  const pickerId=context==='stats'?'stats-playlist-picker':'forecast-playlist-picker';
+  const gridId=context==='stats'?'stats-video-grid':'forecast-video-container';
+  document.getElementById(pickerId).style.display='none';
+  document.getElementById(gridId).style.display=context==='stats'?'grid':'block';
+}
+function renderPlaylistPicker(context){
+  const pickerId=context==='stats'?'stats-playlist-picker':'forecast-playlist-picker';
+  const picker=document.getElementById(pickerId);
+  if(!_channelPlaylists.length){picker.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px 0;font-family:\'DM Mono\',monospace;font-size:13px;color:var(--muted)">На канале пока нет плейлистов</div>';return;}
+  picker.innerHTML=_channelPlaylists.map(function(p){
+    return '<div onclick="openPlaylist(\''+p.id+'\',\''+context+'\')" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s" onmouseover="this.style.borderColor=\'rgba(232,255,71,.4)\';this.style.transform=\'translateY(-3px)\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.transform=\'translateY(0)\'">'
+      +'<div style="position:relative;aspect-ratio:16/9;overflow:hidden;background:var(--border)">'+(p.thumbnail?'<img src="'+p.thumbnail+'" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'">':'<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:32px">🗂️</div>')+'</div>'
+      +'<div style="padding:10px 12px"><div style="font-size:12px;font-weight:700;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">'+escapeHtml(p.title)+'</div>'
+      +'<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);margin-top:5px">'+p.item_count+' видео</div></div></div>';
+  }).join('');
+}
+
+async function openPlaylist(playlistId,context){
+  const pickerId=context==='stats'?'stats-playlist-picker':'forecast-playlist-picker';
+  const gridId=context==='stats'?'stats-video-grid':'forecast-video-container';
+  const picker=document.getElementById(pickerId), grid=document.getElementById(gridId);
+  picker.innerHTML='<div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div>';
+  try{
+    const res=await apiFetch('/api/youtube/playlists/'+playlistId+'/videos?channel_id='+encodeURIComponent(_currentUser.channel_id));
+    const data=await res.json();
+    const normalized=(data.videos||[]).map(normalizeVideo);
+    // Мержим в _realVideos (без дублей), чтобы модалки openStatsModal/openForecastModal работали как обычно
+    normalized.forEach(function(v){
+      const idx=_realVideos.findIndex(function(x){return x.id===v.id;});
+      if(idx===-1)_realVideos.push(v); else _realVideos[idx]=v;
+    });
+    _playlistVideoIds=normalized.map(function(v){return v.id;});
+    picker.style.display='none';
+    grid.style.display=context==='stats'?'grid':'block';
+    if(context==='stats')renderStatsVideoGrid(); else renderForecastGrid();
+    renderPlaylistBackBar(context,playlistId);
+  }catch(e){ picker.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:12px">Не удалось загрузить видео плейлиста</div>'; }
+}
+function renderPlaylistBackBar(context,playlistId){
+  const gridId=context==='stats'?'stats-video-grid':'forecast-video-container';
+  const grid=document.getElementById(gridId);
+  const pl=(_channelPlaylists||[]).find(function(p){return p.id===playlistId;});
+  const barId=context+'-playlist-backbar';
+  let bar=document.getElementById(barId);
+  if(!bar){
+    bar=document.createElement('div');
+    bar.id=barId;
+    bar.style.cssText='grid-column:1/-1;display:flex;align-items:center;gap:10px;margin-bottom:14px;font-family:\'DM Mono\',monospace;font-size:12px;color:var(--muted);';
+    grid.parentNode.insertBefore(bar,grid);
+  }
+  bar.innerHTML='<button onclick="backToPlaylistPicker(\''+context+'\')" style="background:var(--input-bg);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;color:var(--text);font-family:inherit;font-size:12px">← Все плейлисты</button><span>🗂️ '+escapeHtml((pl&&pl.title)||'')+'</span>';
+}
+function backToPlaylistPicker(context){
+  _playlistVideoIds=null;
+  const barId=context+'-playlist-backbar';
+  const bar=document.getElementById(barId); if(bar)bar.remove();
+  showPlaylistPicker(context);
+}
 
 function renderStatsVideoGrid(){
   const videos=getFilteredStats();
@@ -5105,12 +5308,11 @@ function openStatsModal(id){
     document.getElementById('sm-ret-d').textContent=v.retentionShort!=null?t('real_data'):t('no_data');
     setElText('sm-ctr-label',t('pct_swiped'));
     document.getElementById('sm-ctr').textContent=v.swipedRatio!=null?v.swipedRatio+'%':'—';
-    document.getElementById('sm-ctr-d').textContent=v.swipedRatio!=null?t('swipe_away'):t('no_data');
+    document.getElementById('sm-ctr-d').textContent=v.swipedRatio!=null?(v.rewatched?'🔁 видео пересматривают целиком':t('swipe_away')):t('no_data');
     if(v.swipedRatio!=null){
       document.getElementById('sm-swipe-block').style.display='block';
-      document.getElementById('sm-swipe-viewed').style.width=(v.viewedRatio||70)+'%';
-      document.getElementById('sm-swipe-swiped').style.width=(v.swipedRatio||30)+'%';
-      document.getElementById('sm-swipe-txt').textContent=t('watched_pct')+' '+(v.viewedRatio||70)+'% / '+t('swiped_pct')+' '+(v.swipedRatio||30)+'%';
+      const watchedPct=v.viewedRatio!=null?v.viewedRatio:(100-v.swipedRatio);
+      document.getElementById('sm-swipe-txt').textContent=t('watched_pct')+' '+watchedPct+'% / '+t('swiped_pct')+' '+v.swipedRatio+'%';
     }else{document.getElementById('sm-swipe-block').style.display='none';}
   }else{
     setElText('sm-ret-label',t('retention'));
@@ -5861,6 +6063,98 @@ async function searchCompetitors(){
   btn.disabled=false;btnTextEl.textContent=origText;
 }
 
+let _myMessages=[];
+async function loadMyMessages(){
+  const list=document.getElementById('messages-list');
+  if(!list)return;
+  list.innerHTML='<div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div>';
+  try{
+    const res=await apiFetch('/api/messages/my');
+    if(!res.ok){list.innerHTML='<div class="admin-empty">Не удалось загрузить сообщения</div>';return;}
+    const data=await res.json();
+    _myMessages=data.messages||[];
+    if(!_myMessages.length){list.innerHTML='<div class="notif-empty"><div class="notif-empty-icon">✉️</div><div>Пока нет сообщений</div></div>';return;}
+    const iconMap={update:'📢',violation_warning:'⚠️',system:'ℹ️'};
+    list.innerHTML=_myMessages.map(function(n){
+      const icon=iconMap[n.type]||'ℹ️';
+      return '<div class="notif-item'+(n.read?'':' unread')+'" id="my-msg-'+n.id+'">'
+        +'<div class="notif-icon-wrap">'+icon+'</div>'
+        +'<div class="notif-content">'
+        +'<div class="notif-title">'+escapeHtml(n.title)+'</div>'
+        +'<div class="notif-body">'+escapeHtml(n.body||'')+'</div>'
+        +'<div class="notif-time">'+formatNotifDate(n.created_at)+'</div>'
+        +'</div>'
+        +(!n.read?'<div class="notif-actions"><button class="notif-read-btn" title="Прочитано" onclick="markMessageRead(\''+n.id+'\')">✓</button></div>':'')
+        +'</div>';
+    }).join('');
+    pollMessagesUnreadCount();
+  }catch(e){list.innerHTML='<div class="admin-empty">Ошибка загрузки</div>';}
+}
+async function markMessageRead(id){
+  try{ await apiFetch('/api/messages/'+id+'/read',{method:'POST'}); }catch(e){}
+  loadMyMessages();
+}
+async function markAllMessagesRead(){
+  try{ await apiFetch('/api/messages/read-all',{method:'POST'}); }catch(e){}
+  loadMyMessages();
+}
+async function pollMessagesUnreadCount(){
+  try{
+    const res=await apiFetch('/api/messages/unread-count');
+    if(!res.ok)return;
+    const data=await res.json();
+    const badge=document.getElementById('messages-unread-badge');
+    if(badge){ badge.style.display=data.count>0?'inline-block':'none'; badge.textContent=data.count; }
+  }catch(e){}
+}
+
+let _premiumStatus={enabled:false,premium_sections:[],exempt:true};
+
+async function loadPremiumStatusForUser(){
+  try{
+    const res=await apiFetch('/api/premium/status');
+    if(!res.ok)return;
+    _premiumStatus=await res.json();
+    const btn=document.getElementById('premium-cta-btn');
+    if(btn)btn.classList.toggle('show',_premiumStatus.enabled&&!_premiumStatus.exempt);
+  }catch(e){}
+}
+
+function isTabLocked(tab){
+  return !!(_premiumStatus.enabled&&!_premiumStatus.exempt&&(_premiumStatus.premium_sections||[]).includes(tab));
+}
+
+function openSubscribeModal(){
+  const list=document.getElementById('subscribe-plans-list');
+  const plans=[
+    { key:'month',   label:'1 месяц',    price:_premiumStatus.price_month },
+    { key:'6months', label:'6 месяцев',  price:_premiumStatus.price_6months },
+    { key:'year',     label:'1 год',      price:_premiumStatus.price_year },
+  ];
+  list.innerHTML=plans.map(function(p){
+    const hasPrice=p.price&&p.price.trim();
+    return '<div class="sub-plan-card">'
+      +'<div><div class="sub-plan-name">'+p.label+'</div><div class="sub-plan-price">'+(hasPrice?escapeHtml(p.price):'цена уточняется')+'</div></div>'
+      +'<button class="sub-plan-buy-btn" '+(hasPrice?'':'disabled')+' onclick="buySubscription(\''+p.key+'\')">Оформить</button>'
+      +'</div>';
+  }).join('');
+  document.getElementById('subscribe-status').textContent='';
+  openModal('subscribe-modal');
+}
+
+async function buySubscription(plan){
+  const status=document.getElementById('subscribe-status');
+  status.textContent='Создаём счёт на оплату...';
+  try{
+    const res=await apiFetch('/api/payments/create-invoice',{method:'POST',body:JSON.stringify({ plan:plan })});
+    const data=await res.json().catch(function(){return {};});
+    if(!res.ok){status.textContent='Ошибка: '+(data.error||res.status);return;}
+    status.textContent='✓ Открываем страницу оплаты...';
+    window.open(data.pay_url,'_blank');
+    setTimeout(function(){closeModal('subscribe-modal');},1200);
+  }catch(e){status.textContent='Ошибка сети';}
+}
+
 function showDashboard(channelData){
   _currentUser=channelData;saveUser(channelData);
   document.getElementById('landing-screen').style.display='none';
@@ -5872,7 +6166,7 @@ function showDashboard(channelData){
   const avatarEl=document.getElementById('user-avatar-placeholder');
   if(avatarUrl){const img=document.createElement('img');img.src=avatarUrl;img.className='user-avatar';img.alt='';img.onerror=function(){img.style.display='none';};if(avatarEl.tagName==='DIV')avatarEl.replaceWith(img);else avatarEl.src=avatarUrl;}
   else{avatarEl.textContent=(channelData.channel_name||channelData.email||'Y')[0].toUpperCase();}
-  fetchAndRenderLimits();loadChatHistory();updatePinStatusBadge();initInstallTab();
+  fetchAndRenderLimits();loadChatHistory();updatePinStatusBadge();initInstallTab();loadPremiumStatusForUser();pollMessagesUnreadCount();setInterval(pollMessagesUnreadCount,60000);
   _realVideos=[];
   const wrapper=document.getElementById('ai-video-analyzer-wrap');if(wrapper)wrapper.style.display='none';
   const badge=document.getElementById('context-sent-badge');if(badge)badge.style.display='none';
@@ -5885,6 +6179,16 @@ document.querySelectorAll('.nav-item').forEach(function(item){
     document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
     item.classList.add('active');
     document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');p.style.animation='none';});
+
+    if(isTabLocked(tab)){
+      const lockLabel=item.querySelector('.nav-label');
+      document.getElementById('locked-screen-title').textContent='Раздел «'+(lockLabel?lockLabel.textContent:tab)+'» доступен только по премиум-подписке';
+      const lockedPanel=document.getElementById('tab-locked');
+      lockedPanel.classList.add('active');
+      requestAnimationFrame(function(){lockedPanel.style.animation='';lockedPanel.classList.add('fade-up');});
+      return;
+    }
+
     const panel=document.getElementById('tab-'+tab);if(!panel)return;
     panel.classList.add('active');
     requestAnimationFrame(function(){panel.style.animation='';panel.classList.add('fade-up');});
@@ -5898,6 +6202,7 @@ document.querySelectorAll('.nav-item').forEach(function(item){
     if(tab==='admin'&&_isAdmin){loadAdminUsers();loadAdminNotifications();}
     if(tab==='premium'&&(_isSupreme||(_myPermissions&&_myPermissions.access_premium_panel))){loadPremiumConfig();}
     if(tab==='ads'){loadAdsMy();}
+    if(tab==='messages'){loadMyMessages();}
     if(tab==='settings'){updatePinStatusBadge();}
   });
 });
