@@ -336,6 +336,16 @@
     .ab-claude{color:var(--orange);border-color:rgba(255,159,71,.3);background:rgba(255,159,71,.07);}
 
     #channel-select-screen{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;background:var(--bg);}
+    #connect-youtube-screen{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;background:var(--bg);}
+
+    .auth-tabs{display:flex;gap:6px;background:var(--input-bg);border-radius:12px;padding:4px;margin-bottom:20px;}
+    .auth-tab-btn{flex:1;padding:9px;border-radius:9px;border:none;background:transparent;color:var(--muted);font-weight:700;font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit;}
+    .auth-tab-btn.active{background:var(--accent);color:var(--bg);}
+    .auth-provider-btn{width:100%;padding:13px;border-radius:12px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;transition:all .15s;}
+    .auth-provider-btn:not(:disabled):hover{border-color:var(--accent);transform:translateY(-1px);}
+    .auth-provider-btn:disabled{opacity:.4;cursor:default;}
+    .auth-divider{display:flex;align-items:center;gap:10px;margin:16px 0;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;}
+    .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border);}
     @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
     .fade-up{animation:fadeUp .4s ease forwards;}
     .admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;}
@@ -418,6 +428,17 @@
     .sub-plan-buy-btn{padding:10px 20px;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#a855f7);border:none;color:#fff;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;transition:transform .15s;}
     .sub-plan-buy-btn:hover{transform:translateY(-1px);}
     .sub-plan-buy-btn:disabled{opacity:.4;cursor:default;transform:none;}
+
+    .sub-page-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:26px;display:flex;flex-direction:column;gap:16px;transition:border-color .15s,transform .15s;}
+    .sub-page-card:hover{border-color:rgba(139,92,246,.4);transform:translateY(-3px);}
+    .sub-page-card.featured{border-color:#8b5cf6;background:linear-gradient(180deg,rgba(139,92,246,.06),transparent);}
+    .sub-page-plan-name{font-size:18px;font-weight:800;}
+    .sub-page-price{font-family:'DM Mono',monospace;font-size:22px;font-weight:800;color:#a855f7;}
+    .sub-page-features{list-style:none;display:flex;flex-direction:column;gap:9px;font-size:13px;color:var(--text);flex:1;}
+    .sub-page-features li{display:flex;align-items:flex-start;gap:8px;}
+    .sub-page-buy-btn{padding:13px;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#a855f7);border:none;color:#fff;font-weight:800;font-size:14px;cursor:pointer;transition:transform .15s;}
+    .sub-page-buy-btn:hover{transform:translateY(-1px);}
+    .sub-page-buy-btn:disabled{opacity:.4;cursor:default;transform:none;}
     .wallet-widget.show{display:block;}
     .wallet-widget-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
     .wallet-widget-amount{font-size:20px;font-weight:800;color:var(--accent);}
@@ -981,7 +1002,10 @@
       <img src="./icon-512.png" alt="Logo" class="landing-logo-mark">
       <div class="landing-logo-name">YT<span>Metrics</span></div>
     </div>
-    <button class="btn-analyze" onclick="startLogin()"><span>📈</span> <span id="nav-login-btn-text">Сделать анализ</span></button>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-cta-sec" style="padding:12px 22px;" onclick="startLogin()">Войти</button>
+      <button class="btn-analyze" onclick="startRegister()"><span>✦</span> <span id="nav-login-btn-text">Зарегистрироваться</span></button>
+    </div>
   </nav>
   <section class="landing-hero">
     <div class="hero-badge" id="hero-badge-el">✦ YouTube Analytics · ИИ-аналитика · 2026</div>
@@ -1002,7 +1026,8 @@
       </div>
     </div>
     <div class="hero-cta" style="flex-wrap:wrap; gap:12px; justify-content:center;">
-      <button class="btn-cta-main" onclick="startLogin()"><span>📈</span> <span id="cta-main-text">Сделать анализ</span></button>
+      <button class="btn-cta-main" onclick="startRegister()"><span>✦</span> <span id="cta-main-text">Зарегистрироваться</span></button>
+      <button class="btn-cta-sec" onclick="startLogin()">Войти</button>
       <button class="btn-cta-sec" onclick="scrollToFeatures()" id="cta-sec-text">Узнать больше ↓</button>
       <button class="btn-cta-sec" onclick="openBugReportModal()" style="border-color:rgba(255,71,87,.25); color:var(--red); background:rgba(255,71,87,.04);"><span style="margin-right:4px;">⚠️</span> <span id="cta-report-text">Сообщить о проблеме</span></button>
     </div>
@@ -1046,6 +1071,56 @@
   </footer>
 </div>
 
+<div id="connect-youtube-screen">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px 44px;width:440px;max-width:90vw;text-align:center">
+    <div style="font-size:44px;margin-bottom:16px">🎬</div>
+    <div style="font-size:20px;font-weight:800;letter-spacing:-.5px;margin-bottom:10px">Подключите YouTube-канал</div>
+    <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:26px;line-height:1.7">Вы вошли на сайт. Осталось подключить свой YouTube-канал, чтобы мы могли собирать его аналитику — это отдельный шаг и никак не связан с вашим паролем на сайте.</div>
+    <button class="install-btn" onclick="startYouTubeConnect()">🔗 Подключить канал</button>
+    <button onclick="logoutFromConnectScreen()" style="margin-top:16px;padding:8px 18px;border-radius:8px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);border:1px solid var(--border);background:transparent;cursor:pointer;display:block;margin-left:auto;margin-right:auto;">⎋ Выйти</button>
+  </div>
+</div>
+
+<!-- ВХОД / РЕГИСТРАЦИЯ -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal-box modal-sm" style="max-width:400px;">
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeModal('auth-modal')" style="margin-left:auto">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:0;">
+      <div style="text-align:center;margin-bottom:22px;">
+        <img src="./icon-192.png" alt="YTMetrics" style="width:52px;height:52px;border-radius:14px;margin-bottom:10px;" onerror="this.style.display='none'">
+        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.5px;">YT<span style="color:var(--accent)">Metrics</span></div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:4px;" id="auth-modal-subtitle">Вход в аккаунт</div>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="auth-tab-login" onclick="setAuthTab('login')">Вход</button>
+        <button class="auth-tab-btn" id="auth-tab-register" onclick="setAuthTab('register')">Регистрация</button>
+      </div>
+
+      <input type="email" class="prem-input" id="auth-email-field" placeholder="Почта (не Gmail/iCloud)" style="margin-bottom:10px;">
+      <input type="password" class="prem-input" id="auth-password-field" placeholder="Пароль" style="margin-bottom:10px;">
+      <input type="password" class="prem-input" id="auth-password-confirm-field" placeholder="Повторите пароль" style="display:none;margin-bottom:10px;">
+
+      <div id="auth-captcha-wrap" style="display:none;margin-bottom:14px;">
+        <div id="auth-captcha-container"></div>
+      </div>
+
+      <button class="prem-save-btn" id="auth-submit-btn" style="width:100%;margin-bottom:14px;" onclick="submitAuthForm()">Войти</button>
+
+      <div id="auth-switch-to-register" style="text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">
+        Ещё нет аккаунта? Тогда зарегистрируйтесь — <button onclick="setAuthTab('register')" style="background:none;border:none;color:var(--accent);font-weight:700;cursor:pointer;font-family:inherit;font-size:12px;padding:0;">регистрация</button>
+      </div>
+      <div id="auth-switch-to-login" style="display:none;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">
+        Уже есть аккаунт? Тогда войдите — <button onclick="setAuthTab('login')" style="background:none;border:none;color:var(--accent);font-weight:700;cursor:pointer;font-family:inherit;font-size:12px;padding:0;">вход</button>
+      </div>
+
+      <div id="auth-form-status" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);margin-top:12px;text-align:center;"></div>
+    </div>
+  </div>
+</div>
+
 <div id="channel-select-screen">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px 44px;width:500px;max-height:85vh;overflow-y:auto;text-align:center">
     <img src="./icon-512.png" alt="Logo" style="display:inline-block;width:52px;height:52px;border-radius:14px;margin-bottom:20px;object-fit:cover;">
@@ -1066,7 +1141,6 @@
       <div class="wallet-widget-label">💰 Баланс сайта</div>
       <div class="wallet-widget-amount" id="wallet-widget-amount">—</div>
     </div>
-    <button class="premium-cta-btn" id="premium-cta-btn" onclick="openSubscribeModal()">👑 Оформить премиум</button>
     <nav>
       <div class="nav-item active" data-tab="stats"><span class="nav-icon">📊</span> <span class="nav-label" data-key="nav_stats">Статистика</span></div>
       <div class="nav-item" data-tab="forecast"><span class="nav-icon">📈</span> <span class="nav-label" data-key="nav_forecast">Прогноз ролика</span></div>
@@ -1076,6 +1150,7 @@
       <div class="nav-item" data-tab="scripts"><span class="nav-icon">🎬</span> <span class="nav-label" data-key="nav_scripts">Сценарии</span></div>
       <div class="nav-item" data-tab="competitors"><span class="nav-icon">🔎</span> <span class="nav-label" data-key="nav_competitors">Конкуренты</span></div>
       <div class="nav-item" data-tab="ads"><span class="nav-icon">📣</span> <span class="nav-label">Реклама</span></div>
+      <div class="nav-item" data-tab="subscriptions"><span class="nav-icon">👑</span> <span class="nav-label">Подписки</span></div>
       <div class="nav-item" data-tab="messages"><span class="nav-icon">✉️</span> <span class="nav-label">Сообщения</span> <span id="messages-unread-badge" style="display:none;background:var(--red);color:#fff;font-size:9px;padding:2px 6px;border-radius:5px;margin-left:6px;">0</span></div>
       <div class="nav-item" data-tab="install"><span class="nav-icon">⬇️</span> <span class="nav-label" data-key="nav_install">Скачать приложение</span></div>
       <div class="nav-item" data-tab="settings"><span class="nav-icon">⚙️</span> <span class="nav-label" data-key="nav_settings">Настройки</span></div>
@@ -1423,6 +1498,16 @@
 
 
 
+    <div class="tab-panel" id="tab-subscriptions">
+      <div class="page-header">
+        <div><h2 class="page-title">Подписки</h2><p class="page-sub">Выберите план — оплата через безопасный крипто-эквайринг</p></div>
+      </div>
+      <div id="subscriptions-disabled-banner" class="admin-empty" style="display:none;margin-bottom:20px;">Премиум-подписка сейчас не активна на сайте</div>
+      <div id="subscriptions-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;">
+        <div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div>
+      </div>
+    </div>
+
     <div class="tab-panel" id="tab-messages">
       <div class="page-header">
         <div><h2 class="page-title">Сообщения</h2><p class="page-sub">Личные уведомления: предупреждения и обновления сайта</p></div>
@@ -1436,7 +1521,7 @@
         <div class="locked-screen-icon">🔒</div>
         <div class="locked-screen-title" id="locked-screen-title">Раздел «—» доступен только по премиум-подписке</div>
         <div class="locked-screen-sub">Оформите премиум-подписку, чтобы открыть этот и другие закрытые разделы сайта.</div>
-        <button class="locked-premium-btn" onclick="openSubscribeModal()">👑 Оформить премиум</button>
+        <button class="locked-premium-btn" onclick="goToSubscriptionsTab()">👑 Оформить премиум</button>
       </div>
     </div>
 
@@ -1971,21 +2056,6 @@
 </div>
 
 <!-- ОФОРМЛЕНИЕ ПРЕМИУМ-ПОДПИСКИ -->
-<div class="modal-overlay" id="subscribe-modal">
-  <div class="modal-box modal-sm" style="max-width:440px;">
-    <div class="modal-header">
-      <div class="modal-title">👑 Оформить премиум</div>
-      <button class="modal-close" onclick="closeModal('subscribe-modal')">✕</button>
-    </div>
-    <div class="modal-body" style="padding-top:10px;">
-      <div id="subscribe-plans-list">
-        <div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div>
-      </div>
-      <div id="subscribe-status" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);margin-top:10px;text-align:center;"></div>
-    </div>
-  </div>
-</div>
-
 <!-- СОЗДАНИЕ РЕКЛАМЫ -->
 <div class="modal-overlay" id="ad-create-modal">
   <div class="modal-box modal-sm" style="max-width:480px;">
@@ -3570,8 +3640,112 @@ function switchSettingsTab(name){
 }
 
 function startLogin(){
-  const origin = window.location.origin + window.location.pathname;
-  window.location.href = API_URL + '/api/auth/google?origin=' + encodeURIComponent(origin);
+  setAuthTab('login');
+  openModal('auth-modal');
+}
+function startRegister(){
+  setAuthTab('register');
+  openModal('auth-modal');
+}
+let _authTab='login';
+let _captchaClientKey=null, _captchaWidgetId=null, _captchaLoaded=false, _captchaToken=null;
+
+async function ensureCaptchaLoaded(){
+  if(_captchaLoaded)return;
+  _captchaLoaded=true;
+  try{
+    const res=await fetch(API_URL+'/api/config/public');
+    const data=await res.json();
+    _captchaClientKey=data.captcha_client_key;
+  }catch(e){}
+  if(!_captchaClientKey)return;
+  await new Promise(function(resolve){
+    const script=document.createElement('script');
+    script.src='https://smartcaptcha.yandexcloud.net/captcha.js';
+    script.defer=true;
+    script.onload=resolve;script.onerror=resolve;
+    document.head.appendChild(script);
+  });
+}
+async function renderCaptchaWidget(){
+  await ensureCaptchaLoaded();
+  const wrap=document.getElementById('auth-captcha-wrap');
+  if(!_captchaClientKey||!window.smartCaptcha){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  _captchaToken=null;
+  if(_captchaWidgetId!==null){ window.smartCaptcha.reset(_captchaWidgetId); return; }
+  _captchaWidgetId=window.smartCaptcha.render('auth-captcha-container',{
+    sitekey:_captchaClientKey,
+    callback:function(token){ _captchaToken=token; },
+  });
+}
+
+function setAuthTab(tab){
+  _authTab=tab;
+  document.getElementById('auth-tab-login').classList.toggle('active',tab==='login');
+  document.getElementById('auth-tab-register').classList.toggle('active',tab==='register');
+  document.getElementById('auth-password-confirm-field').style.display=tab==='register'?'block':'none';
+  document.getElementById('auth-submit-btn').textContent=tab==='register'?'Зарегистрироваться':'Войти';
+  document.getElementById('auth-modal-subtitle').textContent=tab==='register'?'Создать аккаунт':'Вход в аккаунт';
+  document.getElementById('auth-switch-to-register').style.display=tab==='login'?'block':'none';
+  document.getElementById('auth-switch-to-login').style.display=tab==='register'?'block':'none';
+  document.getElementById('auth-form-status').textContent='';
+  if(tab==='register')renderCaptchaWidget();
+  else document.getElementById('auth-captcha-wrap').style.display='none';
+}
+
+async function submitAuthForm(){
+  const btn=document.getElementById('auth-submit-btn');
+  const status=document.getElementById('auth-form-status');
+  const email=document.getElementById('auth-email-field').value.trim();
+  const password=document.getElementById('auth-password-field').value;
+  const passwordConfirm=document.getElementById('auth-password-confirm-field').value;
+  if(!email||!password){status.textContent='Заполните почту и пароль';return;}
+  if(_authTab==='register'){
+    if(password!==passwordConfirm){status.textContent='Пароли не совпадают';return;}
+    if(password.length<8){status.textContent='Пароль должен быть не короче 8 символов';return;}
+    if(_captchaClientKey&&!_captchaToken){status.textContent='Пройдите проверку «Я не робот»';return;}
+  }
+  btn.disabled=true;status.textContent=_authTab==='register'?'Регистрируем...':'Входим...';
+  try{
+    const endpoint=_authTab==='register'?'/api/auth/email/register':'/api/auth/email/login';
+    const body=_authTab==='register'
+      ? { email, password, password_confirm:passwordConfirm, captcha_token:_captchaToken }
+      : { email, password };
+    const res=await fetch(API_URL+endpoint,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify(body)});
+    const data=await res.json().catch(function(){return {};});
+    if(!res.ok){
+      if(data.error==='EMAIL_NOT_VERIFIED'){status.textContent='Подтвердите почту — мы отправили письмо со ссылкой при регистрации';}
+      else{status.textContent=data.error||'Ошибка';}
+      if(_authTab==='register'&&_captchaWidgetId!==null)window.smartCaptcha.reset(_captchaWidgetId);
+      btn.disabled=false;return;
+    }
+    if(_authTab==='register'){
+      status.style.color='var(--accent)';
+      status.textContent='✓ '+(data.message||'Проверьте почту для подтверждения регистрации');
+      setTimeout(function(){ status.style.color='var(--muted)'; setAuthTab('login'); },2500);
+      btn.disabled=false;
+      return;
+    }
+    saveToken(data.token);
+    closeModal('auth-modal');
+    if(!data.channel_id){
+      document.getElementById('landing-screen').style.display='none';
+      document.getElementById('connect-youtube-screen').style.display='flex';
+    }else{
+      checkUserAccess(data, function(){ showDashboard(data); });
+    }
+  }catch(e){status.textContent='Ошибка сети';}
+  btn.disabled=false;
+}
+function startYouTubeConnect(){
+  const origin=window.location.origin+window.location.pathname;
+  window.location.href=API_URL+'/api/auth/youtube/connect?origin='+encodeURIComponent(origin);
+}
+function logoutFromConnectScreen(){
+  clearToken();clearUser();
+  document.getElementById('connect-youtube-screen').style.display='none';
+  document.getElementById('landing-screen').style.display='flex';
 }
 function scrollToFeatures(){document.getElementById('features').scrollIntoView({behavior:'smooth'});}
 function showPrivacyPolicy(){openModal('privacy-modal');}
@@ -6109,14 +6283,13 @@ async function pollMessagesUnreadCount(){
 }
 
 let _premiumStatus={enabled:false,premium_sections:[],exempt:true};
+const PREMIUM_SECTION_LABELS={ forecast:'Прогноз ролика', calc:'Калькулятор метрик', ai:'Чат с ИИ', scripts:'Сценарии', competitors:'Конкуренты' };
 
 async function loadPremiumStatusForUser(){
   try{
     const res=await apiFetch('/api/premium/status');
     if(!res.ok)return;
     _premiumStatus=await res.json();
-    const btn=document.getElementById('premium-cta-btn');
-    if(btn)btn.classList.toggle('show',_premiumStatus.enabled&&!_premiumStatus.exempt);
   }catch(e){}
 }
 
@@ -6124,35 +6297,57 @@ function isTabLocked(tab){
   return !!(_premiumStatus.enabled&&!_premiumStatus.exempt&&(_premiumStatus.premium_sections||[]).includes(tab));
 }
 
-function openSubscribeModal(){
-  const list=document.getElementById('subscribe-plans-list');
-  const plans=[
-    { key:'month',   label:'1 месяц',    price:_premiumStatus.price_month },
-    { key:'6months', label:'6 месяцев',  price:_premiumStatus.price_6months },
-    { key:'year',     label:'1 год',      price:_premiumStatus.price_year },
-  ];
-  list.innerHTML=plans.map(function(p){
-    const hasPrice=p.price&&p.price.trim();
-    return '<div class="sub-plan-card">'
-      +'<div><div class="sub-plan-name">'+p.label+'</div><div class="sub-plan-price">'+(hasPrice?escapeHtml(p.price):'цена уточняется')+'</div></div>'
-      +'<button class="sub-plan-buy-btn" '+(hasPrice?'':'disabled')+' onclick="buySubscription(\''+p.key+'\')">Оформить</button>'
-      +'</div>';
-  }).join('');
-  document.getElementById('subscribe-status').textContent='';
-  openModal('subscribe-modal');
+function goToSubscriptionsTab(){
+  const navItem=document.querySelector('.nav-item[data-tab="subscriptions"]');
+  if(navItem)navItem.click();
 }
 
-async function buySubscription(plan){
-  const status=document.getElementById('subscribe-status');
-  status.textContent='Создаём счёт на оплату...';
+async function loadSubscriptionsPage(){
+  const grid=document.getElementById('subscriptions-cards-grid');
+  const banner=document.getElementById('subscriptions-disabled-banner');
+  try{
+    const res=await apiFetch('/api/premium/status');
+    if(res.ok)_premiumStatus=await res.json();
+  }catch(e){}
+
+  if(!_premiumStatus.enabled){
+    banner.style.display='block'; grid.style.display='none'; return;
+  }
+  banner.style.display='none'; grid.style.display='grid';
+
+  const unlockedFeatures=(_premiumStatus.premium_sections||[]).map(function(k){return PREMIUM_SECTION_LABELS[k]||k;});
+  const featuresHtml=unlockedFeatures.length
+    ? unlockedFeatures.map(function(f){return '<li>✓ '+escapeHtml(f)+'</li>';}).join('')
+    : '<li>✓ Полный доступ ко всем разделам сайта</li>';
+
+  const plans=[
+    { key:'month',   label:'1 месяц',   sub:'ежемесячно',        price:_premiumStatus.price_month, featured:false },
+    { key:'6months', label:'6 месяцев', sub:'выгоднее помесячно', price:_premiumStatus.price_6months, featured:true },
+    { key:'year',     label:'1 год',     sub:'максимальная выгода', price:_premiumStatus.price_year, featured:false },
+  ];
+  grid.innerHTML=plans.map(function(p){
+    const hasPrice=p.price&&p.price.trim();
+    return '<div class="sub-page-card'+(p.featured?' featured':'')+'">'
+      +(p.featured?'<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:#a855f7;font-weight:800;text-transform:uppercase;">★ Популярный выбор</div>':'')
+      +'<div><div class="sub-page-plan-name">'+p.label+'</div><div style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--muted);margin-top:2px;">'+p.sub+'</div></div>'
+      +'<div class="sub-page-price">'+(hasPrice?escapeHtml(p.price):'цена уточняется')+'</div>'
+      +'<ul class="sub-page-features">'+featuresHtml+'</ul>'
+      +'<button class="sub-page-buy-btn" '+(hasPrice?'':'disabled')+' onclick="buySubscription(\''+p.key+'\',this)">Оформить</button>'
+      +'</div>';
+  }).join('');
+}
+
+async function buySubscription(plan,btnEl){
+  const originalText=btnEl.textContent;
+  btnEl.disabled=true;btnEl.textContent='Создаём счёт...';
   try{
     const res=await apiFetch('/api/payments/create-invoice',{method:'POST',body:JSON.stringify({ plan:plan })});
     const data=await res.json().catch(function(){return {};});
-    if(!res.ok){status.textContent='Ошибка: '+(data.error||res.status);return;}
-    status.textContent='✓ Открываем страницу оплаты...';
+    if(!res.ok){alert('Ошибка: '+(data.error||res.status));btnEl.disabled=false;btnEl.textContent=originalText;return;}
     window.open(data.pay_url,'_blank');
-    setTimeout(function(){closeModal('subscribe-modal');},1200);
-  }catch(e){status.textContent='Ошибка сети';}
+    btnEl.textContent='✓ Открыта оплата';
+    setTimeout(function(){btnEl.disabled=false;btnEl.textContent=originalText;},2500);
+  }catch(e){alert('Ошибка сети');btnEl.disabled=false;btnEl.textContent=originalText;}
 }
 
 function showDashboard(channelData){
@@ -6203,6 +6398,7 @@ document.querySelectorAll('.nav-item').forEach(function(item){
     if(tab==='premium'&&(_isSupreme||(_myPermissions&&_myPermissions.access_premium_panel))){loadPremiumConfig();}
     if(tab==='ads'){loadAdsMy();}
     if(tab==='messages'){loadMyMessages();}
+    if(tab==='subscriptions'){loadSubscriptionsPage();}
     if(tab==='settings'){updatePinStatusBadge();}
   });
 });
@@ -6290,6 +6486,16 @@ async function handleInitAuthMeResponse(res) {
     updateBanner.addEventListener('click', () => {
       openModal('update-modal');
     });
+  }
+
+  const verifyParam=new URLSearchParams(window.location.search).get('verify');
+  if(verifyParam){
+    const verifyMessages={ success:'✓ Почта подтверждена! Теперь можно войти.', invalid:'Ссылка подтверждения недействительна или уже использована.', expired:'Ссылка подтверждения устарела, зарегистрируйтесь заново.', error:'Ошибка подтверждения почты.', missing_token:'Ссылка повреждена.' };
+    setTimeout(function(){
+      alert(verifyMessages[verifyParam]||'');
+      if(verifyParam==='success')startLogin();
+    },300);
+    window.history.replaceState({},'',window.location.pathname);
   }
 
   console.log('YTMetrics init: checking token in URL');
