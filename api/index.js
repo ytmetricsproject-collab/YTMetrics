@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
@@ -1803,39 +1804,71 @@ const YOUTUBE_SCOPES=[
   'https://www.googleapis.com/auth/yt-analytics-monetary.readonly',
 ].join(' ');
 
-const UNISENDER_GO_API_KEY = process.env.UNISENDER_GO_API_KEY || '';
-const EMAIL_FROM           = process.env.EMAIL_FROM           || '';
-const EMAIL_FROM_NAME      = process.env.EMAIL_FROM_NAME      || 'YTMetrics';
-const YANDEX_CAPTCHA_SERVER_KEY = process.env.YANDEX_CAPTCHA_SERVER_KEY || '';
-const YANDEX_CAPTCHA_CLIENT_KEY = process.env.YANDEX_CAPTCHA_CLIENT_KEY || '';
+const GMAIL_USER          = process.env.GMAIL_USER          || '';
+const GMAIL_APP_PASSWORD  = process.env.GMAIL_APP_PASSWORD  || '';
+const EMAIL_FROM_NAME     = process.env.EMAIL_FROM_NAME      || 'YTMetrics';
 
-// Проверка капчи Yandex SmartCaptcha (server-side валидация токена, полученного от виджета на фронте)
-async function verifyCaptcha(token, userIp) {
-  if(!YANDEX_CAPTCHA_SERVER_KEY)return { ok:false, reason:'CAPTCHA_NOT_CONFIGURED' };
-  if(!token)return { ok:false, reason:'NO_TOKEN' };
-  try{
-    const params=new URLSearchParams({ secret:YANDEX_CAPTCHA_SERVER_KEY, token, ip:userIp||'' });
-    const res=await fetch('https://smartcaptcha.yandexcloud.net/validate?'+params.toString());
-    const data=await res.json();
-    return { ok:data.status==='ok', reason:data.message||data.status };
-  }catch(e){ return { ok:false, reason:'CAPTCHA_ERROR' }; }
-}
-
-// Отправка письма через Unisender Go (транзакционные письма — подтверждение почты)
-async function sendEmail({ to, subject, html }) {
-  if(!UNISENDER_GO_API_KEY||!EMAIL_FROM)throw new Error('EMAIL_NOT_CONFIGURED');
-  const res=await fetch('https://go1.unisender.ru/ru/transactional/api/v1/email/send.json',{
-    method:'POST', headers:{ 'Content-Type':'application/json', 'X-API-KEY':UNISENDER_GO_API_KEY },
-    body:JSON.stringify({ message:{
-      recipients:[{ email:to }],
-      body:{ html },
-      subject, from_email:EMAIL_FROM, from_name:EMAIL_FROM_NAME,
-    } }),
+let mailTransporter=null;
+function getMailTransporter(){
+  if(mailTransporter)return mailTransporter;
+  if(!GMAIL_USER||!GMAIL_APP_PASSWORD)return null;
+  mailTransporter=nodemailer.createTransport({
+    service:'gmail',
+    auth:{ user:GMAIL_USER, pass:GMAIL_APP_PASSWORD },
   });
-  const data=await res.json();
-  if(!res.ok||data.status==='error')throw new Error('Email send error: '+JSON.stringify(data));
-  return data;
+  return mailTransporter;
 }
+
+// Отправка письма с почты проекта (Gmail SMTP + пароль приложения — НЕ вход через Google, просто отправка почты)
+async function sendEmail({ to, subject, html }) {
+  const transporter=getMailTransporter();
+  if(!transporter)throw new Error('EMAIL_NOT_CONFIGURED');
+  await transporter.sendMail({ from:`"${EMAIL_FROM_NAME}" <${GMAIL_USER}>`, to, subject, html });
+}
+
+// ── Своя капча (без сторонних сервисов): простой пример "сколько будет X + Y",
+// отрисованный в SVG с шумом. Ответ хранится не в базе, а в подписанном коротком JWT,
+// который фронт присылает обратно вместе с ответом пользователя — так не нужна отдельная таблица.
+function renderCaptchaSVG(text){
+  let glyphs='';
+  for(let i=0;i<text.length;i++){
+    const x=14+i*22+Math.floor(Math.random()*6-3);
+    const y=30+Math.floor(Math.random()*8-4);
+    const rot=Math.floor(Math.random()*30-15);
+    const size=22+Math.floor(Math.random()*6);
+    glyphs+=`<text x="${x}" y="${y}" font-size="${size}" font-family="monospace" font-weight="bold" fill="#e2ff33" transform="rotate(${rot} ${x} ${y})">${text[i]}</text>`;
+  }
+  let noise='';
+  for(let i=0;i<6;i++){
+    const x1=Math.floor(Math.random()*160),y1=Math.floor(Math.random()*50);
+    const x2=Math.floor(Math.random()*160),y2=Math.floor(Math.random()*50);
+    noise+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#444" stroke-width="1" opacity="0.5"/>`;
+  }
+  for(let i=0;i<25;i++){
+    noise+=`<circle cx="${Math.floor(Math.random()*160)}" cy="${Math.floor(Math.random()*50)}" r="1" fill="#666" opacity="0.4"/>`;
+  }
+  return `<svg viewBox="0 0 160 50" xmlns="http://www.w3.org/2000/svg" style="background:#1a1a1a;border-radius:8px"><rect width="160" height="50" fill="#161616"/>${noise}${glyphs}</svg>`;
+}
+function generateCaptcha(){
+  const a=Math.floor(Math.random()*20)+1, b=Math.floor(Math.random()*20)+1;
+  const ops=['+','−']; const op=ops[Math.floor(Math.random()*ops.length)];
+  const answer=op==='+'?a+b:a-b;
+  const svg=renderCaptchaSVG(`${a}${op}${b}=?`);
+  const captchaToken=jwt.sign({ answer }, JWT_SECRET, { expiresIn:'5m' });
+  return { captcha_token:captchaToken, svg };
+}
+function verifyCaptcha(captchaToken, userAnswer){
+  if(!captchaToken||userAnswer===undefined||userAnswer===null||userAnswer==='')return { ok:false, reason:'NO_ANSWER' };
+  try{
+    const decoded=jwt.verify(captchaToken, JWT_SECRET);
+    return { ok:parseInt(userAnswer,10)===decoded.answer, reason:'checked' };
+  }catch(e){ return { ok:false, reason:'EXPIRED_OR_INVALID' }; }
+}
+
+// GET /api/captcha/generate — новая капча (математический пример в SVG)
+app.get('/api/captcha/generate', (req,res)=>{
+  res.json(generateCaptcha());
+});
 
 // ════════════════════════════════════════════════════════
 // ВХОД ПО EMAIL + ПАРОЛЬ
@@ -1843,7 +1876,7 @@ async function sendEmail({ to, subject, html }) {
 // Регистрация: email → пароль → повтор пароля → капча → письмо-подтверждение
 // ════════════════════════════════════════════════════════
 app.post('/api/auth/email/register', async (req,res)=>{
-  const { email, password, password_confirm, captcha_token }=req.body||{};
+  const { email, password, password_confirm, captcha_token, captcha_answer }=req.body||{};
   if(!email||!password||!password_confirm)return res.status(400).json({ error:'Заполните все поля' });
   const cleanEmail=String(email).trim().toLowerCase();
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail))return res.status(400).json({ error:'Некорректный email' });
@@ -1851,8 +1884,8 @@ app.post('/api/auth/email/register', async (req,res)=>{
   if(String(password).length<8)return res.status(400).json({ error:'Пароль должен быть не короче 8 символов' });
   if(password!==password_confirm)return res.status(400).json({ error:'Пароли не совпадают' });
 
-  const captcha=await verifyCaptcha(captcha_token, req.headers['x-forwarded-for']||req.socket.remoteAddress);
-  if(!captcha.ok)return res.status(400).json({ error:'Проверка «Я не робот» не пройдена, попробуйте ещё раз' });
+  const captcha=verifyCaptcha(captcha_token, captcha_answer);
+  if(!captcha.ok)return res.status(400).json({ error:'Неверный ответ на пример, попробуйте ещё раз' });
 
   try{
     const { data:existing }=await supabase.from('users').select('id').eq('email',cleanEmail).single();
@@ -1868,45 +1901,80 @@ app.post('/api/auth/email/register', async (req,res)=>{
     });
     if(error)return res.status(500).json({ error:'Database error', details:error.message });
 
-    // Токен подтверждения почты (24 часа)
-    const verifyToken=crypto.randomBytes(32).toString('hex');
-    await supabase.from('email_verifications').insert({
-      user_id:userId, token:verifyToken,
-      expires_at:new Date(Date.now()+24*3600*1000).toISOString(),
-    });
-    const verifyUrl=`${REDIRECT_URI.replace('/api/auth/callback','')}/api/auth/email/verify?token=${verifyToken}`;
-    try{
-      await sendEmail({
-        to:cleanEmail, subject:'Подтвердите почту — YTMetrics',
-        html:`<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-          <h2 style="color:#111">Добро пожаловать в YTMetrics!</h2>
-          <p>Подтвердите почту, перейдя по ссылке ниже:</p>
-          <p><a href="${verifyUrl}" style="display:inline-block;padding:12px 24px;background:#e2ff33;color:#111;text-decoration:none;border-radius:8px;font-weight:700">Подтвердить почту</a></p>
-          <p style="color:#888;font-size:12px">Ссылка действует 24 часа. Если вы не регистрировались на YTMetrics — просто проигнорируйте это письмо.</p>
-        </div>`,
-      });
-    }catch(emailErr){ console.warn('Email send failed (non-fatal):',emailErr.message); }
-
+    await sendVerificationCode(userId, cleanEmail);
     await createAdminNotification('new_user','👤 Новый пользователь',`Email: ${cleanEmail}\nСпособ входа: Email\nПочта подтверждена: нет`,userId);
 
-    return res.json({ ok:true, message:'Регистрация прошла успешно! Проверьте почту и перейдите по ссылке для подтверждения.' });
+    return res.json({ ok:true, needs_code:true, email:cleanEmail, message:'Мы отправили код подтверждения на почту' });
   }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
 });
 
-// GET /api/auth/email/verify?token=... — подтверждение почты по ссылке из письма
-app.get('/api/auth/email/verify', async (req,res)=>{
-  const token=req.query.token;
-  const appBase=APP_URL.endsWith('/')?APP_URL.slice(0,-1):APP_URL;
-  if(!token){ res.writeHead(302,{ Location:appBase+'/?verify=missing_token' }); return res.end(); }
+// Генерирует 6-значный код, сохраняет (перезаписывая старый) и отправляет письмо
+async function sendVerificationCode(userId, email){
+  const code=String(Math.floor(100000+Math.random()*900000));
+  await supabase.from('email_verifications').delete().eq('user_id',userId).is('verified_at',null);
+  await supabase.from('email_verifications').insert({
+    user_id:userId, code, attempts:0,
+    expires_at:new Date(Date.now()+15*60*1000).toISOString(),
+  });
+  await sendEmail({
+    to:email, subject:`${code} — код подтверждения YTMetrics`,
+    html:`<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+      <h2 style="color:#111">Добро пожаловать в YTMetrics!</h2>
+      <p>Ваш код подтверждения почты:</p>
+      <div style="font-size:32px;font-weight:800;letter-spacing:6px;background:#f5f5f5;padding:16px 24px;border-radius:10px;text-align:center;color:#111">${code}</div>
+      <p style="color:#888;font-size:12px;margin-top:16px">Код действует 15 минут. Если вы не регистрировались на YTMetrics — просто проигнорируйте это письмо.</p>
+    </div>`,
+  });
+}
+
+// POST /api/auth/email/verify-code — подтверждение почты кодом из письма, сразу входит в аккаунт
+app.post('/api/auth/email/verify-code', async (req,res)=>{
+  const { email, code }=req.body||{};
+  if(!email||!code)return res.status(400).json({ error:'Введите код из письма' });
+  const cleanEmail=String(email).trim().toLowerCase();
   try{
-    const { data:record }=await supabase.from('email_verifications').select('*').eq('token',token).single();
-    if(!record||record.verified_at){ res.writeHead(302,{ Location:appBase+'/?verify=invalid' }); return res.end(); }
-    if(new Date(record.expires_at)<new Date()){ res.writeHead(302,{ Location:appBase+'/?verify=expired' }); return res.end(); }
-    await supabase.from('email_verifications').update({ verified_at:new Date().toISOString() }).eq('token',token);
-    await supabase.from('users').update({ email_verified:true }).eq('id',record.user_id);
-    res.writeHead(302,{ Location:appBase+'/?verify=success' });
-    res.end();
-  }catch(e){ res.writeHead(302,{ Location:appBase+'/?verify=error' }); res.end(); }
+    const { data:user }=await supabase.from('users').select('*').eq('email',cleanEmail).single();
+    if(!user)return res.status(404).json({ error:'Пользователь не найден' });
+    if(user.email_verified)return res.status(400).json({ error:'Почта уже подтверждена, просто войдите' });
+
+    const { data:record }=await supabase.from('email_verifications').select('*').eq('user_id',user.id).is('verified_at',null).order('created_at',{ ascending:false }).limit(1).single();
+    if(!record)return res.status(400).json({ error:'Код не найден, запросите новый' });
+    if(new Date(record.expires_at)<new Date())return res.status(400).json({ error:'Код устарел, запросите новый' });
+    if((record.attempts||0)>=5)return res.status(429).json({ error:'Слишком много попыток, запросите новый код' });
+
+    if(String(code).trim()!==record.code){
+      await supabase.from('email_verifications').update({ attempts:(record.attempts||0)+1 }).eq('id',record.id);
+      return res.status(400).json({ error:'Неверный код' });
+    }
+
+    await supabase.from('email_verifications').update({ verified_at:new Date().toISOString() }).eq('id',record.id);
+    await supabase.from('users').update({ email_verified:true }).eq('id',user.id);
+
+    const jwtPayload={
+      sub:user.id, email:user.email, name:user.name, auth_provider:'email',
+      channel_id:user.channel_id||null, channel_name:user.youtube_channel_name||null,
+      channel_url:user.channel_url||null, avatar_url:user.youtube_channel_avatar||null,
+      subscribers:user.subscriber_count||0, channels:[],
+      access_token:user.youtube_access_token||undefined, refresh_token:user.youtube_refresh_token||undefined,
+    };
+    const sessionToken=signSession(jwtPayload);
+    res.setHeader('Set-Cookie', buildCookieHeader(sessionToken));
+    return res.json({ ok:true, token:sessionToken, ...jwtPayload, access_token:undefined, refresh_token:undefined });
+  }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
+});
+
+// POST /api/auth/email/resend-code — прислать новый код, если старый не пришёл/устарел
+app.post('/api/auth/email/resend-code', async (req,res)=>{
+  const { email }=req.body||{};
+  if(!email)return res.status(400).json({ error:'Укажите почту' });
+  const cleanEmail=String(email).trim().toLowerCase();
+  try{
+    const { data:user }=await supabase.from('users').select('*').eq('email',cleanEmail).single();
+    if(!user)return res.status(404).json({ error:'Пользователь не найден' });
+    if(user.email_verified)return res.status(400).json({ error:'Почта уже подтверждена' });
+    await sendVerificationCode(user.id, user.email);
+    return res.json({ ok:true, message:'Новый код отправлен' });
+  }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
 });
 
 app.post('/api/auth/email/login', async (req,res)=>{
@@ -1918,7 +1986,7 @@ app.post('/api/auth/email/login', async (req,res)=>{
     if(error||!user)return res.status(401).json({ error:'Неверная почта или пароль' });
     if(!verifyPassword(String(password), user.password_hash||''))return res.status(401).json({ error:'Неверная почта или пароль' });
     if(user.banned)return res.status(403).json({ error:'BANNED' });
-    if(!user.email_verified)return res.status(403).json({ error:'EMAIL_NOT_VERIFIED', message:'Подтвердите почту — мы отправили письмо со ссылкой при регистрации' });
+    if(!user.email_verified)return res.status(403).json({ error:'EMAIL_NOT_VERIFIED', message:'Подтвердите почту — введите код, отправленный на неё при регистрации' });
 
     // Если раньше уже подключали YouTube-канал — токены сохранены в этих же полях users
     const jwtPayload={
@@ -1934,10 +2002,6 @@ app.post('/api/auth/email/login', async (req,res)=>{
   }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
 });
 
-// GET /api/config/public — публичные (не секретные) ключи, нужные фронту (капча client key)
-app.get('/api/config/public', (req,res)=>{
-  res.json({ captcha_client_key:YANDEX_CAPTCHA_CLIENT_KEY||null });
-});
 
 
 // ════════════════════════════════════════════════════════
