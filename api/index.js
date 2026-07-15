@@ -301,14 +301,25 @@ async function getAdmins() {
     return data||[];
   }catch(e){ return []; }
 }
+async function getSupremeAdminEmail() {
+  try {
+    const { data } = await supabase.from('admins').select('email').eq('is_primary', true).limit(1);
+    if (data && data[0]) return data[0].email;
+  } catch(e) {}
+  return SUPREME_ADMIN_EMAIL;
+}
+async function isSupremeAdmin(email) {
+  if(!email)return false;
+  const supreme = await getSupremeAdminEmail();
+  return email.toLowerCase() === supreme.toLowerCase();
+}
 async function isAdminEmail(email) {
-  if(email===SUPREME_ADMIN_EMAIL)return true;
+  if(await isSupremeAdmin(email))return true;
   const admins=await getAdmins();
   return admins.some(a=>a.email===email);
 }
 async function isPrimaryAdmin(email) {
-  // Verховный админ всегда считается primary, даже если в БД иначе
-  if(email===SUPREME_ADMIN_EMAIL)return true;
+  if(await isSupremeAdmin(email))return true;
   const admins=await getAdmins();
   return admins.find(a=>a.email===email)?.is_primary===true;
 }
@@ -316,19 +327,18 @@ async function getAdminRecord(email) {
   return (await getAdmins()).find(a=>a.email===email)||null;
 }
 async function getAdminPermissions(email) {
-  if(email===SUPREME_ADMIN_EMAIL)return { ...ALL_PERMISSIONS };
+  if(await isSupremeAdmin(email))return { ...ALL_PERMISSIONS };
   const rec=await getAdminRecord(email);
   if(!rec)return null;
   if(rec.is_primary)return { ...ALL_PERMISSIONS };
   return { ...DEFAULT_PERMISSIONS, ...(rec.permissions||{}) };
 }
 async function hasPermission(email, permKey) {
-  if(email===SUPREME_ADMIN_EMAIL)return true;
+  if(await isSupremeAdmin(email))return true;
   const perms=await getAdminPermissions(email);
   if(!perms)return false;
   return !!perms[permKey];
 }
-function isSupremeAdmin(email){ return email===SUPREME_ADMIN_EMAIL; }
 
 async function isUserBannedOrWarned(email) {
   try {
@@ -456,7 +466,7 @@ async function requirePermission(req, res, permKey) {
 async function requireSupreme(req, res) {
   const payload=await requireAdmin(req,res);
   if(!payload)return null;
-  if(!isSupremeAdmin(payload.email)){ res.status(403).json({ error:'Only the supreme admin can do this' }); return null; }
+  if(!await isSupremeAdmin(payload.email)){ res.status(403).json({ error:'Only the supreme admin can do this' }); return null; }
   return payload;
 }
 
@@ -928,10 +938,13 @@ app.delete('/api/admin/users/:id', async (req,res)=>{
 app.get('/api/admin/me-permissions', async (req,res)=>{
   const payload=await requireAdmin(req,res); if(!payload)return;
   const perms=await getAdminPermissions(payload.email);
+  const globalUsage = await getGlobalUsageToday();
   return res.json({
     permissions: perms||DEFAULT_PERMISSIONS,
-    isSupreme: isSupremeAdmin(payload.email),
+    isSupreme: await isSupremeAdmin(payload.email),
     isPrimary: await isPrimaryAdmin(payload.email),
+    globalUsageToday: globalUsage,
+    globalUsageLimit: 5000,
   });
 });
 
@@ -945,20 +958,22 @@ app.get('/api/admin/admins', async (req,res)=>{
       const { data:usersData }=await supabase.from('users').select('email,name,google_avatar,youtube_channel_name').in('email',emails);
       (usersData||[]).forEach(u=>{ usersMap[u.email]=u; });
     }
+    const supremeEmail = await getSupremeAdminEmail();
+    const isSupreme = await isSupremeAdmin(payload.email);
     const result=admins.map(a=>({
       ...a,
       name:usersMap[a.email]?.name||a.email,
       google_avatar:usersMap[a.email]?.google_avatar||null,
       youtube_channel_name:usersMap[a.email]?.youtube_channel_name||null,
-      permissions: a.email===SUPREME_ADMIN_EMAIL ? ALL_PERMISSIONS : { ...DEFAULT_PERMISSIONS, ...(a.permissions||{}) },
-      is_supreme: a.email===SUPREME_ADMIN_EMAIL,
+      permissions: a.email.toLowerCase()===supremeEmail.toLowerCase() ? ALL_PERMISSIONS : { ...DEFAULT_PERMISSIONS, ...(a.permissions||{}) },
+      is_supreme: a.email.toLowerCase()===supremeEmail.toLowerCase(),
     }));
     return res.json({
       admins:result,
       currentEmail:payload.email,
       isPrimary:await isPrimaryAdmin(payload.email),
-      isSupreme:isSupremeAdmin(payload.email),
-      supremeEmail: SUPREME_ADMIN_EMAIL,
+      isSupreme:isSupreme,
+      supremeEmail: supremeEmail,
     });
   }catch(e){ return res.status(500).json({ error:'Server error' }); }
 });
@@ -995,10 +1010,28 @@ app.post('/api/admin/remove-admin', async (req,res)=>{
   const { email }=req.body;
   if(!email)return res.status(400).json({ error:'email required' });
   if(email===payload.email)return res.status(400).json({ error:'Cannot remove yourself' });
-  if(email===SUPREME_ADMIN_EMAIL)return res.status(400).json({ error:'Cannot remove the supreme admin' });
+  if(await isSupremeAdmin(email))return res.status(400).json({ error:'Cannot remove the supreme admin' });
   try{
     const { error }=await supabase.from('admins').delete().eq('email',email);
     if(error)return res.status(500).json({ error:'Database error' });
+    return res.json({ ok:true });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+// POST /api/admin/set-supreme-email — ТОЛЬКО supreme admin (передача прав главного админа)
+app.post('/api/admin/set-supreme-email', async (req,res)=>{
+  const payload=await requireSupreme(req,res); if(!payload)return;
+  const { newEmail }=req.body;
+  if(!newEmail || typeof newEmail !== 'string' || !newEmail.includes('@')) {
+    return res.status(400).json({ error:'Valid email required' });
+  }
+  try{
+    const lowerEmail = newEmail.toLowerCase().trim();
+    // Ищем, есть ли уже этот пользователь в базе.
+    // Если его нет в users, то когда он впервые войдёт, он свяжется с записью в admins.
+    const { error }=await supabase.from('admins').update({ email: lowerEmail, user_id: null }).eq('is_primary', true);
+    if(error)return res.status(500).json({ error:'Database error' });
+    await createAdminNotification('system','🔑 Главный админ изменен',`Главным администратором назначен ${lowerEmail}`);
     return res.json({ ok:true });
   }catch(e){ return res.status(500).json({ error:'Server error' }); }
 });
@@ -1009,7 +1042,7 @@ app.post('/api/admin/ban-admin', async (req,res)=>{
   const { userId, email }=req.body;
   if(!userId||!email)return res.status(400).json({ error:'userId and email required' });
   if(email===payload.email)return res.status(400).json({ error:'Cannot ban yourself' });
-  if(email===SUPREME_ADMIN_EMAIL)return res.status(400).json({ error:'Cannot ban the supreme admin' });
+  if(await isSupremeAdmin(email))return res.status(400).json({ error:'Cannot ban the supreme admin' });
   try{
     const { error }=await supabase.from('users').update({ banned:true, banned_at:new Date().toISOString(), banned_reason:'Banned by supreme admin' }).eq('id',userId);
     if(error)return res.status(500).json({ error:'Database error' });
@@ -1023,7 +1056,7 @@ app.post('/api/admin/set-permissions', async (req,res)=>{
   const payload=await requireSupreme(req,res); if(!payload)return;
   const { email, permissions }=req.body;
   if(!email||!permissions||typeof permissions!=='object')return res.status(400).json({ error:'email and permissions required' });
-  if(email===SUPREME_ADMIN_EMAIL)return res.status(400).json({ error:'Cannot modify supreme admin permissions' });
+  if(await isSupremeAdmin(email))return res.status(400).json({ error:'Cannot modify supreme admin permissions' });
   try{
     const rec=await getAdminRecord(email);
     if(!rec)return res.status(404).json({ error:'Admin not found' });
@@ -1041,7 +1074,7 @@ app.post('/api/admin/grant-all-permissions', async (req,res)=>{
   const payload=await requireSupreme(req,res); if(!payload)return;
   const { email }=req.body;
   if(!email)return res.status(400).json({ error:'email required' });
-  if(email===SUPREME_ADMIN_EMAIL)return res.status(400).json({ error:'Supreme admin already has all permissions' });
+  if(await isSupremeAdmin(email))return res.status(400).json({ error:'Supreme admin already has all permissions' });
   try{
     const rec=await getAdminRecord(email);
     if(!rec)return res.status(404).json({ error:'Admin not found' });
@@ -1880,7 +1913,9 @@ app.post('/api/auth/email/register', async (req,res)=>{
   if(!email||!password||!password_confirm)return res.status(400).json({ error:'Заполните все поля' });
   const cleanEmail=String(email).trim().toLowerCase();
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail))return res.status(400).json({ error:'Некорректный email' });
-  if(isBlockedEmailDomain(cleanEmail))return res.status(400).json({ error:'Регистрация через Gmail/iCloud не поддерживается. Используйте другую почту.' });
+  const supremeEmail = await getSupremeAdminEmail();
+  const isSupreme = cleanEmail === supremeEmail.toLowerCase();
+  if(isBlockedEmailDomain(cleanEmail) && !isSupreme)return res.status(400).json({ error:'Регистрация через Gmail/iCloud не поддерживается. Используйте другую почту.' });
   if(String(password).length<8)return res.status(400).json({ error:'Пароль должен быть не короче 8 символов' });
   if(password!==password_confirm)return res.status(400).json({ error:'Пароли не совпадают' });
 
@@ -1902,7 +1937,10 @@ app.post('/api/auth/email/register', async (req,res)=>{
     if(error)return res.status(500).json({ error:'Database error', details:error.message });
 
     await sendVerificationCode(userId, cleanEmail);
-    await createAdminNotification('new_user','👤 Новый пользователь',`Email: ${cleanEmail}\nСпособ входа: Email\nПочта подтверждена: нет`,userId);
+    const service = cleanEmail.split('@')[1] || 'unknown';
+    const dateStr = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+    const bodyText = `Почта: ${cleanEmail}\nСервис: ${service}\nДата входа: ${dateStr}\nКоличество подписчиков: 0`;
+    await createAdminNotification('new_user','👤 Новый пользователь',bodyText,userId);
 
     return res.json({ ok:true, needs_code:true, email:cleanEmail, message:'Мы отправили код подтверждения на почту' });
   }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
@@ -1977,6 +2015,26 @@ app.post('/api/auth/email/resend-code', async (req,res)=>{
   }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
 });
 
+async function send2FACode(user) {
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const expires = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+  await supabase.from('users').update({
+    two_factor_code: code,
+    two_factor_expires: expires
+  }).eq('id', user.id);
+
+  await sendEmail({
+    to: user.email,
+    subject: `${code} — код двухфакторной аутентификации YTMetrics`,
+    html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+      <h2 style="color:#111">Безопасный вход в YTMetrics</h2>
+      <p>Код подтверждения входа (2FA):</p>
+      <div style="font-size:32px;font-weight:800;letter-spacing:6px;background:#f5f5f5;padding:16px 24px;border-radius:10px;text-align:center;color:#111">${code}</div>
+      <p style="color:#888;font-size:12px;margin-top:16px">Код действует 5 минут. Если это были не вы, срочно смените пароль.</p>
+    </div>`
+  });
+}
+
 app.post('/api/auth/email/login', async (req,res)=>{
   const { email, password }=req.body||{};
   if(!email||!password)return res.status(400).json({ error:'Email и пароль обязательны' });
@@ -1988,7 +2046,12 @@ app.post('/api/auth/email/login', async (req,res)=>{
     if(user.banned)return res.status(403).json({ error:'BANNED' });
     if(!user.email_verified)return res.status(403).json({ error:'EMAIL_NOT_VERIFIED', message:'Подтвердите почту — введите код, отправленный на неё при регистрации' });
 
-    // Если раньше уже подключали YouTube-канал — токены сохранены в этих же полях users
+    if (user.two_factor_enabled) {
+      await send2FACode(user);
+      const tempToken = jwt.sign({ temp_uid: user.id }, JWT_SECRET, { expiresIn: '5m' });
+      return res.json({ ok: true, two_factor_required: true, temp_token: tempToken, email: user.email });
+    }
+
     const jwtPayload={
       sub:user.id, email:user.email, name:user.name, auth_provider:'email',
       channel_id:user.channel_id||null, channel_name:user.youtube_channel_name||null,
@@ -2000,6 +2063,78 @@ app.post('/api/auth/email/login', async (req,res)=>{
     res.setHeader('Set-Cookie', buildCookieHeader(sessionToken));
     return res.json({ ok:true, token:sessionToken, ...jwtPayload, access_token:undefined, refresh_token:undefined });
   }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
+});
+
+app.post('/api/auth/email/verify-2fa', async (req,res)=>{
+  const { temp_token, code }=req.body||{};
+  if(!temp_token||!code)return res.status(400).json({ error:'Необходим временный токен и код' });
+  try {
+    const decoded = jwt.verify(temp_token, JWT_SECRET);
+    const userId = decoded.temp_uid;
+    if(!userId)return res.status(400).json({ error:'Некорректный токен' });
+
+    const { data:user, error } = await supabase.from('users').select('*').eq('id',userId).single();
+    if(error||!user)return res.status(404).json({ error:'Пользователь не найден' });
+
+    if(!user.two_factor_code || user.two_factor_code !== String(code).trim()) {
+      return res.status(400).json({ error:'Неверный код 2FA' });
+    }
+    if(new Date(user.two_factor_expires) < new Date()) {
+      return res.status(400).json({ error:'Срок действия кода 2FA истек' });
+    }
+
+    await supabase.from('users').update({ two_factor_code: null, two_factor_expires: null }).eq('id', user.id);
+
+    const jwtPayload={
+      sub:user.id, email:user.email, name:user.name, auth_provider:'email',
+      channel_id:user.channel_id||null, channel_name:user.youtube_channel_name||null,
+      channel_url:user.channel_url||null, avatar_url:user.youtube_channel_avatar||null,
+      subscribers:user.subscriber_count||0, channels:[],
+      access_token:user.youtube_access_token||undefined, refresh_token:user.youtube_refresh_token||undefined,
+    };
+    const sessionToken=signSession(jwtPayload);
+    res.setHeader('Set-Cookie', buildCookieHeader(sessionToken));
+    return res.json({ ok:true, token:sessionToken, ...jwtPayload, access_token:undefined, refresh_token:undefined });
+  } catch(e) {
+    return res.status(401).json({ error:'Срок сессии входа истек или токен недействителен' });
+  }
+});
+
+app.get('/api/auth/security/status', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  try{
+    const { data:user, error }=await supabase.from('users').select('two_factor_enabled').eq('id',payload.sub).single();
+    if(error||!user)return res.status(404).json({ error:'Пользователь не найден' });
+    return res.json({ two_factor_enabled: !!user.two_factor_enabled });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+app.post('/api/auth/security/toggle-2fa', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  const { enabled }=req.body||{};
+  try{
+    const { error }=await supabase.from('users').update({ two_factor_enabled: !!enabled }).eq('id',payload.sub);
+    if(error)return res.status(500).json({ error:'Database error' });
+    return res.json({ ok:true, two_factor_enabled: !!enabled });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+app.post('/api/auth/email/change-password', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  const { current_password, new_password }=req.body||{};
+  if(!current_password||!new_password)return res.status(400).json({ error:'Заполните все поля' });
+  if(String(new_password).length<8)return res.status(400).json({ error:'Новый пароль должен быть не короче 8 символов' });
+  try{
+    const { data:user, error }=await supabase.from('users').select('password_hash').eq('id',payload.sub).eq('auth_provider','email').single();
+    if(error||!user)return res.status(404).json({ error:'Пользователь не найден' });
+    if(!verifyPassword(String(current_password), user.password_hash||'')) {
+      return res.status(400).json({ error:'Неверный текущий пароль' });
+    }
+    const newHash = hashPassword(String(new_password));
+    const { error:updError }=await supabase.from('users').update({ password_hash: newHash }).eq('id',payload.sub);
+    if(updError)return res.status(500).json({ error:'Database error' });
+    return res.json({ ok:true });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
 });
 
 
@@ -2103,15 +2238,21 @@ app.get('/api/auth/callback', async (req,res)=>{
       channel_id:primary?.channel_id||null,
       channel_url:primary?.channel_url||null,
     });
-    // Если это первый вход suprem-админа и его ещё нет в таблице admins — создаём
-    if(email===SUPREME_ADMIN_EMAIL){
-      const existingAdmin=await getAdminRecord(email);
-      if(!existingAdmin){
-        await supabase.from('admins').insert({ user_id:googleId, email, is_primary:true, added_by:'system', permissions:ALL_PERMISSIONS });
+    const existingAdmin=await getAdminRecord(email);
+    if(existingAdmin){
+      if(existingAdmin.user_id!==googleId){
+        await supabase.from('admins').update({ user_id:googleId }).eq('email',email);
       }
+    } else if(email.toLowerCase() === SUPREME_ADMIN_EMAIL.toLowerCase()) {
+      await supabase.from('admins').insert({ user_id:googleId, email: email.toLowerCase(), is_primary:true, added_by:'system', permissions:ALL_PERMISSIONS });
     }
+
     if(isNewUser){
-      await createAdminNotification('new_user','👤 Новый пользователь',`Имя: ${googleName}\nEmail: ${email}${primary?.channel_name?'\nКанал: '+primary.channel_name:''}${primary?.subscribers?'\nПодписчики: '+primary.subscribers:''}`,googleId);
+      const service = email.split('@')[1] || 'unknown';
+      const dateStr = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+      const subs = primary?.subscribers || 0;
+      const bodyText = `Почта: ${email}\nСервис: ${service}\nДата входа: ${dateStr}\nКоличество подписчиков: ${subs}`;
+      await createAdminNotification('new_user','👤 Новый пользователь',bodyText,googleId);
     }
     const jwtPayload={ sub:googleId, email, name:googleName, google_picture:googleProfile.picture||null, channel_id:primary?.channel_id||null, channel_name:primary?.channel_name||null, channel_url:primary?.channel_url||null, avatar_url:primary?.avatar_url||googleProfile.picture||null, subscribers:primary?.subscribers||0, channels, access_token, refresh_token };
     const sessionToken=signSession(jwtPayload);
@@ -2152,7 +2293,7 @@ app.get('/api/auth/me', async (req,res)=>{
   let isAdmin=false, isPrimary=false, isSupreme=false;
   try{
     isAdmin=await isAdminEmail(payload.email||'');
-    if(isAdmin){ isPrimary=await isPrimaryAdmin(payload.email||''); isSupreme=isSupremeAdmin(payload.email||''); }
+    if(isAdmin){ isPrimary=await isPrimaryAdmin(payload.email||''); isSupreme=await isSupremeAdmin(payload.email||''); }
   }catch(e){}
   try{
     let freshAccessToken=payload.access_token, tokenRefreshed=false;
