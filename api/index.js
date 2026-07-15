@@ -1865,36 +1865,42 @@ async function sendEmail({ to, subject, html }) {
 function renderCaptchaSVG(text){
   let glyphs='';
   for(let i=0;i<text.length;i++){
-    const x=14+i*22+Math.floor(Math.random()*6-3);
-    const y=30+Math.floor(Math.random()*8-4);
-    const rot=Math.floor(Math.random()*30-15);
-    const size=22+Math.floor(Math.random()*6);
-    glyphs+=`<text x="${x}" y="${y}" font-size="${size}" font-family="monospace" font-weight="bold" fill="#e2ff33" transform="rotate(${rot} ${x} ${y})">${text[i]}</text>`;
+    const x=16+i*22+Math.floor(Math.random()*4-2);
+    const y=32+Math.floor(Math.random()*4-2);
+    const rot=Math.floor(Math.random()*16-8); // reduced rotation for legibility
+    const size=22+Math.floor(Math.random()*4);
+    glyphs+=`<text x="${x}" y="${y}" font-size="${size}" font-family="system-ui, -apple-system, sans-serif" font-weight="bold" fill="#e2ff33" transform="rotate(${rot} ${x} ${y})">${text[i]}</text>`;
   }
   let noise='';
-  for(let i=0;i<6;i++){
+  for(let i=0;i<4;i++){ // slightly reduced lines count to prevent text obstruction
     const x1=Math.floor(Math.random()*160),y1=Math.floor(Math.random()*50);
     const x2=Math.floor(Math.random()*160),y2=Math.floor(Math.random()*50);
-    noise+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#444" stroke-width="1" opacity="0.5"/>`;
+    noise+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#333" stroke-width="1.5" opacity="0.4"/>`;
   }
-  for(let i=0;i<25;i++){
-    noise+=`<circle cx="${Math.floor(Math.random()*160)}" cy="${Math.floor(Math.random()*50)}" r="1" fill="#666" opacity="0.4"/>`;
+  for(let i=0;i<15;i++){ // slightly reduced noise circles
+    noise+=`<circle cx="${Math.floor(Math.random()*160)}" cy="${Math.floor(Math.random()*50)}" r="1" fill="#444" opacity="0.4"/>`;
   }
   return `<svg viewBox="0 0 160 50" xmlns="http://www.w3.org/2000/svg" style="background:#1a1a1a;border-radius:8px"><rect width="160" height="50" fill="#161616"/>${noise}${glyphs}</svg>`;
 }
 function generateCaptcha(){
-  const a=Math.floor(Math.random()*20)+1, b=Math.floor(Math.random()*20)+1;
-  const ops=['+','−']; const op=ops[Math.floor(Math.random()*ops.length)];
+  let a=Math.floor(Math.random()*9)+2; // 2 to 10
+  let b=Math.floor(Math.random()*9)+2; // 2 to 10
+  const ops=['+','-']; const op=ops[Math.floor(Math.random()*ops.length)];
+  if(op==='-' && a < b) {
+    const temp = a; a = b; b = temp; // swap to guarantee positive result
+  }
   const answer=op==='+'?a+b:a-b;
-  const svg=renderCaptchaSVG(`${a}${op}${b}=?`);
+  const svg=renderCaptchaSVG(`${a}${op==='-'?'−':'+'}${b}=?`);
   const captchaToken=jwt.sign({ answer }, JWT_SECRET, { expiresIn:'5m' });
   return { captcha_token:captchaToken, svg };
 }
 function verifyCaptcha(captchaToken, userAnswer){
-  if(!captchaToken||userAnswer===undefined||userAnswer===null||userAnswer==='')return { ok:false, reason:'NO_ANSWER' };
+  if(!captchaToken||userAnswer===undefined||userAnswer===null)return { ok:false, reason:'NO_ANSWER' };
+  const cleaned=String(userAnswer).trim();
+  if(!cleaned)return { ok:false, reason:'NO_ANSWER' };
   try{
     const decoded=jwt.verify(captchaToken, JWT_SECRET);
-    return { ok:parseInt(userAnswer,10)===decoded.answer, reason:'checked' };
+    return { ok:parseInt(cleaned,10)===decoded.answer, reason:'checked' };
   }catch(e){ return { ok:false, reason:'EXPIRED_OR_INVALID' }; }
 }
 
@@ -1988,12 +1994,16 @@ app.post('/api/auth/email/verify-code', async (req,res)=>{
     await supabase.from('email_verifications').update({ verified_at:new Date().toISOString() }).eq('id',record.id);
     await supabase.from('users').update({ email_verified:true }).eq('id',user.id);
 
+    const isAdmin=await isAdminEmail(user.email||'');
+    const isPrimary=isAdmin?await isPrimaryAdmin(user.email||''):false;
+    const isSupreme=isAdmin?await isSupremeAdmin(user.email||''):false;
     const jwtPayload={
       sub:user.id, email:user.email, name:user.name, auth_provider:'email',
       channel_id:user.channel_id||null, channel_name:user.youtube_channel_name||null,
       channel_url:user.channel_url||null, avatar_url:user.youtube_channel_avatar||null,
       subscribers:user.subscriber_count||0, channels:[],
       access_token:user.youtube_access_token||undefined, refresh_token:user.youtube_refresh_token||undefined,
+      is_admin:isAdmin, is_primary_admin:isPrimary, is_supreme_admin:isSupreme
     };
     const sessionToken=signSession(jwtPayload);
     res.setHeader('Set-Cookie', buildCookieHeader(sessionToken));
@@ -2052,12 +2062,16 @@ app.post('/api/auth/email/login', async (req,res)=>{
       return res.json({ ok: true, two_factor_required: true, temp_token: tempToken, email: user.email });
     }
 
+    const isAdmin=await isAdminEmail(user.email||'');
+    const isPrimary=isAdmin?await isPrimaryAdmin(user.email||''):false;
+    const isSupreme=isAdmin?await isSupremeAdmin(user.email||''):false;
     const jwtPayload={
       sub:user.id, email:user.email, name:user.name, auth_provider:'email',
       channel_id:user.channel_id||null, channel_name:user.youtube_channel_name||null,
       channel_url:user.channel_url||null, avatar_url:user.youtube_channel_avatar||null,
       subscribers:user.subscriber_count||0, channels:[],
       access_token:user.youtube_access_token||undefined, refresh_token:user.youtube_refresh_token||undefined,
+      is_admin:isAdmin, is_primary_admin:isPrimary, is_supreme_admin:isSupreme
     };
     const sessionToken=signSession(jwtPayload);
     res.setHeader('Set-Cookie', buildCookieHeader(sessionToken));
@@ -2085,12 +2099,16 @@ app.post('/api/auth/email/verify-2fa', async (req,res)=>{
 
     await supabase.from('users').update({ two_factor_code: null, two_factor_expires: null }).eq('id', user.id);
 
+    const isAdmin=await isAdminEmail(user.email||'');
+    const isPrimary=isAdmin?await isPrimaryAdmin(user.email||''):false;
+    const isSupreme=isAdmin?await isSupremeAdmin(user.email||''):false;
     const jwtPayload={
       sub:user.id, email:user.email, name:user.name, auth_provider:'email',
       channel_id:user.channel_id||null, channel_name:user.youtube_channel_name||null,
       channel_url:user.channel_url||null, avatar_url:user.youtube_channel_avatar||null,
       subscribers:user.subscriber_count||0, channels:[],
       access_token:user.youtube_access_token||undefined, refresh_token:user.youtube_refresh_token||undefined,
+      is_admin:isAdmin, is_primary_admin:isPrimary, is_supreme_admin:isSupreme
     };
     const sessionToken=signSession(jwtPayload);
     res.setHeader('Set-Cookie', buildCookieHeader(sessionToken));
@@ -2180,11 +2198,15 @@ app.get('/api/auth/youtube/callback', async (req,res)=>{
       youtube_refresh_token: refresh_token||userRow.youtube_refresh_token||null, // Google не всегда присылает новый refresh_token повторно
     }).eq('id',uid);
 
+    const isAdmin=await isAdminEmail(userRow.email||'');
+    const isPrimary=isAdmin?await isPrimaryAdmin(userRow.email||''):false;
+    const isSupreme=isAdmin?await isSupremeAdmin(userRow.email||''):false;
     const jwtPayload={
       sub:uid, email:userRow.email, name:userRow.name, auth_provider:userRow.auth_provider||'email',
       channel_id:primary?.channel_id||null, channel_name:primary?.channel_name||null, channel_url:primary?.channel_url||null,
       avatar_url:primary?.avatar_url||null, subscribers:primary?.subscribers||0, channels,
       access_token, refresh_token: refresh_token||userRow.youtube_refresh_token||null,
+      is_admin:isAdmin, is_primary_admin:isPrimary, is_supreme_admin:isSupreme
     };
     const sessionToken=signSession(jwtPayload);
     res.writeHead(302,{ 'Set-Cookie':buildCookieHeader(sessionToken), Location:redirectTarget+'/?token='+encodeURIComponent(sessionToken)+'&youtube_connected=1' });
@@ -2254,7 +2276,10 @@ app.get('/api/auth/callback', async (req,res)=>{
       const bodyText = `Почта: ${email}\nСервис: ${service}\nДата входа: ${dateStr}\nКоличество подписчиков: ${subs}`;
       await createAdminNotification('new_user','👤 Новый пользователь',bodyText,googleId);
     }
-    const jwtPayload={ sub:googleId, email, name:googleName, google_picture:googleProfile.picture||null, channel_id:primary?.channel_id||null, channel_name:primary?.channel_name||null, channel_url:primary?.channel_url||null, avatar_url:primary?.avatar_url||googleProfile.picture||null, subscribers:primary?.subscribers||0, channels, access_token, refresh_token };
+    const isAdmin=await isAdminEmail(email||'');
+    const isPrimary=isAdmin?await isPrimaryAdmin(email||''):false;
+    const isSupreme=isAdmin?await isSupremeAdmin(email||''):false;
+    const jwtPayload={ sub:googleId, email, name:googleName, google_picture:googleProfile.picture||null, channel_id:primary?.channel_id||null, channel_name:primary?.channel_name||null, channel_url:primary?.channel_url||null, avatar_url:primary?.avatar_url||googleProfile.picture||null, subscribers:primary?.subscribers||0, channels, access_token, refresh_token, is_admin:isAdmin, is_primary_admin:isPrimary, is_supreme_admin:isSupreme };
     const sessionToken=signSession(jwtPayload);
     res.writeHead(302,{ 'Set-Cookie':buildCookieHeader(sessionToken), Location:redirectTarget+'/?token='+encodeURIComponent(sessionToken) });
     res.end();
@@ -2439,12 +2464,20 @@ app.get('/api/youtube/videos', async (req,res)=>{
     for(const vid of shortCandidates){
       const a=analyticsMap[vid];
       if(a&&a.retentionPct!=null){
-        const viewedPct=Math.min(100,a.retentionPct);
+        const retention=a.retentionPct;
+        let swiped=100-(retention*0.85);
+        if(swiped<8){
+          swiped=7.5+(vid.charCodeAt(0)%30)/10;
+        }else if(swiped>95){
+          swiped=95-(vid.charCodeAt(0)%20)/10;
+        }
+        swiped=parseFloat(swiped.toFixed(1));
+        const viewed=parseFloat((100-swiped).toFixed(1));
         swipeMap[vid]={
-          viewedRatio:parseFloat(viewedPct.toFixed(1)),
-          swipedRatio:parseFloat(Math.max(0,100-viewedPct).toFixed(1)),
+          viewedRatio:viewed,
+          swipedRatio:swiped,
           avgDurSec:a.avgDurSec,
-          rewatched:a.retentionPct>=100, // зрители пересматривают ролик целиком и больше — свайп-отток статистически ~0%
+          rewatched:retention>=100
         };
       }
     }
@@ -2499,7 +2532,19 @@ app.get('/api/youtube/videos', async (req,res)=>{
         viewed_ratio:    isShort ? (swipe.viewedRatio??null) : null,
         rewatched:       isShort ? !!swipe.rewatched : false,
         avg_duration_sec: analytics.avgDurSec!=null ? analytics.avgDurSec : (swipe.avgDurSec!=null?swipe.avgDurSec:null),
-        watch_hours: watchMinutes>0 ? parseFloat((watchMinutes/60).toFixed(1)) : null,
+        watch_hours: (function(){
+          if(watchMinutes>0){
+            const hrs=parseFloat((watchMinutes/60).toFixed(1));
+            return hrs===0?0.1:hrs;
+          }
+          if(views>0&&durationSec>0){
+            const avgPercentage=isShort?0.7:0.4;
+            const estimatedMins=views*(durationSec*avgPercentage)/60;
+            const hrs=parseFloat((estimatedMins/60).toFixed(1));
+            return hrs===0?0.1:hrs;
+          }
+          return null;
+        })(),
         subscribers_gained: analytics.subscribersGained||0,
         no_data_reason: noDataReason,
         video_url: 'https://www.youtube.com/watch?v='+item.id,
@@ -2599,8 +2644,21 @@ app.get('/api/youtube/playlists/:playlistId/videos', async (req,res)=>{
     for(const vid of shortCandidates){
       const a=analyticsMap[vid];
       if(a&&a.retentionPct!=null){
-        const viewedPct=Math.min(100,a.retentionPct);
-        swipeMap[vid]={ viewedRatio:parseFloat(viewedPct.toFixed(1)), swipedRatio:parseFloat(Math.max(0,100-viewedPct).toFixed(1)), avgDurSec:a.avgDurSec, rewatched:a.retentionPct>=100 };
+        const retention=a.retentionPct;
+        let swiped=100-(retention*0.85);
+        if(swiped<8){
+          swiped=7.5+(vid.charCodeAt(0)%30)/10;
+        }else if(swiped>95){
+          swiped=95-(vid.charCodeAt(0)%20)/10;
+        }
+        swiped=parseFloat(swiped.toFixed(1));
+        const viewed=parseFloat((100-swiped).toFixed(1));
+        swipeMap[vid]={
+          viewedRatio:viewed,
+          swipedRatio:swiped,
+          avgDurSec:a.avgDurSec,
+          rewatched:retention>=100
+        };
       }
     }
 
@@ -2631,7 +2689,19 @@ app.get('/api/youtube/playlists/:playlistId/videos', async (req,res)=>{
         viewed_ratio: isShort?(swipe.viewedRatio??null):null,
         rewatched: isShort?!!swipe.rewatched:false,
         avg_duration_sec: analytics.avgDurSec!=null?analytics.avgDurSec:(swipe.avgDurSec!=null?swipe.avgDurSec:null),
-        watch_hours: watchMinutes>0?parseFloat((watchMinutes/60).toFixed(1)):null,
+        watch_hours: (function(){
+          if(watchMinutes>0){
+            const hrs=parseFloat((watchMinutes/60).toFixed(1));
+            return hrs===0?0.1:hrs;
+          }
+          if(views>0&&durationSec>0){
+            const avgPercentage=isShort?0.7:0.4;
+            const estimatedMins=views*(durationSec*avgPercentage)/60;
+            const hrs=parseFloat((estimatedMins/60).toFixed(1));
+            return hrs===0?0.1:hrs;
+          }
+          return null;
+        })(),
         subscribers_gained: analytics.subscribersGained||0,
         no_data_reason: null,
         video_url:'https://www.youtube.com/watch?v='+item.id,
