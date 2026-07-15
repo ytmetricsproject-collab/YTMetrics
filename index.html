@@ -17,7 +17,7 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
     :root,[data-theme="dark"]{
       --bg:#080c10;--surface:#0e1318;--border:#1a2230;
@@ -32,7 +32,7 @@
       --input-bg:#f7f8fa;--modal-bg:#ffffff;--shadow:rgba(0,0,0,0.12);
     }
     *{box-sizing:border-box;margin:0;padding:0;}
-    body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;transition:background .25s,color .25s;}
+    body{background:var(--bg);color:var(--text);font-family:'Inter','Cairo',sans-serif;min-height:100vh;overflow-x:hidden;transition:background .25s,color .25s;}
     body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");opacity:.35;}
     [data-theme="light"] body::before{opacity:.1;}
 
@@ -44,7 +44,7 @@
     .ban-appeal-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;text-align:left;}
     .ban-textarea{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;outline:none;resize:vertical;min-height:90px;margin-bottom:14px;}
     .ban-textarea:focus{border-color:var(--red);}
-    .ban-btn{width:100%;padding:15px;background:var(--red);color:#fff;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;cursor:pointer;}
+    .ban-btn{width:100%;padding:15px;background:var(--red);color:#fff;border:none;border-radius:12px;font-family:'Inter',sans-serif;font-size:15px;font-weight:800;cursor:pointer;}
     .ban-btn:disabled{opacity:.5;cursor:not-allowed;}
     .ban-success{background:rgba(57,255,154,.08);border:1px solid rgba(57,255,154,.2);border-radius:12px;padding:14px 18px;font-family:'DM Mono',monospace;font-size:12px;color:var(--green);margin-top:14px;display:none;}
 
@@ -54,7 +54,7 @@
     .landing-logo-mark{width:36px;height:36px;border-radius:9px;object-fit:cover;}
     .landing-logo-name{font-size:18px;font-weight:800;letter-spacing:-.3px;}
     .landing-logo-name span{color:var(--accent);}
-    .btn-analyze{display:flex;align-items:center;gap:10px;padding:12px 26px;background:var(--accent);color:var(--bg);border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s;}
+    .btn-analyze{display:flex;align-items:center;gap:10px;padding:12px 26px;background:var(--accent);color:var(--bg);border:none;border-radius:12px;font-family:'Inter',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s;}
     .btn-analyze:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(232,255,71,.3);}
     .landing-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 40px 60px;}
     .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(232,255,71,.08);border:1px solid rgba(232,255,71,.2);border-radius:20px;padding:8px 18px;font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);margin-bottom:32px;}
@@ -66,9 +66,9 @@
     .hero-description{font-family:'DM Mono',monospace;font-size:13px;color:var(--muted);line-height:1.8;max-width:680px;margin-bottom:32px;padding:20px 28px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;text-align:left;}
     .hero-description strong{color:var(--text);font-weight:500;}
     .hero-cta{display:flex;align-items:center;gap:14px;margin-bottom:40px;}
-    .btn-cta-main{display:flex;align-items:center;gap:10px;padding:16px 32px;background:var(--accent);color:var(--bg);border:none;border-radius:14px;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:all .15s;}
+    .btn-cta-main{display:flex;align-items:center;gap:10px;padding:16px 32px;background:var(--accent);color:var(--bg);border:none;border-radius:14px;font-family:'Inter',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:all .15s;}
     .btn-cta-main:hover{transform:translateY(-2px);box-shadow:0 10px 36px rgba(232,255,71,.3);}
-    .btn-cta-sec{padding:16px 28px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:14px;font-family:'Syne',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;}
+    .btn-cta-sec{padding:16px 28px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:14px;font-family:'Inter',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;}
     .btn-cta-sec:hover{border-color:var(--accent);color:var(--accent);}
     .hero-trust{display:flex;align-items:center;gap:24px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:48px;}
     .trust-item{display:flex;align-items:center;gap:7px;}
@@ -230,7 +230,7 @@
     .modal-close:hover{color:var(--red);border-color:rgba(255,71,87,.3);}
     .modal-body{padding:22px 26px 28px;}
 
-    .ai-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;margin-bottom:14px;}
+    .ai-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;border:none;border-radius:12px;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;margin-bottom:14px;}
     .ai-btn:disabled{opacity:.5;cursor:not-allowed;}
     .ai-btn-green{background:linear-gradient(135deg,rgba(57,255,154,.15),rgba(57,255,154,.05));border:1px solid rgba(57,255,154,.3);color:var(--green);}
     .ai-btn-green:hover:not(:disabled){background:linear-gradient(135deg,rgba(57,255,154,.25),rgba(57,255,154,.1));border-color:rgba(57,255,154,.5);}
@@ -269,7 +269,7 @@
     .chat-input{flex:1;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:11px 16px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;outline:none;transition:border-color .2s;resize:none;}
     .chat-input:focus{border-color:var(--accent);}
     .chat-input::placeholder{color:var(--muted);}
-    .chat-send{padding:11px 20px;background:var(--accent);color:var(--bg);border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s;white-space:nowrap;}
+    .chat-send{padding:11px 20px;background:var(--accent);color:var(--bg);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s;white-space:nowrap;}
     .chat-send:hover{opacity:.85;}.chat-send:disabled{opacity:.4;cursor:not-allowed;}
     .chat-context-btn{display:flex;align-items:center;gap:8px;padding:9px 16px;background:rgba(180,100,255,.08);border:1px solid rgba(180,100,255,.25);border-radius:10px;font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:#c084fc;cursor:pointer;transition:all .15s;margin-bottom:10px;width:100%;}
     .chat-context-btn:hover{background:rgba(180,100,255,.15);border-color:rgba(180,100,255,.4);}
@@ -317,7 +317,7 @@
     .star-btn:hover,.star-btn.active{filter:none;opacity:1;transform:scale(1.15);}
     .feedback-textarea{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;outline:none;resize:vertical;min-height:90px;margin-bottom:14px;}
     .feedback-textarea:focus{border-color:var(--accent);}
-    .feedback-submit-btn{padding:12px 28px;background:var(--accent);color:var(--bg);border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+    .feedback-submit-btn{padding:12px 28px;background:var(--accent);color:var(--bg);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
     .feedback-submit-btn:disabled{opacity:.5;cursor:not-allowed;}
     .feedback-success{background:rgba(57,255,154,.08);border:1px solid rgba(57,255,154,.2);border-radius:12px;padding:14px 18px;font-family:'DM Mono',monospace;font-size:12px;color:var(--green);margin-top:12px;display:none;}
     .feedback-error{font-family:'DM Mono',monospace;font-size:12px;color:var(--red);margin-top:8px;min-height:18px;}
@@ -522,7 +522,7 @@
     .umodal-no-data{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);font-style:italic;}
     .umodal-banned-banner{background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.25);border-radius:11px;padding:12px 16px;display:flex;align-items:center;gap:10px;font-family:'DM Mono',monospace;font-size:12px;color:var(--red);margin:0 28px 10px;}
     .umodal-actions{display:flex;gap:8px;padding:0 28px 24px;flex-wrap:wrap;}
-    .umodal-btn{flex:1;min-width:120px;padding:12px;border-radius:10px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;border:none;text-align:center;}
+    .umodal-btn{flex:1;min-width:120px;padding:12px;border-radius:10px;font-family:'Inter',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;border:none;text-align:center;}
     .umodal-btn-ban{background:rgba(255,71,87,.12);border:1px solid rgba(255,71,87,.3);color:var(--red);}
     .umodal-btn-ban:hover{background:rgba(255,71,87,.2);}
     .umodal-btn-unban{background:rgba(57,255,154,.1);border:1px solid rgba(57,255,154,.3);color:var(--green);}
@@ -551,15 +551,15 @@
     .perm-row-desc{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;}
     .perm-checkbox{width:22px;height:22px;border-radius:6px;border:2px solid var(--border);background:var(--surface);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:transparent;transition:all .15s;cursor:pointer;}
     .perm-checkbox.checked{background:var(--accent2);border-color:var(--accent2);color:var(--bg);}
-    .grant-all-btn{width:100%;padding:13px;background:var(--red);color:#fff;border:none;border-radius:11px;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;cursor:pointer;margin-top:18px;transition:opacity .15s;}
+    .grant-all-btn{width:100%;padding:13px;background:var(--red);color:#fff;border:none;border-radius:11px;font-family:'Inter',sans-serif;font-size:13px;font-weight:800;cursor:pointer;margin-top:18px;transition:opacity .15s;}
     .grant-all-btn:hover{opacity:.85;}
-    .perm-save-btn{width:100%;padding:13px;background:var(--accent2);color:var(--bg);border:none;border-radius:11px;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;cursor:pointer;margin-top:10px;transition:opacity .15s;}
+    .perm-save-btn{width:100%;padding:13px;background:var(--accent2);color:var(--bg);border:none;border-radius:11px;font-family:'Inter',sans-serif;font-size:13px;font-weight:800;cursor:pointer;margin-top:10px;transition:opacity .15s;}
     .perm-save-btn:hover{opacity:.85;}
     .perm-supreme-note{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.6;}
 
     .news-create-card{background:var(--surface);border:1px solid rgba(232,255,71,.2);border-radius:16px;padding:20px 22px;margin:0 auto 20px auto;max-width:680px;}
     .news-create-title{font-size:14px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
-    .news-input{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:11px 16px;color:var(--text);font-family:'Syne',sans-serif;font-size:14px;outline:none;margin-bottom:10px;}
+    .news-input{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:11px 16px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;outline:none;margin-bottom:10px;}
     .news-input:focus{border-color:var(--accent);}
     .news-textarea{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:11px 16px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;outline:none;resize:vertical;min-height:90px;margin-bottom:10px;}
     .news-textarea:focus{border-color:var(--accent);}
@@ -567,7 +567,7 @@
     .news-file-btn{padding:9px 16px;border-radius:8px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);border:1px solid var(--border);background:var(--input-bg);cursor:pointer;}
     .news-file-btn:hover{border-color:var(--accent);color:var(--accent);}
     .news-file-preview{font-family:'DM Mono',monospace;font-size:11px;color:var(--green);}
-    .news-submit-btn{padding:11px 26px;background:var(--accent);color:var(--bg);border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+    .news-submit-btn{padding:11px 26px;background:var(--accent);color:var(--bg);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
     .news-submit-btn:disabled{opacity:.5;cursor:not-allowed;}
     .news-post{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px 24px;margin:0 auto 18px auto;max-width:680px;}
     .news-post-title{font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px;}
@@ -606,7 +606,7 @@
     .install-hero-icon{width:88px;height:88px;border-radius:20px;margin:0 auto 20px;display:block;box-shadow:0 12px 32px rgba(232,255,71,.2);}
     .install-hero-title{font-size:22px;font-weight:800;margin-bottom:8px;}
     .install-hero-sub{font-family:'DM Mono',monospace;font-size:13px;color:var(--muted);line-height:1.7;max-width:480px;margin:0 auto 24px;}
-    .install-btn{display:inline-flex;align-items:center;gap:10px;padding:15px 32px;background:var(--accent);color:var(--bg);border:none;border-radius:14px;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:all .15s;}
+    .install-btn{display:inline-flex;align-items:center;gap:10px;padding:15px 32px;background:var(--accent);color:var(--bg);border:none;border-radius:14px;font-family:'Inter',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:all .15s;}
     .install-btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(232,255,71,.3);}
     .install-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
     .install-status-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(57,255,154,.1);border:1px solid rgba(57,255,154,.25);border-radius:20px;padding:8px 18px;font-family:'DM Mono',monospace;font-size:12px;color:var(--green);margin-bottom:8px;}
@@ -748,7 +748,7 @@
 </div>
 
 <!-- UPDATE BANNER (Top-Left) -->
-<div id="global-update-banner" style="position: fixed; top: 16px; left: 16px; z-index: 100; display: none; align-items: center; gap: 8px; background: rgba(255, 159, 71, 0.95); border: 1px solid rgba(255, 159, 71, 0.4); border-radius: 20px; padding: 8px 16px; backdrop-filter: blur(8px); font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: #000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); cursor: pointer; animation: pulse-update 2s infinite;">
+<div id="global-update-banner" style="position: fixed; top: 16px; left: 16px; z-index: 100; display: none; align-items: center; gap: 8px; background: rgba(255, 159, 71, 0.95); border: 1px solid rgba(255, 159, 71, 0.4); border-radius: 20px; padding: 8px 16px; backdrop-filter: blur(8px); font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; color: #000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); cursor: pointer; animation: pulse-update 2s infinite;">
   ✨ Доступно обновление
 </div>
 
@@ -822,7 +822,7 @@
   color: #ffffff;
   padding: 12px 24px;
   border-radius: 12px;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 700;
   box-shadow: 0 8px 32px rgba(39, 174, 96, 0.2);
@@ -858,7 +858,7 @@
   text-align: right;
 }
 [dir="rtl"] body, [dir="rtl"] button, [dir="rtl"] input, [dir="rtl"] textarea {
-  font-family: 'Cairo', 'Syne', sans-serif;
+  font-family: 'Cairo', 'Inter', sans-serif;
 }
 [dir="rtl"] #sidebar {
   border-right: none;
@@ -924,7 +924,7 @@
 <div id="update-screen" style="position: fixed; inset: 0; z-index: 999; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: #fff;">
   <div style="text-align: center; max-width: 400px; width: 100%;">
     <div style="font-size: 40px; margin-bottom: 24px; animation: spin-update 3s linear infinite; display: inline-block;">⚙️</div>
-    <div style="font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; margin-bottom: 8px;" id="update-status-title">Обновление приложения...</div>
+    <div style="font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 800; margin-bottom: 8px;" id="update-status-title">Обновление приложения...</div>
     <div style="font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); margin-bottom: 32px;" id="update-status-desc">Загрузка ресурсов (Размер: 12.4 MB)</div>
     
     <!-- Progress Bar -->
@@ -1091,7 +1091,7 @@
     <div class="modal-body" style="padding-top:0;">
       <div style="text-align:center;margin-bottom:22px;">
         <img src="./icon-192.png" alt="YTMetrics" style="width:52px;height:52px;border-radius:14px;margin-bottom:10px;" onerror="this.style.display='none'">
-        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.5px;">YT<span style="color:var(--accent)">Metrics</span></div>
+        <div style="font-family:'Inter',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.5px;">YT<span style="color:var(--accent)">Metrics</span></div>
         <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:4px;" id="auth-modal-subtitle">Вход в аккаунт</div>
       </div>
 
@@ -1404,23 +1404,7 @@
       <div class="calc-block" style="margin-bottom:16px">
         <div class="calc-block-title" id="scripts-templates-title">🔥 Быстрые шаблоны ИИ-генерации</div>
         <div class="calc-block-sub" id="scripts-templates-sub">Выберите готовый шаблон, чтобы автоматически настроить анкету под нужный тип контента</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:10px;">
-          <div class="template-card" onclick="applyScriptTemplate('shorts_hook')" style="background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-            <div style="font-size:16px;margin-bottom:4px;">⚡</div>
-            <div style="font-size:12px;font-weight:700;" id="tpl-hook-title">Крючок для Shorts</div>
-            <div style="font-size:10px;color:var(--muted);margin-top:2px;" id="tpl-hook-desc">Умный сценарий удержания зрителя с первых секунд.</div>
-          </div>
-          <div class="template-card" onclick="applyScriptTemplate('storytelling')" style="background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-            <div style="font-size:16px;margin-bottom:4px;">📖</div>
-            <div style="font-size:12px;font-weight:700;" id="tpl-story-title">Увлекательный Сторителлинг</div>
-            <div style="font-size:10px;color:var(--muted);margin-top:2px;" id="tpl-story-desc">Построение сюжета по правилам драматургии.</div>
-          </div>
-          <div class="template-card" onclick="applyScriptTemplate('product_review')" style="background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-            <div style="font-size:16px;margin-bottom:4px;">🛍️</div>
-            <div style="font-size:12px;font-weight:700;" id="tpl-review-title">Обзор товара / услуги</div>
-            <div style="font-size:10px;color:var(--muted);margin-top:2px;" id="tpl-review-desc">Сценарий коммерческого или нативного обзора.</div>
-          </div>
-        </div>
+        <div id="scripts-templates-container" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:10px;"></div>
       </div>
 
       <div class="calc-block" style="margin-bottom:16px">
@@ -1454,7 +1438,10 @@
         <div class="calc-block-title" id="comp-input-title">Что ищем</div>
         <div class="calc-block-sub" id="comp-input-sub">Например: «каналы про обзор смартфонов на русском» или «блогеры о ремонте квартир»</div>
         <textarea class="feedback-textarea" id="comp-query-text" maxlength="500" style="min-height:70px" placeholder="Опиши нишу, тему или конкретный запрос для поиска конкурентов..."></textarea>
-        <button class="ai-btn ai-btn-yellow" id="comp-search-btn" onclick="searchCompetitors()" style="margin-top:12px;margin-bottom:0">🔎 <span id="comp-search-btn-text">Найти конкурентов</span></button>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+          <button class="ai-btn ai-btn-yellow" id="comp-search-btn" onclick="searchCompetitors()" style="margin-bottom:0;flex:1;min-width:200px">🔎 <span id="comp-search-btn-text">Найти конкурентов</span></button>
+          <button class="ai-btn ai-btn-blue" id="comp-auto-btn" onclick="autoSearchCompetitors()" style="margin-bottom:0;flex:1;min-width:200px">🧠 <span id="comp-auto-btn-text">Анализ моего канала</span></button>
+        </div>
       </div>
 
       <div id="comp-intent-block" style="display:none;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:16px"></div>
@@ -2525,7 +2512,7 @@ function renderInstallButtons(){
     const style=isCurrent
       ?'background:var(--accent);color:var(--bg);border:none;'
       :'background:transparent;color:var(--text);border:1px solid var(--border);';
-    return '<a href="'+GH_RELEASE_BASE+d.file+'" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;border-radius:12px;font-family:\'Syne\',sans-serif;font-size:14px;font-weight:800;text-decoration:none;'+style+'">'
+    return '<a href="'+GH_RELEASE_BASE+d.file+'" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;border-radius:12px;font-family:\'Inter\',sans-serif;font-size:14px;font-weight:800;text-decoration:none;'+style+'">'
       +d.icon+' '+d.label+(isCurrent?' <span style="font-family:\'DM Mono\',monospace;font-size:10px;font-weight:500;opacity:.75">(ваша ОС)</span>':'')
       +'</a>';
   }).join('');
@@ -2876,7 +2863,42 @@ const T={
     sec_2fa_enabled_badge:'2FA Вкл',
     sec_2fa_disabled_badge:'2FA Выкл',
     password_changed:'Пароль успешно изменен',
-    connect_maybe_later:'Возможно позже'
+    connect_maybe_later:'Возможно позже',
+    sec_niche_recommended:'Рекомендовано',
+    connect_or_fill_profile:'Сначала подключите YouTube-канал или заполните анкету в разделе «Сценарии»!',
+    comp_auto_btn:'Анализ моего канала',
+    competitors_page_title:'Поиск конкурентов',
+    competitors_page_sub:'Опиши свою нишу — ИИ найдёт релевантные каналы и видео на YouTube',
+    comp_input_title:'Что ищем',
+    comp_input_sub:'Например: «каналы про обзор смартфонов на русском» или «блогеры о ремонте квартир»',
+    comp_query_placeholder:'Опиши нишу, тему или конкретный запрос для поиска конкурентов...',
+    comp_search_btn_text:'Найти конкурентов',
+    err_email_pass_req: 'Email и пароль обязательны',
+    err_invalid_credentials: 'Неверная почта или пароль',
+    err_email_exists: 'Пользователь с такой почтой уже зарегистрирован',
+    err_wrong_captcha: 'Неверный ответ на пример, попробуйте ещё раз',
+    err_user_not_found: 'Пользователь не найден',
+    err_email_already_verified: 'Почта уже подтверждена, просто войдите',
+    err_code_not_found: 'Код не найден, запросите новый',
+    err_code_expired: 'Код устарел, запросите новый',
+    err_too_many_attempts: 'Слишком много попыток, запросите новый код',
+    err_wrong_code: 'Неверный код',
+    err_wrong_2fa_code: 'Неверный код 2FA',
+    err_2fa_code_expired: 'Срок действия кода 2FA истек',
+    err_fill_all_fields: 'Заполните все поля',
+    err_current_password_wrong: 'Текущий пароль указан неверно',
+    err_new_password_short: 'Новый пароль должен быть от 8 символов',
+    err_session_expired: 'Срок сессии входа истек или токен недействителен',
+    err_network_error: 'Ошибка сети',
+    err_passwords_mismatch: 'Пароли не совпадают',
+    err_password_min_len: 'Пароль должен быть не короче 8 символов',
+    err_solve_captcha: 'Решите пример с картинки',
+    err_enter_6_digits: 'Введите 6-значный код',
+    status_checking_code: 'Проверяем код...',
+    status_sending_code: 'Отправляем новый код...',
+    status_code_resent: '✓ Код отправлен повторно',
+    status_registering: 'Регистрируем...',
+    status_logging_in: 'Входим...'
   },
   en:{
     nav_stats:'Analytics', nav_forecast:'Video Forecast', nav_calc:'Calculator',
@@ -3204,7 +3226,42 @@ const T={
     sec_2fa_enabled_badge:'2FA On',
     sec_2fa_disabled_badge:'2FA Off',
     password_changed:'Password changed successfully',
-    connect_maybe_later:'Maybe later'
+    connect_maybe_later:'Maybe later',
+    sec_niche_recommended:'Recommended',
+    connect_or_fill_profile:'First connect a YouTube channel or fill out the profile in the Scripts section!',
+    comp_auto_btn:'Analyze My Channel',
+    competitors_page_title:'Find Competitors',
+    competitors_page_sub:'Describe your niche — AI will find relevant channels and videos on YouTube',
+    comp_input_title:'What are we looking for',
+    comp_input_sub:'For example: \'smartphone review channels in English\' or \'apartment renovation bloggers\'',
+    comp_query_placeholder:'Describe the niche, topic, or specific query to find competitors...',
+    comp_search_btn_text:'Find Competitors',
+    err_email_pass_req: 'Email and password are required',
+    err_invalid_credentials: 'Incorrect email or password',
+    err_email_exists: 'A user with this email is already registered',
+    err_wrong_captcha: 'Incorrect captcha answer, please try again',
+    err_user_not_found: 'User not found',
+    err_email_already_verified: 'Email is already verified, just log in',
+    err_code_not_found: 'Verification code not found, request a new one',
+    err_code_expired: 'Verification code expired, request a new one',
+    err_too_many_attempts: 'Too many attempts, request a new code',
+    err_wrong_code: 'Invalid verification code',
+    err_wrong_2fa_code: 'Incorrect 2FA code',
+    err_2fa_code_expired: '2FA code has expired',
+    err_fill_all_fields: 'Please fill in all fields',
+    err_current_password_wrong: 'Current password is incorrect',
+    err_new_password_short: 'New password must be at least 8 characters long',
+    err_session_expired: 'Session expired or token is invalid',
+    err_network_error: 'Network error',
+    err_passwords_mismatch: 'Passwords do not match',
+    err_password_min_len: 'Password must be at least 8 characters',
+    err_solve_captcha: 'Solve the captcha',
+    err_enter_6_digits: 'Enter 6-digit code',
+    status_checking_code: 'Checking code...',
+    status_sending_code: 'Sending new code...',
+    status_code_resent: '✓ Code resent successfully',
+    status_registering: 'Registering...',
+    status_logging_in: 'Logging in...'
   },
   ar:{
     nav_stats:'التحليلات', nav_forecast:'توقعات الفيديو', nav_calc:'الحاسبة',
@@ -3531,11 +3588,75 @@ const T={
     auth_2fa_note:'لقد أرسلنا رمز 2FA المكون من 6 أرقام إلى عنوان بريدك الإلكتروني',
     sec_2fa_enabled_badge:'2FA مفعل',
     sec_2fa_disabled_badge:'2FA معطل',
-    password_changed:'تم تغيير كلمة المرور بنجاح'
-  }
+    password_changed:'تم تغيير كلمة المرور بنجاح',
+    connect_maybe_later:'ربما لاحقاً',
+    sec_niche_recommended:'موصى به',
+    connect_or_fill_profile:'أولاً، قم بتوصيل قناة YouTube أو املأ الملف الشخصي في قسم السيناريوهات!',
+    comp_auto_btn:'تحليل قناتي',
+    competitors_page_title:'البحث عن المنافسين',
+    competitors_page_sub:'صف مجال قناتك — سيجد الذكاء الاصطناعي القنوات والفيديوهات ذات الصلة على يوتيوب',
+    comp_input_title:'ما الذي نبحث عنه',
+    comp_input_sub:'على سبيل المثال: "قنوات مراجعة الهواتف الذكية" أو "مدونو ترميم الشقق"',
+    comp_query_placeholder:'صف المجال أو الموضوع أو استعلامًا محددًا للعثور на المنافسين...',
+    comp_search_btn_text:'البحث عن المنافسين',
+    err_email_pass_req: 'البريد الإلكتروني وكلمة المرور مطلوبان',
+    err_invalid_credentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+    err_email_exists: 'هذا البريد الإلكتروني مسجل بالفعل',
+    err_wrong_captcha: 'حل الكابتشا غير صحيح، حاول مرة أخرى',
+    err_user_not_found: 'المستخدم غير موجود',
+    err_email_already_verified: 'البريد الإلكتروني مؤكد بالفعل، قم بتсجيل الدخول فقط',
+    err_code_not_found: 'لم يتم العثور على رمز التأكيد، اطلب رمزاً جديداً',
+    err_code_expired: 'انتهت صلاحية رمز التأكيد، اطلب رمزاً جديداً',
+    err_too_many_attempts: 'محاولات كثيرة جداً، اطلب رمزاً جديداً',
+    err_wrong_code: 'رمز التأكيد غير صحيح',
+    err_wrong_2fa_code: 'رمز 2FA غير صحيح',
+    err_2fa_code_expired: 'انتهت صلاحية رمز 2FA',
+    err_fill_all_fields: 'يرجى ملء جميع الحقول',
+    err_current_password_wrong: 'كلمة المرور الحالية غير صحيحة',
+    err_new_password_short: 'يجب أن تتكون كلمة المرور الجديدة من 8 أحرف على الأقل',
+    err_session_expired: 'انتهت صلاحية الجلسة أو الرمز غير صالح',
+    err_network_error: 'خطأ في الشبكة',
+    err_passwords_mismatch: 'كلمات المرور غير متطابقة',
+    err_password_min_len: 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل',
+    err_solve_captcha: 'يرجى حل الكابتشا',
+    err_enter_6_digits: 'أدخل الرمز المكون من 6 أرقام',
+    status_checking_code: 'جاري التحقق من الرمز...',
+    status_sending_code: 'جاري إرسال رمز جديد...',
+    status_code_resent: '✓ تم إعادة إرسال الرمز بنجاح',
+    status_registering: 'جاري التسجيل...',
+    status_logging_in: 'جاري الدخول...'
+  },
 };
 
 function t(key){ return (T[_currentLang]||T.ru)[key]||key; }
+
+function localizeError(errStr) {
+  if (!errStr) return '';
+  const errorMap = {
+    'Email и пароль обязательны': 'err_email_pass_req',
+    'Неверная почта или пароль': 'err_invalid_credentials',
+    'Пользователь с такой почтой уже зарегистрирован': 'err_email_exists',
+    'Неверный ответ на пример, попробуйте ещё раз': 'err_wrong_captcha',
+    'Пользователь не найден': 'err_user_not_found',
+    'Почта уже подтверждена, просто войдите': 'err_email_already_verified',
+    'Код не найден, запросите новый': 'err_code_not_found',
+    'Код устарел, запросите новый': 'err_code_expired',
+    'Слишком много попыток, запросите новый код': 'err_too_many_attempts',
+    'Неверный код': 'err_wrong_code',
+    'Неверный код 2FA': 'err_wrong_2fa_code',
+    'Срок действия кода 2FA истек': 'err_2fa_code_expired',
+    'Заполните все поля': 'err_fill_all_fields',
+    'Текущий пароль указан неверно': 'err_current_password_wrong',
+    'Новый пароль должен быть от 8 символов': 'err_new_password_short',
+    'Срок сессии входа истек или токен недействителен': 'err_session_expired',
+    'Ошибка сети': 'err_network_error'
+  };
+  const key = errorMap[errStr] || errorMap[errStr.trim()];
+  if (key) {
+    return t(key);
+  }
+  return errStr;
+}
 
 function showToast(msg) {
   let container = document.getElementById('toast-container');
@@ -3857,12 +3978,15 @@ function applyTranslations(){
   setElText('promo-banner-desc', t('promo_banner_desc'));
   setElText('scripts-templates-title', t('scripts_templates_title'));
   setElText('scripts-templates-sub', t('scripts_templates_sub'));
-  setElText('tpl-hook-title', t('tpl_hook_title'));
-  setElText('tpl-hook-desc', t('tpl_hook_desc'));
-  setElText('tpl-story-title', t('tpl_story_title'));
-  setElText('tpl-story-desc', t('tpl_story_desc'));
-  setElText('tpl-review-title', t('tpl_review_title'));
-  setElText('tpl-review-desc', t('tpl_review_desc'));
+  setElText('connect-maybe-later', t('connect_maybe_later'));
+  setElText('competitors-page-title', t('competitors_page_title'));
+  setElText('competitors-page-sub', t('competitors_page_sub'));
+  setElText('comp-input-title', t('comp_input_title'));
+  setElText('comp-input-sub', t('comp_input_sub'));
+  setElText('comp-search-btn-text', t('comp_search_btn_text'));
+  setElText('comp-auto-btn-text', t('comp_auto_btn'));
+  const compQueryText = document.getElementById('comp-query-text');
+  if(compQueryText) compQueryText.placeholder = t('comp_query_placeholder');
   setElText('security-title', t('sec_title'));
   setElText('security-sub', t('sec_sub'));
   setElText('security-modal-title', t('sec_modal_title'));
@@ -3881,6 +4005,7 @@ function applyTranslations(){
 
   // Update badge UI
   update2FASwitchUI();
+  renderScriptTemplates();
 }
 
 function setLanguage(lang){
@@ -3981,13 +4106,13 @@ async function submitAuthForm(){
   const password=document.getElementById('auth-password-field').value;
   const passwordConfirm=document.getElementById('auth-password-confirm-field').value;
   const captchaAnswer=document.getElementById('auth-captcha-answer').value;
-  if(!email||!password){status.textContent='Заполните почту и пароль';return;}
+  if(!email||!password){status.textContent=t('err_email_pass_req');return;}
   if(_authTab==='register'){
-    if(password!==passwordConfirm){status.textContent='Пароли не совпадают';return;}
-    if(password.length<8){status.textContent='Пароль должен быть не короче 8 символов';return;}
-    if(!captchaAnswer){status.textContent='Решите пример с картинки';return;}
+    if(password!==passwordConfirm){status.textContent=t('err_passwords_mismatch');return;}
+    if(password.length<8){status.textContent=t('err_password_min_len');return;}
+    if(!captchaAnswer){status.textContent=t('err_solve_captcha');return;}
   }
-  btn.disabled=true;status.textContent=_authTab==='register'?'Регистрируем...':'Входим...';
+  btn.disabled=true;status.textContent=_authTab==='register'?t('status_registering'):t('status_logging_in');
   try{
     const endpoint=_authTab==='register'?'/api/auth/email/register':'/api/auth/email/login';
     const body=_authTab==='register'
@@ -3997,11 +4122,11 @@ async function submitAuthForm(){
     const data=await res.json().catch(function(){return {};});
     if(!res.ok){
       if(data.error==='EMAIL_NOT_VERIFIED'){
-        status.textContent='Подтвердите почту — введите код из письма';
+        status.textContent=t('err_email_already_verified');
         _pendingVerifyEmail=email;
         document.getElementById('auth-code-email').textContent=email;
         setAuthStep('code');
-      }else{ status.textContent=data.error||'Ошибка'; }
+      }else{ status.textContent=localizeError(data.error); }
       if(_authTab==='register')loadCaptcha();
       btn.disabled=false;return;
     }
@@ -4024,13 +4149,13 @@ async function submitAuthForm(){
     }
     saveToken(data.token);
     closeModal('auth-modal');
-    if(!data.channel_id){
+    if(!data.channel_id && !data.is_admin){
       document.getElementById('landing-screen').style.display='none';
       document.getElementById('connect-youtube-screen').style.display='flex';
     }else{
       checkUserAccess(data, function(){ showDashboard(data); });
     }
-  }catch(e){status.textContent='Ошибка сети';}
+  }catch(e){status.textContent=t('err_network_error');}
   btn.disabled=false;
 }
 
@@ -4038,38 +4163,38 @@ async function submitVerifyCode(){
   const btn=document.getElementById('auth-code-submit-btn');
   const status=document.getElementById('auth-form-status');
   const code=document.getElementById('auth-code-field').value.trim();
-  if(!code||code.length<6){status.textContent='Введите 6-значный код';return;}
-  btn.disabled=true;status.textContent='Проверяем код...';
+  if(!code||code.length<6){status.textContent=t('err_enter_6_digits');return;}
+  btn.disabled=true;status.textContent=t('status_checking_code');
   try{
     const res=await fetch(API_URL+'/api/auth/email/verify-code',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({ email:_pendingVerifyEmail, code })});
     const data=await res.json().catch(function(){return {};});
-    if(!res.ok){status.textContent=data.error||'Ошибка';btn.disabled=false;return;}
+    if(!res.ok){status.textContent=localizeError(data.error);btn.disabled=false;return;}
     saveToken(data.token);
     closeModal('auth-modal');
-    if(!data.channel_id){
+    if(!data.channel_id && !data.is_admin){
       document.getElementById('landing-screen').style.display='none';
       document.getElementById('connect-youtube-screen').style.display='flex';
     }else{
       checkUserAccess(data, function(){ showDashboard(data); });
     }
-  }catch(e){status.textContent='Ошибка сети';btn.disabled=false;}
+  }catch(e){status.textContent=t('err_network_error');btn.disabled=false;}
 }
 async function resendVerifyCode(){
   const status=document.getElementById('auth-form-status');
-  status.textContent='Отправляем новый код...';
+  status.textContent=t('status_sending_code');
   try{
     const res=await fetch(API_URL+'/api/auth/email/resend-code',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({ email:_pendingVerifyEmail })});
     const data=await res.json().catch(function(){return {};});
-    status.textContent=res.ok?'✓ Код отправлен повторно':(data.error||'Ошибка');
-  }catch(e){status.textContent='Ошибка сети';}
+    status.textContent=res.ok?t('status_code_resent'):localizeError(data.error);
+  }catch(e){status.textContent=t('err_network_error');}
 }
 
 async function submit2FA(){
   const btn=document.getElementById('auth-2fa-submit-btn');
   const status=document.getElementById('auth-form-status');
   const code=document.getElementById('auth-2fa-field').value.trim();
-  if(!code||code.length<6){status.textContent='Введите 6-значный код';return;}
-  btn.disabled=true;status.textContent='Проверяем код...';
+  if(!code||code.length<6){status.textContent=t('err_enter_6_digits');return;}
+  btn.disabled=true;status.textContent=t('status_checking_code');
   try{
     const res=await fetch(API_URL+'/api/auth/email/verify-2fa',{
       method:'POST',
@@ -4078,10 +4203,10 @@ async function submit2FA(){
       body:JSON.stringify({ temp_token:_temp2FAToken, code })
     });
     const data=await res.json().catch(function(){return {};});
-    if(!res.ok){status.textContent=data.error||'Ошибка';btn.disabled=false;return;}
+    if(!res.ok){status.textContent=localizeError(data.error);btn.disabled=false;return;}
     saveToken(data.token);
     closeModal('auth-modal');
-    if(!data.channel_id){
+    if(!data.channel_id && !data.is_admin){
       document.getElementById('landing-screen').style.display='none';
       document.getElementById('connect-youtube-screen').style.display='flex';
     }else{
@@ -6533,23 +6658,279 @@ function calcCTRReverse(){
   h.textContent=ctr>=7?t('calc_excellent_ctr'):ctr>=5?t('calc_good_ctr'):ctr>=3?t('calc_average'):t('calc_low_ctr');
 }
 
-const SP_LINK_KEYS=['youtube','vk','tiktok','telegram'];
-let _scriptsLoaded=false;
+const SCRIPT_TEMPLATES = [
+  {
+    key: 'shorts_hook',
+    emoji: '⚡',
+    niche: 'general',
+    titleRu: 'Крючок для Shorts',
+    descRu: 'Умный сценарий удержания зрителя с первых секунд.',
+    likesRu: 'Хочу снять короткое вертикальное видео Shorts/Reels. Мне нравится удерживать внимание с первой секунды, использовать динамичные фразы и неожиданные переходы.',
+    dislikesRu: 'Не люблю скучные длинные вступления и монотонное чтение текста. Видео должно быть динамичным, до 30 секунд.',
+    titleEn: 'Shorts Hook',
+    descEn: 'Smart script to retain viewers right from the first seconds.',
+    likesEn: 'I want to shoot a short vertical Shorts/Reels video. I like to hook attention from the first second, use dynamic phrases, and unexpected transitions.',
+    dislikesEn: 'I don\'t like boring long intros and monotonous reading of text. The video must be dynamic, under 30 seconds.',
+    titleAr: 'خطاف Shorts',
+    descAr: 'سيناريو ذكي للاحتفاظ بالمشاهدين من الثواني الأولى.',
+    likesAr: 'أريد تصوير فيديو قصير رأسي Shorts/Reels. أحب جذب الانتباه من الثانية الأولى، واستخدام عبارات ديناميكية، وانتقالات غير متوقعة.',
+    dislikesAr: 'لا أحب المقدمات الطويلة المملة والقراءة الرتيبة للنصوص. يجب أن يكون الفيديو ديناميكيًا، أقل من 30 ثانية.'
+  },
+  {
+    key: 'storytelling',
+    emoji: '📖',
+    niche: 'general',
+    titleRu: 'Увлекательный Сторителлинг',
+    descRu: 'Построение сюжета по правилам драматургии.',
+    likesRu: 'Разговорный ролик-расследование или личная история. Люблю последовательное раскрытие сюжета, интригу, кульминацию и выводы в конце.',
+    dislikesRu: 'Не нравится сухая подача фактов без эмоций. Хочу создать сопереживание у зрителя.',
+    titleEn: 'Engaging Storytelling',
+    descEn: 'Plotting structure using dramaturgy principles.',
+    likesEn: 'A conversational investigation or personal story. I like sequential plot development, intrigue, climax, and conclusions at the end.',
+    dislikesEn: 'I don\'t like dry delivery of facts without emotions. I want to build empathy with the viewer.',
+    titleAr: 'سرد قصصي جذاب',
+    descAr: 'هيكل حبكة درامية مبني على مبادئ الدراما.',
+    likesAr: 'فيديو محادثة استقصائي أو قصة شخصية. أحب التطوير التسلسلي للحبكة، والتشويق، والذروة، والاستنتاجات في النهاية.',
+    dislikesAr: 'لا أحب العرض الجاف للحقائق بدون عواطف. أريد بناء تعاطف مع المشاهد.'
+  },
+  {
+    key: 'product_review',
+    emoji: '🛍️',
+    niche: 'tech',
+    titleRu: 'Обзор товара / услуги',
+    descRu: 'Сценарий коммерческого или нативного обзора.',
+    likesRu: 'Обзор полезного сервиса, гаджета или книги. Люблю честно рассказывать о плюсах и минусах, показывать практическое применение и давать оценку.',
+    dislikesRu: 'Не люблю прямые скучные продажи. Реклама должна быть нативной и полезной для зрителя.',
+    titleEn: 'Product / Service Review',
+    descEn: 'Commercial or native product review script.',
+    likesEn: 'Review of a useful service, gadget, or book. I like to honestly talk about pros and cons, show practical application, and give rating.',
+    dislikesEn: 'I don\'t like direct boring sales. Advertising should be native and useful for the viewer.',
+    titleAr: 'مراجعة منتج / خدمة',
+    descAr: 'سيناريو مراجعة تجارية أو طبيعية للمنتج.',
+    likesAr: 'مراجعة خدمة أو جهاز أو كتاب مفيد. أحب التحدث بصدق عن الإيجابيات والسلبيات، وعرض التطبيق العملي، وإعطاء تقييم.',
+    dislikesAr: 'لا أحب المبيعات المملة المباشرة. يجب أن يكون الإعلان طبيعيًا ومفيدًا للمشاهد.'
+  },
+  {
+    key: 'gaming_letsplay',
+    emoji: '🎮',
+    niche: 'gaming',
+    titleRu: 'Летсплей / Прохождение',
+    descRu: 'Шаблон для обзоров игр, стримов и летсплеев.',
+    likesRu: 'Прохождение новой популярной игры или гайд по секретам. Мне нравится эмоционально комментировать, шутить, делать нарезки лучших моментов.',
+    dislikesRu: 'Не люблю скучное молчаливое прохождение. Видео должно быть живым и развлекательным для геймеров.',
+    titleEn: 'Let\'s Play / Walkthrough',
+    descEn: 'Template for game reviews, streams, and walkthroughs.',
+    likesEn: 'Walkthrough of a new popular game or a secrets guide. I like to comment emotionally, joke, and make montages of the best moments.',
+    dislikesEn: 'I don\'t like boring silent playthroughs. The video should be lively and entertaining for gamers.',
+    titleAr: 'لعبة / تختيم',
+    descAr: 'قالب لمراجعات الألعاب والبث والتختيم.',
+    likesAr: 'تختيم لعبة جديدة شائعة أو دليل أسرار. أحب التعليق العاطفي، وإلقاء النكات، وصنع مونتاجات لأفضل اللحظات.',
+    dislikesAr: 'لا أحب التختيم الصامت الممل. يجب أن يكون الفيديو حيويًا وممتعًا للاعبين.'
+  },
+  {
+    key: 'tech_news',
+    emoji: '💻',
+    niche: 'tech',
+    titleRu: 'Новости технологий',
+    descRu: 'Обзор новинок смартфонов, ПК и ИИ-индустрии.',
+    likesRu: 'Разбор свежих новостей из мира технологий и гаджетов. Люблю детально объяснять спецификации, сравнивать с конкурентами и рассуждать о будущем технологий.',
+    dislikesRu: 'Не нравится пересказ сухих спецификаций из буклетов. Нужен глубокий разбор с моим личным мнением.',
+    titleEn: 'Tech News',
+    descEn: 'Overview of new smartphones, PCs, and AI industry.',
+    likesEn: 'Analysis of fresh news from the world of tech and gadgets. I like to explain specs in detail, compare with competitors, and speculate on the future of tech.',
+    dislikesEn: 'I don\'t like repeating dry specifications from booklets. Need deep analysis with my personal opinion.',
+    titleAr: 'أخبار التقنية',
+    descAr: 'نظرة عامة على الهواتف الذكية الجديدة وأجهزة الكمبيوتر وصناعة الذكاء الاصطناعي.',
+    likesAr: 'تحليل للأخبار الجديدة من عالم التقنية والأجهزة. أحب شرح المواصفات بالتفصيل، ومقارنتها بالمنافسين، والتكهن بمستقبل التقنية.',
+    dislikesAr: 'لا أحب تكرار المواصفات الجافة من الكتيبات. بحاجة إلى تحليل عميق مع رأيي الشخصي.'
+  },
+  {
+    key: 'edu_explainer',
+    emoji: '🎓',
+    niche: 'education',
+    titleRu: 'Образовательный ролик',
+    descRu: 'Простое объяснение сложных научных или исторических тем.',
+    likesRu: 'Объяснение сложных тем, лайфхаков, уроков программирования или истории. Люблю приводить простые аналогии, использовать инфографику и структурировать информацию.',
+    dislikesRu: 'Не люблю академическую скучную лекцию. Подача должна быть легкой, интерактивной и понятной даже ребенку.',
+    titleEn: 'Educational Explainer',
+    descEn: 'Simple explanation of complex scientific or historical topics.',
+    likesEn: 'Explanation of complex topics, life hacks, programming lessons, or history. I like to use simple analogies, infographics, and structure the information.',
+    dislikesEn: 'I don\'t like academic boring lectures. Delivery should be light, interactive, and understandable even to a child.',
+    titleAr: 'فيديو تعليمي',
+    descAr: 'شرح مبسط لمواضيع علمية أو تاريخية معقدة.',
+    likesAr: 'شرح المواضيع المعقدة، أو حيل الحياة، أو دروس البرمجة، أو التاريخ. أحب استخدام قياسات بسيطة، ورسوم بيانية، وتنسيق المعلومات.',
+    dislikesAr: 'لا أحب المحاضرات الأكاديمية المملة. يجب أن يكون التقديم خفيفًا وتفاعليًا ومفهومًا حتى للطفل.'
+  },
+  {
+    key: 'finance_invest',
+    emoji: '📈',
+    niche: 'finance',
+    titleRu: 'Инвестиции и финансы',
+    descRu: 'Разбор вариантов заработка, акций и криптоактивов.',
+    likesRu: 'Анализ рынков, варианты пассивного дохода и личный финансовый опыт. Мне нравится делиться таблицами доходов, стратегиями инвестиций и говорить о деньгах.',
+    dislikesRu: 'Не люблю «успешный успех» и обещания быстрых миллионов. Нужен честный и реалистичный разбор рисков.',
+    titleEn: 'Finance & Investing',
+    descEn: 'Analysis of earnings options, stocks, and crypto assets.',
+    likesEn: 'Market analysis, passive income options, and personal financial experience. I like to share income spreadsheets, investment strategies, and talk about money.',
+    dislikesEn: 'I don\'t like fake success show-offs and promises of quick millions. Need honest and realistic risk analysis.',
+    titleAr: 'المال والاستثمار',
+    descAr: 'تحليل خيارات الأرباح والأسهم والأصول الرقمية.',
+    likesAr: 'تحليل السوق، وخيارات الدخل السلبي، والتجربة المالية الشخصية. أحب مشاركة جداول البيانات المالية، واستراتيجيات الاستثمار، والتحدث عن المال.',
+    dislikesAr: 'لا أحب الوعود بملايين سريعة. بحاجة إلى تحليل صادق وواقعي للمخاطر.'
+  },
+  {
+    key: 'cooking_recipe',
+    emoji: '🍳',
+    niche: 'cooking',
+    titleRu: 'Пошаговый рецепт',
+    descRu: 'Красивая съёмка приготовления вкусного блюда.',
+    likesRu: 'Приготовление необычного или быстрого блюда с акцентом на эстетику кадра и звуки готовки (ASMR). Люблю давать чёткие пропорции и секреты вкуса.',
+    dislikesRu: 'Не люблю долгие разговоры перед рецептом. Видео должно быть аппетитным, эстетичным и понятным в приготовлении.',
+    titleEn: 'Step-by-Step Recipe',
+    descEn: 'Beautiful filming of cooking a delicious dish.',
+    likesEn: 'Cooking an unusual or quick dish with emphasis on aesthetic framing and cooking sounds (ASMR). I like to give clear proportions and taste secrets.',
+    dislikesEn: 'I don\'t like long talking before the recipe. The video must be mouth-watering, aesthetic, and easy to follow.',
+    titleAr: 'وصفة خطوة بخطوة',
+    descAr: 'تصوير جميل لطهي طبق لذيذ.',
+    likesAr: 'طهي طبق غير عادي أو سريع مع التركيز على التأطير الجمالي وأصوات الطهي (ASMR). أحب إعطاء نسب واضحة وأسرار التذوق.',
+    dislikesAr: 'لا أحب الكلام الطويل قبل الوصفة. يجب أن يكون الفيديو جماليًا، وسهل المتابعة.'
+  },
+  {
+    key: 'beauty_makeup',
+    emoji: '💄',
+    niche: 'beauty',
+    titleRu: 'Макияж и бьюти-уход',
+    descRu: 'Секреты красоты, укладки и макияжа.',
+    likesRu: 'Туториалы по повседневному или праздничному макияжу, обзоры бьюти-новинок косметики и уход за кожей. Люблю делиться лайфхаками красоты и показывать разницу До/После.',
+    dislikesRu: 'Не люблю скучное перечисление брендов без демонстрации в кадре. Нужен наглядный качественный процесс.',
+    titleEn: 'Makeup & Beauty Care',
+    descEn: 'Beauty secrets, hair styling, and makeup tutorials.',
+    likesEn: 'Tutorials on daily or festive makeup, reviews of beauty new releases, and skincare. I like to share beauty hacks and show Before/After results.',
+    dislikesEn: 'I don\'t like boring lists of brands without live demonstration. Need visual high-quality process.',
+    titleAr: 'المكياج والعناية بالجمال',
+    descAr: 'أسرار الجمال، وتصفيف الشعر، وتطبيقات المكياج.',
+    likesAr: 'دروس حول المكياج اليومي أو الاحتفالي، ومراجعات لمنتجات التجميل الجديدة، والعناية بالبشرة. أحب مشاركة حيل الجمال وإظهار نتائج قبل/بعد.',
+    dislikesAr: 'لا أحب القوائم المملة للعلامات التجارية دون عرض حي. بحاجة إلى عملية مرئية عالية الجودة.'
+  },
+  {
+    key: 'vlog_daily',
+    emoji: '🎥',
+    niche: 'vlog',
+    titleRu: 'День из жизни (Vlog)',
+    descRu: 'Атмосферное видео про рутину, путешествия или мысли.',
+    likesRu: 'Эстетичные кадры моего дня, путешествия или распаковок с приятной фоновой музыкой и размышлениями о жизни. Люблю создавать тёплую атмосферу дружеского общения.',
+    dislikesRu: 'Не люблю наигранность и фальшь. Видео должно быть максимально искренним и уютным.',
+    titleEn: 'Day in the Life (Vlog)',
+    descEn: 'Atmospheric video about routines, travel, or thoughts.',
+    likesEn: 'Aesthetic footage of my day, travel, or unboxings with pleasant background music and thoughts on life. I like to build a warm atmosphere of friendly talk.',
+    dislikesEn: 'I don\'t like fake emotions and staged videos. The video should be as sincere and cozy as possible.',
+    titleAr: 'يوم في الحياة (فلوق)',
+    descAr: 'فيديو تفاعلي عن الروتين اليومي أو السفر أو الأفكار.',
+    likesAr: 'لقطات جمالية ليومي، أو سفري، أو فتح علب مع موسيقى خلفية هادئة وأفكار عن الحياة. أحب بناء جو دافئ من الحديث الودي.',
+    dislikesAr: 'لا أحب المشاعر المزيفة والفيديوهات المصطنعة. يجب أن يكون الفيديو صادقًا ومريحًا قدر الإمكان.'
+  }
+];
+
+function detectChannelNiche(user) {
+  if (!user) return 'general';
+  const name = String(user.youtube_channel_name || '').toLowerCase();
+  const desc = String(user.channel_description || '').toLowerCase();
+  
+  if (name.includes('game') || name.includes('play') || name.includes('стрим') || name.includes('прохождение') || name.includes('летсплей') || name.includes('робокс') || name.includes('roblox') || name.includes('minecraft') || name.includes('dota') || name.includes('cs2') ||
+      desc.includes('game') || desc.includes('play') || desc.includes('стрим') || desc.includes('прохождение') || desc.includes('летсплей') || desc.includes('роблокс')) {
+    return 'gaming';
+  }
+  if (name.includes('tech') || name.includes('gadget') || name.includes('обзор') || name.includes('смартфон') || name.includes('телефон') || name.includes('pc') || name.includes('компьютер') || name.includes('hardware') ||
+      desc.includes('tech') || desc.includes('gadget') || desc.includes('обзор') || desc.includes('смартфон') || desc.includes('телефон')) {
+    return 'tech';
+  }
+  if (name.includes('finance') || name.includes('money') || name.includes('инвестиции') || name.includes('деньги') || name.includes('крипт') || name.includes('crypto') || name.includes('bitcoin') || name.includes('бизнес') || name.includes('business') || name.includes('заработок') ||
+      desc.includes('finance') || desc.includes('money') || desc.includes('инвестиции') || desc.includes('деньги') || desc.includes('крипт') || desc.includes('бизнес') || desc.includes('заработок')) {
+    return 'finance';
+  }
+  if (name.includes('recipe') || name.includes('cook') || name.includes('food') || name.includes('кулинария') || name.includes('еда') || name.includes('рецепт') || name.includes('кухня') || name.includes('готовим') ||
+      desc.includes('recipe') || desc.includes('cook') || desc.includes('food') || desc.includes('еда') || desc.includes('рецепт') || desc.includes('готовим')) {
+    return 'cooking';
+  }
+  if (name.includes('beauty') || name.includes('makeup') || name.includes('макияж') || name.includes('косметика') || name.includes('мода') || name.includes('fashion') || name.includes('стиль') ||
+      desc.includes('beauty') || desc.includes('makeup') || desc.includes('макияж') || desc.includes('косметика')) {
+    return 'beauty';
+  }
+  if (name.includes('edu') || name.includes('learn') || name.includes('обучение') || name.includes('урок') || name.includes('программир') || name.includes('code') || name.includes('наука') || name.includes('science') ||
+      desc.includes('edu') || desc.includes('learn') || desc.includes('обучение') || desc.includes('урок') || desc.includes('программир')) {
+    return 'education';
+  }
+  if (name.includes('vlog') || name.includes('lifestyle') || name.includes('жизнь') || name.includes('travel') || name.includes('daily') || name.includes('путешеств') || name.includes('блог') ||
+      desc.includes('vlog') || desc.includes('lifestyle') || desc.includes('жизнь') || desc.includes('travel') || desc.includes('путешеств') || desc.includes('блог')) {
+    return 'vlog';
+  }
+  return 'general';
+}
+
+function renderScriptTemplates() {
+  const container = document.getElementById('scripts-templates-container');
+  if (!container) return;
+  
+  const niche = detectChannelNiche(_currentUser);
+  
+  const sorted = SCRIPT_TEMPLATES.slice().sort(function(a, b) {
+    const aMatch = (a.niche === niche && niche !== 'general');
+    const bMatch = (b.niche === niche && niche !== 'general');
+    if (aMatch && !bMatch) return -1;
+    if (!aMatch && bMatch) return 1;
+    return 0;
+  });
+  
+  const html = sorted.map(function(tpl) {
+    const isMatched = (tpl.niche === niche && niche !== 'general');
+    
+    let title = tpl.titleRu;
+    let desc = tpl.descRu;
+    if (_currentLang === 'en') {
+      title = tpl.titleEn;
+      desc = tpl.descEn;
+    } else if (_currentLang === 'ar') {
+      title = tpl.titleAr;
+      desc = tpl.descAr;
+    }
+    
+    let matchedBadge = '';
+    if (isMatched) {
+      matchedBadge = '<span style="position:absolute;top:8px;right:8px;font-size:9px;background:rgba(78, 205, 196, 0.15);color:var(--green);border:1px solid rgba(78, 205, 196, 0.3);padding:2px 6px;border-radius:20px;font-weight:700;">🔥 ' + (t('sec_niche_recommended') || 'Рекомендовано') + '</span>';
+    }
+    
+    const cardBorder = isMatched ? 'border:1px solid var(--green); box-shadow:0 0 10px rgba(78, 205, 196, 0.1);' : 'border:1px solid var(--border);';
+    
+    return '<div class="template-card" onclick="applyScriptTemplate(\'' + tpl.key + '\')" style="position:relative;background:var(--input-bg);' + cardBorder + 'border-radius:10px;padding:12px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'' + (isMatched ? 'var(--green)' : 'var(--border)') + '\'">'
+      + matchedBadge
+      + '<div style="font-size:16px;margin-bottom:4px;">' + tpl.emoji + '</div>'
+      + '<div style="font-size:12px;font-weight:700;padding-right:70px;">' + escapeHtml(title) + '</div>'
+      + '<div style="font-size:10px;color:var(--muted);margin-top:2px;">' + escapeHtml(desc) + '</div>'
+      + '</div>';
+  }).join('');
+  
+  container.innerHTML = html;
+}
 
 function applyScriptTemplate(type){
   const likes=document.getElementById('sp-likes-text');
   const dislikes=document.getElementById('sp-dislikes-text');
   if(!likes||!dislikes)return;
-  if(type==='shorts_hook'){
-    likes.value="Хочу снять короткое вертикальное видео Shorts/Reels. Мне нравится удерживать внимание с первой секунды, использовать динамичные фразы и неожиданные переходы.";
-    dislikes.value="Не люблю скучные длинные вступления и монотонное чтение текста. Видео должно быть динамичным, до 30 секунд.";
-  }else if(type==='storytelling'){
-    likes.value="Разговорный ролик-расследование или личная история. Люблю последовательное раскрытие сюжета, интригу, кульминацию и выводы в конце.";
-    dislikes.value="Не нравится сухая подача фактов без эмоций. Хочу создать сопереживание у зрителя.";
-  }else if(type==='product_review'){
-    likes.value="Обзор полезного сервиса, гаджета или книги. Люблю честно рассказывать о плюсах и минусах, показывать практическое применение и давать оценку.";
-    dislikes.value="Не люблю прямые скучные продажи. Реклама должна быть нативной и полезной для зрителя.";
+  
+  const tpl = SCRIPT_TEMPLATES.find(function(item) { return item.key === type; });
+  if (!tpl) return;
+  
+  if (_currentLang === 'en') {
+    likes.value = tpl.likesEn;
+    dislikes.value = tpl.dislikesEn;
+  } else if (_currentLang === 'ar') {
+    likes.value = tpl.likesAr;
+    dislikes.value = tpl.dislikesAr;
+  } else {
+    likes.value = tpl.likesRu;
+    dislikes.value = tpl.dislikesRu;
   }
+  
   showToast(t('template_applied')||'Шаблон применен!');
 }
 
@@ -6779,6 +7160,41 @@ async function analyzeCompetitorVideo(){
   btn.disabled=false;
 }
 
+function autoSearchCompetitors() {
+  const queryInput = document.getElementById('comp-query-text');
+  if (!queryInput) return;
+  
+  let desc = '';
+  const user = _currentUser || getUser() || {};
+  
+  if (user && user.youtube_channel_name) {
+    desc = 'Канал: ' + user.youtube_channel_name;
+    if (user.channel_description) {
+      desc += '. Тематика: ' + user.channel_description;
+    }
+    if (desc.length > 450) {
+      desc = desc.substring(0, 447) + '...';
+    }
+  } else {
+    const likes = (document.getElementById('sp-likes-text')?.value || '').trim();
+    const dislikes = (document.getElementById('sp-dislikes-text')?.value || '').trim();
+    if (likes || dislikes) {
+      desc = 'Интересы: ' + likes + (dislikes ? '. Избегает: ' + dislikes : '');
+      if (desc.length > 450) {
+        desc = desc.substring(0, 447) + '...';
+      }
+    }
+  }
+  
+  if (!desc) {
+    showToast(t('connect_or_fill_profile') || 'Сначала подключите YouTube-канал или заполните анкету в разделе «Сценарии»!');
+    return;
+  }
+  
+  queryInput.value = desc;
+  searchCompetitors();
+}
+
 async function searchCompetitors(){
   const query=(document.getElementById('comp-query-text').value||'').trim();
   if(!query){ alert(t('feedback_write_text')); return; }
@@ -6928,8 +7344,11 @@ async function buySubscription(plan,btnEl){
 
 function showDashboard(channelData){
   _currentUser=channelData;saveUser(channelData);
+  renderScriptTemplates();
   document.getElementById('landing-screen').style.display='none';
   document.getElementById('channel-select-screen').style.display='none';
+  const connScreen = document.getElementById('connect-youtube-screen');
+  if(connScreen) connScreen.style.display='none';
   document.getElementById('dashboard').style.display='flex';
   document.getElementById('user-display-name').textContent=channelData.channel_name||channelData.name||channelData.email||'Channel';
   document.getElementById('user-display-email').textContent=channelData.email||channelData.channel_id||'';
@@ -7134,13 +7553,15 @@ async function handleInitAuthMeResponse(res) {
       if(handled) return;
       if(res.ok){
         const user=await res.json();
+        const cachedUser = getUser() || {};
+        if (cachedUser.skip_channel_connect) user.skip_channel_connect = true;
         if(user.fresh_token)saveToken(user.fresh_token);
         if(user.is_admin)enableAdminMode(user.is_supreme_admin);
-        if(!user.channel_id){
+        if(!user.channel_id && !user.skip_channel_connect && !user.is_admin){
           saveUser(user);
           document.getElementById('landing-screen').style.display='none';
           document.getElementById('connect-youtube-screen').style.display='flex';
-        }else if(user.channels&&user.channels.length>1){
+        }else if(user.channels&&user.channels.length>1 && !user.skip_channel_connect){
           saveUser(user);
           checkUserAccess(user, function(){ showChannelSelect(user); });
         }else{
@@ -7164,10 +7585,10 @@ async function handleInitAuthMeResponse(res) {
   const cached=getUser();
   console.log('YTMetrics init: cached user =', cached);
   if(cached&&(cached.email||cached.channel_id)){
-    if(!cached.channel_id){
+    if(!cached.channel_id && !cached.skip_channel_connect && !cached.is_admin){
       document.getElementById('landing-screen').style.display='none';
       document.getElementById('connect-youtube-screen').style.display='flex';
-    }else if(cached.channels&&cached.channels.length>1&&!cached.channel_id) {
+    }else if(cached.channels&&cached.channels.length>1&&!cached.channel_id && !cached.skip_channel_connect && !cached.is_admin) {
       checkUserAccess(cached, function(){ showChannelSelect(cached); });
     } else {
       checkUserAccess(cached, function(){ showDashboard(cached); });
@@ -7188,13 +7609,15 @@ async function handleInitAuthMeResponse(res) {
     if(handled) return;
     if(res.ok){
       const user=await res.json();
+      const cachedUser = getUser() || {};
+      if (cachedUser.skip_channel_connect) user.skip_channel_connect = true;
       if(user.fresh_token)saveToken(user.fresh_token);
       if(user.is_admin)enableAdminMode(user.is_supreme_admin);
-      if(!user.channel_id){
+      if(!user.channel_id && !user.skip_channel_connect && !user.is_admin){
         saveUser(user);
         document.getElementById('landing-screen').style.display='none';
         document.getElementById('connect-youtube-screen').style.display='flex';
-      }else if(user.channels&&user.channels.length>1){
+      }else if(user.channels&&user.channels.length>1 && !user.skip_channel_connect && !user.is_admin){
         saveUser(user);
         checkUserAccess(user, function(){ showChannelSelect(user); });
       }else{
