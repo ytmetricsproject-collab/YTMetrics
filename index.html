@@ -1077,7 +1077,8 @@
     <div style="font-size:20px;font-weight:800;letter-spacing:-.5px;margin-bottom:10px">Подключите YouTube-канал</div>
     <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:26px;line-height:1.7">Вы вошли на сайт. Осталось подключить свой YouTube-канал, чтобы мы могли собирать его аналитику — это отдельный шаг и никак не связан с вашим паролем на сайте.</div>
     <button class="install-btn" onclick="startYouTubeConnect()">🔗 Подключить канал</button>
-    <button onclick="logoutFromConnectScreen()" style="margin-top:16px;padding:8px 18px;border-radius:8px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);border:1px solid var(--border);background:transparent;cursor:pointer;display:block;margin-left:auto;margin-right:auto;">⎋ Выйти</button>
+    <button id="connect-maybe-later" onclick="skipYouTubeConnect()" style="margin-top:10px;width:100%;padding:12px;border-radius:10px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text);border:1px solid var(--border);background:var(--input-bg);cursor:pointer;font-weight:700;">Возможно позже</button>
+    <button onclick="logoutFromConnectScreen()" style="margin-top:12px;padding:8px 18px;border-radius:8px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);border:1px solid var(--border);background:transparent;cursor:pointer;display:block;margin-left:auto;margin-right:auto;">⎋ Выйти</button>
   </div>
 </div>
 
@@ -2874,7 +2875,8 @@ const T={
     auth_2fa_note:'Мы отправили 6-значный код 2FA на вашу почту',
     sec_2fa_enabled_badge:'2FA Вкл',
     sec_2fa_disabled_badge:'2FA Выкл',
-    password_changed:'Пароль успешно изменен'
+    password_changed:'Пароль успешно изменен',
+    connect_maybe_later:'Возможно позже'
   },
   en:{
     nav_stats:'Analytics', nav_forecast:'Video Forecast', nav_calc:'Calculator',
@@ -3201,7 +3203,8 @@ const T={
     auth_2fa_note:'We sent a 6-digit 2FA code to your email address',
     sec_2fa_enabled_badge:'2FA On',
     sec_2fa_disabled_badge:'2FA Off',
-    password_changed:'Password changed successfully'
+    password_changed:'Password changed successfully',
+    connect_maybe_later:'Maybe later'
   },
   ar:{
     nav_stats:'التحليلات', nav_forecast:'توقعات الفيديو', nav_calc:'الحاسبة',
@@ -4176,6 +4179,23 @@ async function submitChangePassword(){
 function startYouTubeConnect(){
   const origin=window.location.origin+window.location.pathname;
   window.location.href=API_URL+'/api/auth/youtube/connect?origin='+encodeURIComponent(origin);
+}
+function skipYouTubeConnect(){
+  const user = getUser();
+  if (user) {
+    showDashboard(user);
+  } else {
+    apiFetch('/api/auth/me').then(async function(res) {
+      if (res.ok) {
+        const u = await res.json();
+        showDashboard(u);
+      } else {
+        logoutFromConnectScreen();
+      }
+    }).catch(function() {
+      logoutFromConnectScreen();
+    });
+  }
 }
 function logoutFromConnectScreen(){
   clearToken();clearUser();
