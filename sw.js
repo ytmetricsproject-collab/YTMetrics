@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ytmetrics-cache-v17';
+const CACHE_NAME = 'ytmetrics-cache-v20';
 const ASSETS = [
   './',
   './index.html',

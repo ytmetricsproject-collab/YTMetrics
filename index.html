@@ -1118,6 +1118,11 @@
           </div>
           <input type="text" inputmode="numeric" class="prem-input" id="auth-captcha-answer" placeholder="Решите пример выше">
         </div>
+        <!-- Чекбокс Запомнить меня -->
+        <div style="display:flex;align-items:center;margin-top:12px;margin-bottom:14px;cursor:pointer;" onclick="toggleRememberMe()">
+          <div class="perm-checkbox checked" id="auth-remember-checkbox" style="width:16px;height:16px;font-size:10px;line-height:16px;margin-right:8px;border-radius:4px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;user-select:none;">✓</div>
+          <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);" id="auth-remember-label">Запомнить меня</span>
+        </div>
 
         <button class="prem-save-btn" id="auth-submit-btn" style="width:100%;margin-bottom:14px;" onclick="submitAuthForm()">Войти</button>
 
@@ -1136,6 +1141,12 @@
         <div style="text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">
           Не пришёл код? <button onclick="resendVerifyCode()" style="background:none;border:none;color:var(--accent);font-weight:700;cursor:pointer;font-family:inherit;font-size:12px;padding:0;">Отправить ещё раз</button>
         </div>
+      </div>
+
+      <div id="auth-step-2fa" style="display:none;">
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);text-align:center;margin-bottom:16px;" id="auth-2fa-note">Мы отправили 6-значный код 2FA на вашу почту</div>
+        <input type="text" inputmode="numeric" maxlength="6" class="prem-input" id="auth-2fa-field" placeholder="000000" style="text-align:center;font-size:22px;letter-spacing:8px;margin-bottom:14px;">
+        <button class="prem-save-btn" id="auth-2fa-submit-btn" style="width:100%;margin-bottom:12px;" onclick="submit2FA()">Войти</button>
       </div>
 
       <div id="auth-form-status" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);margin-top:12px;text-align:center;"></div>
@@ -1390,6 +1401,28 @@
       </div>
 
       <div class="calc-block" style="margin-bottom:16px">
+        <div class="calc-block-title" id="scripts-templates-title">🔥 Быстрые шаблоны ИИ-генерации</div>
+        <div class="calc-block-sub" id="scripts-templates-sub">Выберите готовый шаблон, чтобы автоматически настроить анкету под нужный тип контента</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:10px;">
+          <div class="template-card" onclick="applyScriptTemplate('shorts_hook')" style="background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="font-size:16px;margin-bottom:4px;">⚡</div>
+            <div style="font-size:12px;font-weight:700;" id="tpl-hook-title">Крючок для Shorts</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;" id="tpl-hook-desc">Умный сценарий удержания зрителя с первых секунд.</div>
+          </div>
+          <div class="template-card" onclick="applyScriptTemplate('storytelling')" style="background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="font-size:16px;margin-bottom:4px;">📖</div>
+            <div style="font-size:12px;font-weight:700;" id="tpl-story-title">Увлекательный Сторителлинг</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;" id="tpl-story-desc">Построение сюжета по правилам драматургии.</div>
+          </div>
+          <div class="template-card" onclick="applyScriptTemplate('product_review')" style="background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="font-size:16px;margin-bottom:4px;">🛍️</div>
+            <div style="font-size:12px;font-weight:700;" id="tpl-review-title">Обзор товара / услуги</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;" id="tpl-review-desc">Сценарий коммерческого или нативного обзора.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="calc-block" style="margin-bottom:16px">
         <div class="calc-block-title" id="scripts-likes-title">Что нравится делать / что хорошо получается</div>
         <div class="calc-block-sub" id="scripts-likes-sub">Например: съёмка, монтаж, озвучка, придумывать заголовки...</div>
         <textarea class="feedback-textarea" id="sp-likes-text" maxlength="3000" placeholder="Расскажи, что у тебя получается хорошо и что нравится делать в производстве видео..."></textarea>
@@ -1484,6 +1517,16 @@
           <span class="video-item-badge" id="pin-status-badge" style="color:var(--muted); border-color:var(--border); background:var(--input-bg);">Отключен</span>
         </div>
 
+        <!-- Безопасность -->
+        <div class="video-item" onclick="openSecuritySettingsModal()">
+          <span class="video-item-icon" style="font-size:24px;">🛡️</span>
+          <div class="video-item-info">
+            <div class="video-item-title" id="security-title">Безопасность</div>
+            <div class="video-item-meta" id="security-sub">Смена пароля и управление двухфакторной аутентификацией (2FA)</div>
+          </div>
+          <span class="video-item-badge" id="security-status-badge" style="color:var(--orange); border-color:rgba(255,159,71,.3); background:rgba(255,159,71,.06);">Настройки</span>
+        </div>
+
         <!-- Отзыв -->
         <div class="video-item" onclick="openFeedbackSettingsModal()">
           <span class="video-item-icon" style="font-size:24px;">💬</span>
@@ -1523,6 +1566,17 @@
       <div class="page-header">
         <div><h2 class="page-title">Подписки</h2><p class="page-sub">Выберите план — оплата через безопасный крипто-эквайринг</p></div>
       </div>
+
+      <!-- Промо-баннер скидки -->
+      <div id="premium-promo-banner" style="background:linear-gradient(135deg, rgba(255,71,87,0.06) 0%, rgba(255,159,71,0.06) 100%); border:1px solid rgba(255,159,71,0.25); border-radius:14px; padding:16px 20px; display:flex; align-items:center; gap:16px; margin-bottom:20px;">
+        <div style="font-size:24px;">🔥</div>
+        <div style="flex:1; min-width:0;">
+          <div style="font-size:13px; font-weight:800; color:var(--text); letter-spacing:-0.2px;" id="promo-banner-title">Ограниченное предложение: Скидка 50% на годовой план!</div>
+          <div style="font-size:11px; color:var(--muted); margin-top:2px;" id="promo-banner-desc">Получите полный доступ ко всем функциям ИИ и прогнозирования по минимальной цене. Срок действия акции ограничен.</div>
+        </div>
+        <div style="font-family:'DM Mono',monospace; font-size:12px; font-weight:700; color:var(--accent); background:var(--input-bg); border:1px solid var(--border); border-radius:8px; padding:6px 12px; white-space:nowrap;" id="promo-banner-timer">00:00:00</div>
+      </div>
+
       <div id="subscriptions-disabled-banner" class="admin-empty" style="display:none;margin-bottom:20px;">Премиум-подписка сейчас не активна на сайте</div>
       <div id="subscriptions-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;">
         <div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div>
@@ -1650,7 +1704,15 @@
     <div class="tab-panel" id="tab-admin">
       <div class="page-header">
         <div><h2 class="page-title" id="admin-page-title">Админ-панель</h2><p class="page-sub" id="admin-sub">Управление пользователями YTMetrics</p></div>
-        <div class="badge-live" style="background:rgba(255,71,87,.08);border-color:rgba(255,71,87,.25);color:var(--red)">🛡️ ADMIN ONLY</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div class="badge-live" style="background:rgba(71,200,255,0.08);border-color:rgba(71,200,255,0.25);color:var(--accent2);font-family:'DM Mono',monospace;display:none;align-items:center;gap:6px;" id="admin-api-status-badge">
+            <span>⚡ API Gemini:</span>
+            <span id="admin-api-usage-today">0</span>
+            <span>/</span>
+            <span id="admin-api-usage-limit">5000</span>
+          </div>
+          <div class="badge-live" style="background:rgba(255,71,87,.08);border-color:rgba(255,71,87,.25);color:var(--red)">🛡️ ADMIN ONLY</div>
+        </div>
       </div>
       <div class="prem-block" id="admin-balance-block" style="display:none;border-color:rgba(232,255,71,.25);">
         <div class="prem-block-title">💰 Счёт — заработано с пользователей</div>
@@ -1697,6 +1759,18 @@
         <div class="admin-block">
           <div class="admin-block-title">🛡️ <span id="admins-block-title">ADMIN-Пользователи</span></div>
           <div id="admin-admins-list"><div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span><span style="margin-left:8px" id="loading-text-admins">Загрузка...</span></div></div>
+        </div>
+      </div>
+
+      <!-- Блок настройки главного администратора (доступно только Supreme) -->
+      <div class="admin-block" id="admin-supreme-config-block" style="display:none; margin-top:24px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px;">
+        <div class="admin-block-title" style="margin-bottom:12px; font-weight:700; font-size:14px;">🔑 <span id="supreme-config-title-text">Передача прав владельца (Главный администратор)</span></div>
+        <div style="font-size:11px; color:var(--muted); margin-bottom:14px; font-family:'DM Mono',monospace; line-height:1.6;" id="supreme-config-desc-text">
+          Укажите новый email-адрес Google для передачи главного доступа к проекту. Новый владелец сможет войти под этой почтой и сразу получить полные права управления.
+        </div>
+        <div style="display:flex; gap:10px;">
+          <input type="email" id="supreme-config-email-input" placeholder="new-owner@gmail.com" style="flex:1; padding:10px 14px; border:1px solid var(--border); border-radius:10px; background:var(--input-bg); color:var(--text); font-family:'DM Mono',monospace; font-size:12px;">
+          <button onclick="saveSupremeEmail()" style="padding:10px 20px; border-radius:10px; background:var(--accent); color:var(--bg); border:none; font-family:'DM Mono',monospace; font-size:12px; font-weight:700; cursor:pointer;" id="supreme-config-save-btn-text">Сохранить</button>
         </div>
       </div>
     </div>
@@ -2144,6 +2218,49 @@
       </div>
       <div class="prem-vip-list" id="prem-vip-list"><div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div></div>
       <button class="prem-save-btn" style="width:100%;" onclick="closeModal('prem-exclude-modal')">Готово</button>
+    </div>
+  </div>
+</div>
+
+<!-- SECURITY SETTINGS MODAL -->
+<div class="modal-overlay" id="security-settings-modal">
+  <div class="modal-box modal-sm" style="max-width:440px;">
+    <div class="modal-header">
+      <div class="modal-title" id="security-modal-title">Безопасность аккаунта</div>
+      <button class="modal-close" onclick="closeModal('security-settings-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:10px;">
+      <!-- Раздел 2FA -->
+      <div class="prem-engine-card" style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); border:1px solid var(--border); border-radius:10px; padding:12px;">
+        <div style="padding-right:12px;">
+          <div class="prem-engine-title" id="sec-2fa-title" style="font-weight:700;font-size:14px;">Двухфакторная аутентификация (2FA)</div>
+          <div class="prem-engine-sub" id="sec-2fa-desc" style="font-size:11px;color:var(--muted);margin-top:2px;">Подтверждение входа по одноразовому коду на почту</div>
+        </div>
+        <div class="prem-switch" id="sec-2fa-switch" onclick="toggle2FASwitch()" style="flex-shrink:0;">
+          <div class="prem-switch-knob"></div>
+        </div>
+      </div>
+
+      <hr style="border:none; border-top:1px solid var(--border); margin:20px 0;">
+
+      <!-- Смена пароля -->
+      <div style="font-weight:700; font-size:14px; margin-bottom:12px;" id="sec-chpass-title">Смена пароля</div>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
+        <div style="position:relative;">
+          <input type="password" class="prem-input" id="sec-current-password" placeholder="Текущий пароль">
+          <button type="button" onclick="togglePasswordVisibility('sec-current-password',this)" style="position:absolute;right:4px;top:4px;bottom:4px;width:36px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;">👁</button>
+        </div>
+        <div style="position:relative;">
+          <input type="password" class="prem-input" id="sec-new-password" placeholder="Новый пароль (от 8 символов)">
+          <button type="button" onclick="togglePasswordVisibility('sec-new-password',this)" style="position:absolute;right:4px;top:4px;bottom:4px;width:36px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;">👁</button>
+        </div>
+        <div style="position:relative;">
+          <input type="password" class="prem-input" id="sec-confirm-password" placeholder="Подтвердите новый пароль">
+          <button type="button" onclick="togglePasswordVisibility('sec-confirm-password',this)" style="position:absolute;right:4px;top:4px;bottom:4px;width:36px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;">👁</button>
+        </div>
+      </div>
+      <div id="sec-chpass-error" style="color:var(--red); font-family:'DM Mono',monospace; font-size:11px; margin-bottom:10px;"></div>
+      <button class="prem-save-btn" id="sec-chpass-btn" onclick="submitChangePassword()" style="width:100%;">Сохранить пароль</button>
     </div>
   </div>
 </div>
@@ -2723,7 +2840,41 @@ const T={
     report_cat_black:'Черный экран при загрузке сайта',
     report_cat_slow:'Медленная скорость работы / зависание',
     report_cat_other:'Другая техническая проблема',
-    report_min_chars:'Описание проблемы должно содержать хотя бы 10 символов!'
+    report_min_chars:'Описание проблемы должно содержать хотя бы 10 символов!',
+    invalid_email:'Введите корректный email',
+    transfer_ownership_confirm:'Вы действительно хотите передать права владельца? Вы потеряете доступ главного администратора к панели управления.',
+    supreme_email_saved:'Права владельца успешно переданы. Страница будет перезапущена.',
+    supreme_config_title:'Передача прав владельца (Главный администратор)',
+    supreme_config_desc:'Укажите новый email-адрес Google для передачи главного доступа к проекту. Новый владелец сможет войти под этой почтой и сразу получить полные права управления.',
+    supreme_config_save:'Сохранить',
+    supreme_config_placeholder:'new-owner@gmail.com',
+    auth_remember_me:'Запомнить меня',
+    template_applied:'Шаблон применен!',
+    promo_banner_title:'Ограниченное предложение: Скидка 50% на годовой план!',
+    promo_banner_desc:'Получите полный доступ ко всем функциям ИИ и прогнозирования по минимальной цене. Срок действия акции ограничен.',
+    scripts_templates_title:'🔥 Быстрые шаблоны ИИ-генерации',
+    scripts_templates_sub:'Выберите готовый шаблон, чтобы автоматически настроить анкету под нужный тип контента',
+    tpl_hook_title:'Крючок для Shorts',
+    tpl_hook_desc:'Умный сценарий удержания зрителя с первых секунд.',
+    tpl_story_title:'Увлекательный Сторителлинг',
+    tpl_story_desc:'Построение сюжета по правилам драматургии.',
+    tpl_review_title:'Обзор товара / услуги',
+    tpl_review_desc:'Сценарий коммерческого или нативного обзора.',
+    sec_title:'Безопасность',
+    sec_sub:'Смена пароля и управление двухфакторной аутентификацией (2FA)',
+    sec_badge:'Настройки',
+    sec_modal_title:'Безопасность аккаунта',
+    sec_2fa_title:'Двухфакторная аутентификация (2FA)',
+    sec_2fa_desc:'Подтверждение входа по одноразовому коду на почту',
+    sec_chpass_title:'Смена пароля',
+    sec_current_password_ph:'Текущий пароль',
+    sec_new_password_ph:'Новый пароль (от 8 символов)',
+    sec_confirm_password_ph:'Подтвердите новый пароль',
+    sec_chpass_btn:'Сохранить пароль',
+    auth_2fa_note:'Мы отправили 6-значный код 2FA на вашу почту',
+    sec_2fa_enabled_badge:'2FA Вкл',
+    sec_2fa_disabled_badge:'2FA Выкл',
+    password_changed:'Пароль успешно изменен'
   },
   en:{
     nav_stats:'Analytics', nav_forecast:'Video Forecast', nav_calc:'Calculator',
@@ -3016,7 +3167,41 @@ const T={
     report_cat_black:'Black screen on load',
     report_cat_slow:'Slow performance / freezing',
     report_cat_other:'Other technical issue',
-    report_min_chars:'Issue description must be at least 10 characters long!'
+    report_min_chars:'Issue description must be at least 10 characters long!',
+    invalid_email:'Please enter a valid email address',
+    transfer_ownership_confirm:'Are you sure you want to transfer ownership? You will lose supreme administrator access.',
+    supreme_email_saved:'Supreme administrator rights transferred successfully. Page will reload.',
+    supreme_config_title:'Transfer Ownership (Supreme Administrator)',
+    supreme_config_desc:'Specify a new Google email address to transfer main access to the project. The new owner will be able to log in with this email and immediately get full management rights.',
+    supreme_config_save:'Save',
+    supreme_config_placeholder:'new-owner@gmail.com',
+    auth_remember_me:'Remember me',
+    template_applied:'Template applied!',
+    promo_banner_title:'Limited Offer: 50% Off Annual Plan!',
+    promo_banner_desc:'Get full access to all AI and forecasting features at the lowest price. Offer is time-limited.',
+    scripts_templates_title:'🔥 Quick AI Templates',
+    scripts_templates_sub:'Select a pre-made template to auto-fill the survey for specific content types',
+    tpl_hook_title:'Shorts Hook',
+    tpl_hook_desc:'Smart script to retain viewers right from the first seconds.',
+    tpl_story_title:'Engaging Storytelling',
+    tpl_story_desc:'Plotting structure using dramaturgy principles.',
+    tpl_review_title:'Product / Service Review',
+    tpl_review_desc:'Commercial or native product review script.',
+    sec_title:'Security',
+    sec_sub:'Change password and configure two-factor authentication (2FA)',
+    sec_badge:'Settings',
+    sec_modal_title:'Account Security',
+    sec_2fa_title:'Two-Factor Authentication (2FA)',
+    sec_2fa_desc:'Confirm entry using a one-time code sent to your email',
+    sec_chpass_title:'Change Password',
+    sec_current_password_ph:'Current password',
+    sec_new_password_ph:'New password (at least 8 chars)',
+    sec_confirm_password_ph:'Confirm new password',
+    sec_chpass_btn:'Save Password',
+    auth_2fa_note:'We sent a 6-digit 2FA code to your email address',
+    sec_2fa_enabled_badge:'2FA On',
+    sec_2fa_disabled_badge:'2FA Off',
+    password_changed:'Password changed successfully'
   },
   ar:{
     nav_stats:'التحليلات', nav_forecast:'توقعات الفيديو', nav_calc:'الحاسبة',
@@ -3309,7 +3494,41 @@ const T={
     report_cat_black:'شاشة سوداء عند التحميل',
     report_cat_slow:'أداء بطيء / تجمد',
     report_cat_other:'مشكلة فنية أخرى',
-    report_min_chars:'يجب أن يكون وصف المشكلة 10 أحرف على الأقل!'
+    report_min_chars:'يجب أن يكون وصف المشكلة 10 أحرف على الأقل!',
+    invalid_email:'يرجى إدخال بريد إلكتروني صحيح',
+    transfer_ownership_confirm:'هل أنت متأكد من رغبتك في نقل الملكية؟ ستفقد وصول المسؤول الأعلى.',
+    supreme_email_saved:'تم نقل حقوق المسؤول الأعلى بنجاح. ستتم إعادة تحميل الصفحة.',
+    supreme_config_title:'نقل الملكية (المسؤول الأعلى)',
+    supreme_config_desc:'حدد عنوان بريد إلكتروني جديدًا لـ Google لنقل الوصول الرئيسي إلى المشروع. سيتمكن المالك الجديد من تسجيل الدخول باستخدام هذا البريد الإلكتروني والحصول على حقوق إدارة كاملة على الفور.',
+    supreme_config_save:'حفظ',
+    supreme_config_placeholder:'new-owner@gmail.com',
+    auth_remember_me:'تذكرني',
+    template_applied:'تم تطبيق النموذج!',
+    promo_banner_title:'عرض محدود: خصم 50% на الخطة السنوية!',
+    promo_banner_desc:'احصل على وصول كامل لجميع ميزات الذكاء الاصطناعي والتنبؤ بأقل سعر. العرض محدود بوقت.',
+    scripts_templates_title:'🔥 قوالب الذكاء الاصطناعي السريعة',
+    scripts_templates_sub:'حدد قالبًا جاهزًا لملء الاستبيان تلقائيًا لنوع محدد من المحتوى',
+    tpl_hook_title:'خطاف Shorts',
+    tpl_hook_desc:'سيناريو ذكي للاحتفاظ بالمشاهدين من الثواني الأولى.',
+    tpl_story_title:'سرد قصصي جذاب',
+    tpl_story_desc:'هيكل حبكة درامية مبني على مبادئ الدراما.',
+    tpl_review_title:'مراجعة منتج / خدمة',
+    tpl_review_desc:'سيناريو مراجعة تجارية أو طبيعية للمنتج.',
+    sec_title:'الأمان',
+    sec_sub:'تغيير كلمة المرور وتكوين المصادقة الثنائية (2FA)',
+    sec_badge:'الإعدادات',
+    sec_modal_title:'أمان الحساب',
+    sec_2fa_title:'المصادقة الثنائية (2FA)',
+    sec_2fa_desc:'تأكيد الدخول باستخدام رمز لمرة واحدة مرسل إلى بريدك الإلكتروني',
+    sec_chpass_title:'تغيير كلمة المرور',
+    sec_current_password_ph:'كلمة المرور الحالية',
+    sec_new_password_ph:'كلمة المرور الجديدة (8 أحرف على الأقل)',
+    sec_confirm_password_ph:'تأكيد كلمة المرور الجديدة',
+    sec_chpass_btn:'حفظ كلمة المرور',
+    auth_2fa_note:'لقد أرسلنا رمز 2FA المكون من 6 أرقام إلى عنوان بريدك الإلكتروني',
+    sec_2fa_enabled_badge:'2FA مفعل',
+    sec_2fa_disabled_badge:'2FA معطل',
+    password_changed:'تم تغيير كلمة المرور بنجاح'
   }
 };
 
@@ -3623,6 +3842,42 @@ function applyTranslations(){
   setElText('feedback-modal-sub', t('feedback_modal_sub'));
   setElText('filter-shorts-btn', '⚡ ' + t('filter_shorts'));
   setElText('fc-filter-shorts-btn', '⚡ ' + t('filter_shorts'));
+  setElText('auth-remember-label', t('auth_remember_me') || 'Запомнить меня');
+  setElText('supreme-config-title-text', t('supreme_config_title'));
+  setElText('supreme-config-desc-text', t('supreme_config_desc'));
+  setElText('supreme-config-save-btn-text', t('supreme_config_save'));
+  const supremeEmailInput = document.getElementById('supreme-config-email-input');
+  if (supremeEmailInput) {
+    supremeEmailInput.placeholder = t('supreme_config_placeholder') || 'new-owner@gmail.com';
+  }
+  setElText('promo-banner-title', t('promo_banner_title'));
+  setElText('promo-banner-desc', t('promo_banner_desc'));
+  setElText('scripts-templates-title', t('scripts_templates_title'));
+  setElText('scripts-templates-sub', t('scripts_templates_sub'));
+  setElText('tpl-hook-title', t('tpl_hook_title'));
+  setElText('tpl-hook-desc', t('tpl_hook_desc'));
+  setElText('tpl-story-title', t('tpl_story_title'));
+  setElText('tpl-story-desc', t('tpl_story_desc'));
+  setElText('tpl-review-title', t('tpl_review_title'));
+  setElText('tpl-review-desc', t('tpl_review_desc'));
+  setElText('security-title', t('sec_title'));
+  setElText('security-sub', t('sec_sub'));
+  setElText('security-modal-title', t('sec_modal_title'));
+  setElText('sec-2fa-title', t('sec_2fa_title'));
+  setElText('sec-2fa-desc', t('sec_2fa_desc'));
+  setElText('sec-chpass-title', t('sec_chpass_title'));
+  setElText('sec-chpass-btn', t('sec_chpass_btn'));
+  setElText('auth-2fa-note', t('auth_2fa_note'));
+
+  const curPass = document.getElementById('sec-current-password');
+  if(curPass) curPass.placeholder = t('sec_current_password_ph');
+  const newPass = document.getElementById('sec-new-password');
+  if(newPass) newPass.placeholder = t('sec_new_password_ph');
+  const confPass = document.getElementById('sec-confirm-password');
+  if(confPass) confPass.placeholder = t('sec_confirm_password_ph');
+
+  // Update badge UI
+  update2FASwitchUI();
 }
 
 function setLanguage(lang){
@@ -3671,6 +3926,7 @@ function startRegister(){
 let _authTab='login';
 let _captchaToken=null;
 let _pendingVerifyEmail=null;
+let _temp2FAToken=null;
 
 function togglePasswordVisibility(fieldId,btn){
   const field=document.getElementById(fieldId);
@@ -3695,6 +3951,7 @@ async function loadCaptcha(){
 function setAuthStep(step){
   document.getElementById('auth-step-form').style.display=step==='form'?'block':'none';
   document.getElementById('auth-step-code').style.display=step==='code'?'block':'none';
+  document.getElementById('auth-step-2fa').style.display=step==='2fa'?'block':'none';
 }
 
 function setAuthTab(tab){
@@ -3744,6 +4001,14 @@ async function submitAuthForm(){
       }else{ status.textContent=data.error||'Ошибка'; }
       if(_authTab==='register')loadCaptcha();
       btn.disabled=false;return;
+    }
+    if(data.two_factor_required){
+      _temp2FAToken=data.temp_token;
+      document.getElementById('auth-2fa-field').value='';
+      setAuthStep('2fa');
+      status.textContent='';
+      btn.disabled=false;
+      return;
     }
     if(_authTab==='register'&&data.needs_code){
       _pendingVerifyEmail=email;
@@ -3796,6 +4061,118 @@ async function resendVerifyCode(){
   }catch(e){status.textContent='Ошибка сети';}
 }
 
+async function submit2FA(){
+  const btn=document.getElementById('auth-2fa-submit-btn');
+  const status=document.getElementById('auth-form-status');
+  const code=document.getElementById('auth-2fa-field').value.trim();
+  if(!code||code.length<6){status.textContent='Введите 6-значный код';return;}
+  btn.disabled=true;status.textContent='Проверяем код...';
+  try{
+    const res=await fetch(API_URL+'/api/auth/email/verify-2fa',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'include',
+      body:JSON.stringify({ temp_token:_temp2FAToken, code })
+    });
+    const data=await res.json().catch(function(){return {};});
+    if(!res.ok){status.textContent=data.error||'Ошибка';btn.disabled=false;return;}
+    saveToken(data.token);
+    closeModal('auth-modal');
+    if(!data.channel_id){
+      document.getElementById('landing-screen').style.display='none';
+      document.getElementById('connect-youtube-screen').style.display='flex';
+    }else{
+      checkUserAccess(data, function(){ showDashboard(data); });
+    }
+  }catch(e){status.textContent='Ошибка сети';btn.disabled=false;}
+}
+
+let _2faStatus = false;
+async function openSecuritySettingsModal(){
+  document.getElementById('sec-current-password').value = '';
+  document.getElementById('sec-new-password').value = '';
+  document.getElementById('sec-confirm-password').value = '';
+  document.getElementById('sec-chpass-error').textContent = '';
+  openModal('security-settings-modal');
+  try {
+    const res = await apiFetch('/api/auth/security/status');
+    if (!res.ok) return;
+    const data = await res.json();
+    _2faStatus = !!data.two_factor_enabled;
+    update2FASwitchUI();
+  } catch(e){}
+}
+function update2FASwitchUI(){
+  const sw = document.getElementById('sec-2fa-switch');
+  if (sw) sw.classList.toggle('active', _2faStatus);
+  const badge = document.getElementById('security-status-badge');
+  if (badge) {
+    if (_2faStatus) {
+      badge.textContent = t('sec_2fa_enabled_badge') || '2FA Вкл';
+      badge.style.color = 'var(--green)';
+      badge.style.borderColor = 'rgba(78, 205, 196, .3)';
+      badge.style.background = 'rgba(78, 205, 196, .06)';
+    } else {
+      badge.textContent = t('sec_2fa_disabled_badge') || '2FA Выкл';
+      badge.style.color = 'var(--muted)';
+      badge.style.borderColor = 'var(--border)';
+      badge.style.background = 'var(--input-bg)';
+    }
+  }
+}
+async function toggle2FASwitch(){
+  const sw = document.getElementById('sec-2fa-switch');
+  const target = !_2faStatus;
+  try {
+    const res = await apiFetch('/api/auth/security/toggle-2fa', {
+      method: 'POST',
+      body: JSON.stringify({ enabled: target })
+    });
+    if (res.ok) {
+      _2faStatus = target;
+      update2FASwitchUI();
+      showToast(t('settings_changed') || 'Настройки сохранены');
+    } else {
+      alert('Ошибка изменения настроек');
+    }
+  } catch(e){ alert('Ошибка сети'); }
+}
+async function submitChangePassword(){
+  const btn = document.getElementById('sec-chpass-btn');
+  const errEl = document.getElementById('sec-chpass-error');
+  const current = document.getElementById('sec-current-password').value;
+  const newPass = document.getElementById('sec-new-password').value;
+  const confirmPass = document.getElementById('sec-confirm-password').value;
+  errEl.textContent = '';
+  if (!current || !newPass || !confirmPass) {
+    errEl.textContent = 'Заполните все поля';
+    return;
+  }
+  if (newPass !== confirmPass) {
+    errEl.textContent = 'Пароли не совпадают';
+    return;
+  }
+  if (newPass.length < 8) {
+    errEl.textContent = 'Новый пароль должен быть не короче 8 символов';
+    return;
+  }
+  btn.disabled = true;
+  try {
+    const res = await apiFetch('/api/auth/email/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ current_password: current, new_password: newPass })
+    });
+    const data = await res.json().catch(function(){return {};});
+    if (res.ok) {
+      showToast(t('password_changed') || 'Пароль успешно изменен');
+      closeModal('security-settings-modal');
+    } else {
+      errEl.textContent = data.error || 'Ошибка';
+    }
+  } catch(e){ errEl.textContent = 'Ошибка сети'; }
+  btn.disabled = false;
+}
+
 function startYouTubeConnect(){
   const origin=window.location.origin+window.location.pathname;
   window.location.href=API_URL+'/api/auth/youtube/connect?origin='+encodeURIComponent(origin);
@@ -3808,9 +4185,37 @@ function logoutFromConnectScreen(){
 function scrollToFeatures(){document.getElementById('features').scrollIntoView({behavior:'smooth'});}
 function showPrivacyPolicy(){openModal('privacy-modal');}
 function showTerms(){openModal('terms-modal');}
-function saveToken(tok){try{localStorage.setItem(LS_TOK,tok);}catch(e){}}
-function getToken(){try{return localStorage.getItem(LS_TOK)||null;}catch(e){return null;}}
-function clearToken(){try{localStorage.removeItem(LS_TOK); const b=document.getElementById('global-ai-limit-badge'); if(b)b.style.display='none';}catch(e){}}
+let _rememberMe=true;
+function toggleRememberMe(){
+  _rememberMe=!_rememberMe;
+  const cb=document.getElementById('auth-remember-checkbox');
+  if(cb)cb.classList.toggle('checked',_rememberMe);
+  try{localStorage.setItem('ytmetrics_remember_me',_rememberMe?'1':'0');}catch(e){}
+}
+function saveToken(tok){
+  try{
+    if(_rememberMe){
+      localStorage.setItem(LS_TOK,tok);
+      sessionStorage.removeItem(LS_TOK);
+    }else{
+      sessionStorage.setItem(LS_TOK,tok);
+      localStorage.removeItem(LS_TOK);
+    }
+  }catch(e){}
+}
+function getToken(){
+  try{
+    return localStorage.getItem(LS_TOK)||sessionStorage.getItem(LS_TOK)||null;
+  }catch(e){return null;}
+}
+function clearToken(){
+  try{
+    localStorage.removeItem(LS_TOK);
+    sessionStorage.removeItem(LS_TOK);
+    const b=document.getElementById('global-ai-limit-badge');
+    if(b)b.style.display='none';
+  }catch(e){}
+}
 function authHeaders(){const tok=getToken();return tok?{'Authorization':'Bearer '+tok}:{};}
 async function apiFetch(path,opts={}){
   return fetch(API_URL+path,{credentials:'include',...opts,headers:{'Content-Type':'application/json',...authHeaders(),...(opts.headers||{})}});
@@ -4560,6 +4965,12 @@ async function loadMyPermissions(){
     _myPermissions=data.permissions||{};
     _isSupreme=!!data.isSupreme;
     _isPrimary=!!data.isPrimary;
+    const usageBadge = document.getElementById('admin-api-status-badge');
+    if (usageBadge && data.globalUsageToday !== undefined) {
+      document.getElementById('admin-api-usage-today').textContent = data.globalUsageToday;
+      document.getElementById('admin-api-usage-limit').textContent = data.globalUsageLimit;
+      usageBadge.style.display = 'flex';
+    }
   }catch(e){}
 }
 
@@ -4910,6 +5321,19 @@ async function renderAdminList(){
     const admins=data.admins||[];
     const myEmail=data.currentEmail;
     const iAmSupreme=!!data.isSupreme;
+    const supremeEmail=data.supremeEmail||'';
+    const supremeBlock=document.getElementById('admin-supreme-config-block');
+    if(supremeBlock){
+      if(iAmSupreme){
+        supremeBlock.style.display='block';
+        const emailInput=document.getElementById('supreme-config-email-input');
+        if(emailInput&&!emailInput.value){
+          emailInput.value=supremeEmail;
+        }
+      }else{
+        supremeBlock.style.display='none';
+      }
+    }
     window._adminsData=admins;
     if(!admins.length){adminList.innerHTML='<div class="admin-empty">—</div>';return;}
     adminList.innerHTML=admins.map(function(a,idx){
@@ -4946,6 +5370,37 @@ async function adminRemoveAdmin(email,name){
     if(res.ok){alert(t('admin_rights_removed'));renderAdminList();}
     else alert(data.error||'Error');
   }catch(e){alert('Error');}
+}
+async function saveSupremeEmail(){
+  const emailInput=document.getElementById('supreme-config-email-input');
+  if(!emailInput)return;
+  const newEmail=emailInput.value.trim();
+  if(!newEmail||!newEmail.includes('@')){
+    alert(t('invalid_email')||'Введите корректный email');
+    return;
+  }
+  if(!confirm(t('transfer_ownership_confirm')||'Вы действительно хотите передать права владельца? Вы потеряете доступ главного администратора.')){
+    return;
+  }
+  try{
+    const saveBtn=document.getElementById('supreme-config-save-btn-text');
+    if(saveBtn)saveBtn.disabled=true;
+    const res=await apiFetch('/api/admin/set-supreme-email',{
+      method:'POST',
+      body:JSON.stringify({newEmail})
+    });
+    const data=await res.json();
+    if(res.ok){
+      alert(t('supreme_email_saved')||'Права владельца успешно переданы. Страница будет перезагружена.');
+      window.location.reload();
+    }else{
+      alert(data.error||'Error');
+    }
+  }catch(e){alert('Error: '+e.message);}
+  finally{
+    const saveBtn=document.getElementById('supreme-config-save-btn-text');
+    if(saveBtn)saveBtn.disabled=false;
+  }
 }
 
 let _currentPermsAdminIdx=null, _currentPermsState=null, _permsModalMode='edit', _pendingNewAdminUserId=null;
@@ -5119,7 +5574,15 @@ document.getElementById('logout-btn').addEventListener('click',function(){
 function checkTokenInURL(){
   const params=new URLSearchParams(window.location.search);
   const token=params.get('token'),error=params.get('error'),uid=params.get('uid'),uemail=params.get('uemail');
-  if(token){saveToken(token);window.history.replaceState({},document.title,window.location.pathname);return{token:token};}
+  if(token){
+    try{
+      const val=localStorage.getItem('ytmetrics_remember_me');
+      _rememberMe=(val!=='0');
+    }catch(e){}
+    saveToken(token);
+    window.history.replaceState({},document.title,window.location.pathname);
+    return{token:token};
+  }
   if(error==='banned'){_banUserId=uid||null;_banEmail=uemail||null;window.history.replaceState({},document.title,window.location.pathname);return{banned:true};}
   if(error){window.history.replaceState({},document.title,window.location.pathname);return{error:error};}
   return null;
@@ -6053,6 +6516,41 @@ function calcCTRReverse(){
 const SP_LINK_KEYS=['youtube','vk','tiktok','telegram'];
 let _scriptsLoaded=false;
 
+function applyScriptTemplate(type){
+  const likes=document.getElementById('sp-likes-text');
+  const dislikes=document.getElementById('sp-dislikes-text');
+  if(!likes||!dislikes)return;
+  if(type==='shorts_hook'){
+    likes.value="Хочу снять короткое вертикальное видео Shorts/Reels. Мне нравится удерживать внимание с первой секунды, использовать динамичные фразы и неожиданные переходы.";
+    dislikes.value="Не люблю скучные длинные вступления и монотонное чтение текста. Видео должно быть динамичным, до 30 секунд.";
+  }else if(type==='storytelling'){
+    likes.value="Разговорный ролик-расследование или личная история. Люблю последовательное раскрытие сюжета, интригу, кульминацию и выводы в конце.";
+    dislikes.value="Не нравится сухая подача фактов без эмоций. Хочу создать сопереживание у зрителя.";
+  }else if(type==='product_review'){
+    likes.value="Обзор полезного сервиса, гаджета или книги. Люблю честно рассказывать о плюсах и минусах, показывать практическое применение и давать оценку.";
+    dislikes.value="Не люблю прямые скучные продажи. Реклама должна быть нативной и полезной для зрителя.";
+  }
+  showToast(t('template_applied')||'Шаблон применен!');
+}
+
+function startPromoTimer(){
+  const timerEl = document.getElementById('promo-banner-timer');
+  if(!timerEl) return;
+  function tick(){
+    const now = new Date();
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+    let diff = end - now;
+    if(diff < 0) diff = 0;
+    const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+    const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+    const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+    timerEl.textContent = h + ':' + m + ':' + s;
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
 async function loadScriptProfile(){
   if(_scriptsLoaded)return;
   try{
@@ -6417,8 +6915,32 @@ function showDashboard(channelData){
   document.getElementById('user-display-email').textContent=channelData.email||channelData.channel_id||'';
   const avatarUrl=channelData.avatar_url||channelData.picture||null;
   const avatarEl=document.getElementById('user-avatar-placeholder');
-  if(avatarUrl){const img=document.createElement('img');img.src=avatarUrl;img.className='user-avatar';img.alt='';img.onerror=function(){img.style.display='none';};if(avatarEl.tagName==='DIV')avatarEl.replaceWith(img);else avatarEl.src=avatarUrl;}
-  else{avatarEl.textContent=(channelData.channel_name||channelData.email||'Y')[0].toUpperCase();}
+  if(avatarEl){
+    if(avatarUrl){
+      if(avatarEl.tagName==='DIV'){
+        const img=document.createElement('img');
+        img.src=avatarUrl;
+        img.className='user-avatar';
+        img.id='user-avatar-placeholder';
+        img.alt='';
+        img.onerror=function(){img.style.display='none';};
+        avatarEl.replaceWith(img);
+      }else{
+        avatarEl.src=avatarUrl;
+        avatarEl.style.display='block';
+      }
+    }else{
+      if(avatarEl.tagName==='IMG'){
+        const div=document.createElement('div');
+        div.className='user-avatar-placeholder';
+        div.id='user-avatar-placeholder';
+        div.textContent=(channelData.channel_name||channelData.email||'Y')[0].toUpperCase();
+        avatarEl.replaceWith(div);
+      }else{
+        avatarEl.textContent=(channelData.channel_name||channelData.email||'Y')[0].toUpperCase();
+      }
+    }
+  }
   fetchAndRenderLimits();loadChatHistory();updatePinStatusBadge();initInstallTab();loadPremiumStatusForUser();pollMessagesUnreadCount();setInterval(pollMessagesUnreadCount,60000);
   _realVideos=[];
   const wrapper=document.getElementById('ai-video-analyzer-wrap');if(wrapper)wrapper.style.display='none';
@@ -6488,6 +7010,15 @@ async function handleInitAuthMeResponse(res) {
   console.log('YTMetrics init: theme loaded');
   loadLanguage();
   console.log('YTMetrics init: language loaded');
+  try{
+    startPromoTimer();
+  }catch(e){}
+  try{
+    const val=localStorage.getItem('ytmetrics_remember_me');
+    _rememberMe=(val!=='0');
+    const cb=document.getElementById('auth-remember-checkbox');
+    if(cb)cb.classList.toggle('checked',_rememberMe);
+  }catch(e){}
   
   // Скрываем кнопку скачивания в боковом меню, если открыто внутри установленного приложения
   // (старый PWA-режим) или внутри desktop-версии (Electron грузит страницу через file://)
@@ -6585,7 +7116,11 @@ async function handleInitAuthMeResponse(res) {
         const user=await res.json();
         if(user.fresh_token)saveToken(user.fresh_token);
         if(user.is_admin)enableAdminMode(user.is_supreme_admin);
-        if(user.channels&&user.channels.length>1){
+        if(!user.channel_id){
+          saveUser(user);
+          document.getElementById('landing-screen').style.display='none';
+          document.getElementById('connect-youtube-screen').style.display='flex';
+        }else if(user.channels&&user.channels.length>1){
           saveUser(user);
           checkUserAccess(user, function(){ showChannelSelect(user); });
         }else{
@@ -6609,7 +7144,10 @@ async function handleInitAuthMeResponse(res) {
   const cached=getUser();
   console.log('YTMetrics init: cached user =', cached);
   if(cached&&(cached.email||cached.channel_id)){
-    if(cached.channels&&cached.channels.length>1&&!cached.channel_id) {
+    if(!cached.channel_id){
+      document.getElementById('landing-screen').style.display='none';
+      document.getElementById('connect-youtube-screen').style.display='flex';
+    }else if(cached.channels&&cached.channels.length>1&&!cached.channel_id) {
       checkUserAccess(cached, function(){ showChannelSelect(cached); });
     } else {
       checkUserAccess(cached, function(){ showDashboard(cached); });
@@ -6632,7 +7170,11 @@ async function handleInitAuthMeResponse(res) {
       const user=await res.json();
       if(user.fresh_token)saveToken(user.fresh_token);
       if(user.is_admin)enableAdminMode(user.is_supreme_admin);
-      if(user.channels&&user.channels.length>1){
+      if(!user.channel_id){
+        saveUser(user);
+        document.getElementById('landing-screen').style.display='none';
+        document.getElementById('connect-youtube-screen').style.display='flex';
+      }else if(user.channels&&user.channels.length>1){
         saveUser(user);
         checkUserAccess(user, function(){ showChannelSelect(user); });
       }else{
