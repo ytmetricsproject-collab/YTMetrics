@@ -1094,26 +1094,48 @@
         <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:4px;" id="auth-modal-subtitle">Вход в аккаунт</div>
       </div>
 
-      <div class="auth-tabs">
-        <button class="auth-tab-btn active" id="auth-tab-login" onclick="setAuthTab('login')">Вход</button>
-        <button class="auth-tab-btn" id="auth-tab-register" onclick="setAuthTab('register')">Регистрация</button>
+      <div id="auth-step-form">
+        <div class="auth-tabs">
+          <button class="auth-tab-btn active" id="auth-tab-login" onclick="setAuthTab('login')">Вход</button>
+          <button class="auth-tab-btn" id="auth-tab-register" onclick="setAuthTab('register')">Регистрация</button>
+        </div>
+
+        <input type="email" class="prem-input" id="auth-email-field" placeholder="Почта (не Gmail/iCloud)" style="margin-bottom:10px;">
+
+        <div style="position:relative;margin-bottom:10px;">
+          <input type="password" class="prem-input" id="auth-password-field" placeholder="Пароль" style="padding-right:44px;">
+          <button type="button" onclick="togglePasswordVisibility('auth-password-field',this)" style="position:absolute;right:4px;top:4px;bottom:4px;width:36px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;">👁</button>
+        </div>
+        <div style="position:relative;display:none;margin-bottom:10px;" id="auth-password-confirm-wrap">
+          <input type="password" class="prem-input" id="auth-password-confirm-field" placeholder="Повторите пароль" style="padding-right:44px;">
+          <button type="button" onclick="togglePasswordVisibility('auth-password-confirm-field',this)" style="position:absolute;right:4px;top:4px;bottom:4px;width:36px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;">👁</button>
+        </div>
+
+        <div id="auth-captcha-wrap" style="display:none;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <div id="auth-captcha-svg" style="flex:1;line-height:0;border-radius:8px;overflow:hidden;"></div>
+            <button type="button" onclick="loadCaptcha()" title="Обновить пример" style="width:44px;height:50px;background:var(--input-bg);border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-size:16px;">↻</button>
+          </div>
+          <input type="text" inputmode="numeric" class="prem-input" id="auth-captcha-answer" placeholder="Решите пример выше">
+        </div>
+
+        <button class="prem-save-btn" id="auth-submit-btn" style="width:100%;margin-bottom:14px;" onclick="submitAuthForm()">Войти</button>
+
+        <div id="auth-switch-to-register" style="text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">
+          Ещё нет аккаунта? Тогда зарегистрируйтесь — <button onclick="setAuthTab('register')" style="background:none;border:none;color:var(--accent);font-weight:700;cursor:pointer;font-family:inherit;font-size:12px;padding:0;">регистрация</button>
+        </div>
+        <div id="auth-switch-to-login" style="display:none;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">
+          Уже есть аккаунт? Тогда войдите — <button onclick="setAuthTab('login')" style="background:none;border:none;color:var(--accent);font-weight:700;cursor:pointer;font-family:inherit;font-size:12px;padding:0;">вход</button>
+        </div>
       </div>
 
-      <input type="email" class="prem-input" id="auth-email-field" placeholder="Почта (не Gmail/iCloud)" style="margin-bottom:10px;">
-      <input type="password" class="prem-input" id="auth-password-field" placeholder="Пароль" style="margin-bottom:10px;">
-      <input type="password" class="prem-input" id="auth-password-confirm-field" placeholder="Повторите пароль" style="display:none;margin-bottom:10px;">
-
-      <div id="auth-captcha-wrap" style="display:none;margin-bottom:14px;">
-        <div id="auth-captcha-container"></div>
-      </div>
-
-      <button class="prem-save-btn" id="auth-submit-btn" style="width:100%;margin-bottom:14px;" onclick="submitAuthForm()">Войти</button>
-
-      <div id="auth-switch-to-register" style="text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">
-        Ещё нет аккаунта? Тогда зарегистрируйтесь — <button onclick="setAuthTab('register')" style="background:none;border:none;color:var(--accent);font-weight:700;cursor:pointer;font-family:inherit;font-size:12px;padding:0;">регистрация</button>
-      </div>
-      <div id="auth-switch-to-login" style="display:none;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">
-        Уже есть аккаунт? Тогда войдите — <button onclick="setAuthTab('login')" style="background:none;border:none;color:var(--accent);font-weight:700;cursor:pointer;font-family:inherit;font-size:12px;padding:0;">вход</button>
+      <div id="auth-step-code" style="display:none;">
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);text-align:center;margin-bottom:16px;">Мы отправили 6-значный код на <span id="auth-code-email" style="color:var(--text);font-weight:700;"></span></div>
+        <input type="text" inputmode="numeric" maxlength="6" class="prem-input" id="auth-code-field" placeholder="000000" style="text-align:center;font-size:22px;letter-spacing:8px;margin-bottom:14px;">
+        <button class="prem-save-btn" id="auth-code-submit-btn" style="width:100%;margin-bottom:12px;" onclick="submitVerifyCode()">Подтвердить</button>
+        <div style="text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">
+          Не пришёл код? <button onclick="resendVerifyCode()" style="background:none;border:none;color:var(--accent);font-weight:700;cursor:pointer;font-family:inherit;font-size:12px;padding:0;">Отправить ещё раз</button>
+        </div>
       </div>
 
       <div id="auth-form-status" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);margin-top:12px;text-align:center;"></div>
@@ -1362,7 +1384,6 @@
         <div class="calc-fields">
           <div class="calc-field"><label>YouTube</label><input type="text" class="calc-input" id="sp-link-youtube" placeholder="https://youtube.com/@..."></div>
           <div class="calc-field"><label>VK</label><input type="text" class="calc-input" id="sp-link-vk" placeholder="https://vk.com/..."></div>
-          <div class="calc-field"><label>Instagram</label><input type="text" class="calc-input" id="sp-link-instagram" placeholder="https://instagram.com/..."></div>
           <div class="calc-field"><label>TikTok</label><input type="text" class="calc-input" id="sp-link-tiktok" placeholder="https://tiktok.com/@..."></div>
           <div class="calc-field"><label>Telegram</label><input type="text" class="calc-input" id="sp-link-telegram" placeholder="https://t.me/..."></div>
         </div>
@@ -2532,7 +2553,7 @@ const T={
     min_ago:'мин назад', hr_ago:'ч назад', days_ago:'дн. назад',
     today:'сегодня', yesterday:'1 день назад', days_suffix:'дн. назад',
     weeks_suffix:'нед. назад', months_suffix:'мес. назад', years_suffix:'г. назад',
-    landing_btn:'Сделать анализ', hero_more:'Узнать больше ↓',
+    landing_btn:'Зарегистрироваться', hero_more:'Узнать больше ↓',
     trust1:'Только чтение данных', trust2:'Безопасная авторизация', trust3:'Данные не передаются третьим лицам',
     ban_title:'Доступ заблокирован',
     ban_text:'Вы были забанены администратором сайта YTMetrics.<br>Если вы считаете, что это произошло по ошибке — вы можете оспорить решение.',
@@ -2825,7 +2846,7 @@ const T={
     min_ago:' min ago', hr_ago:' hr ago', days_ago:' days ago',
     today:'today', yesterday:'1 day ago', days_suffix:' days ago',
     weeks_suffix:' weeks ago', months_suffix:' mo. ago', years_suffix:' yr. ago',
-    landing_btn:'Analyze now', hero_more:'Learn more ↓',
+    landing_btn:'Sign up', hero_more:'Learn more ↓',
     trust1:'Read-only access', trust2:'Secure authorization', trust3:'Data not shared with third parties',
     ban_title:'Access blocked',
     ban_text:'You were banned by a YTMetrics administrator.<br>If you think this is an error, you can appeal.',
@@ -3118,7 +3139,7 @@ const T={
     min_ago:' دقيقة مضت', hr_ago:' ساعة مضت', days_ago:' أيام مضت',
     today:'اليوم', yesterday:'أمس', days_suffix:' أيام مضت',
     weeks_suffix:' أسابيع مضت', months_suffix:' أشهر مضت', years_suffix:' سنوات مضت',
-    landing_btn:'قم بالتحليل الآن', hero_more:'معرفة المزيد ↓',
+    landing_btn:'التسجيل', hero_more:'معرفة المزيد ↓',
     trust1:'وصول للقراءة فقط', trust2:'تفويض آمن', trust3:'لا يتم مشاركة البيانات مع أطراف ثالثة',
     ban_title:'تم حظر الوصول',
     ban_text:'لقد تم حظرك بواسطة مسؤول منصة YTMetrics.<br>إذا كنت تعتقد أن هذا حدث عن طريق الخطأ، يمكنك تقديم طلب استئناف.',
@@ -3648,82 +3669,88 @@ function startRegister(){
   openModal('auth-modal');
 }
 let _authTab='login';
-let _captchaClientKey=null, _captchaWidgetId=null, _captchaLoaded=false, _captchaToken=null;
+let _captchaToken=null;
+let _pendingVerifyEmail=null;
 
-async function ensureCaptchaLoaded(){
-  if(_captchaLoaded)return;
-  _captchaLoaded=true;
-  try{
-    const res=await fetch(API_URL+'/api/config/public');
-    const data=await res.json();
-    _captchaClientKey=data.captcha_client_key;
-  }catch(e){}
-  if(!_captchaClientKey)return;
-  await new Promise(function(resolve){
-    const script=document.createElement('script');
-    script.src='https://smartcaptcha.yandexcloud.net/captcha.js';
-    script.defer=true;
-    script.onload=resolve;script.onerror=resolve;
-    document.head.appendChild(script);
-  });
+function togglePasswordVisibility(fieldId,btn){
+  const field=document.getElementById(fieldId);
+  const show=field.type==='password';
+  field.type=show?'text':'password';
+  btn.textContent=show?'🙈':'👁';
 }
-async function renderCaptchaWidget(){
-  await ensureCaptchaLoaded();
-  const wrap=document.getElementById('auth-captcha-wrap');
-  if(!_captchaClientKey||!window.smartCaptcha){ wrap.style.display='none'; return; }
-  wrap.style.display='block';
-  _captchaToken=null;
-  if(_captchaWidgetId!==null){ window.smartCaptcha.reset(_captchaWidgetId); return; }
-  _captchaWidgetId=window.smartCaptcha.render('auth-captcha-container',{
-    sitekey:_captchaClientKey,
-    callback:function(token){ _captchaToken=token; },
-  });
+
+async function loadCaptcha(){
+  const svgWrap=document.getElementById('auth-captcha-svg');
+  const answerField=document.getElementById('auth-captcha-answer');
+  answerField.value='';
+  svgWrap.innerHTML='<div style="height:50px;display:flex;align-items:center;justify-content:center;font-family:\'DM Mono\',monospace;font-size:11px;color:var(--muted)">...</div>';
+  try{
+    const res=await fetch(API_URL+'/api/captcha/generate');
+    const data=await res.json();
+    _captchaToken=data.captcha_token;
+    svgWrap.innerHTML=data.svg;
+  }catch(e){ svgWrap.innerHTML='<div style="height:50px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--red)">Ошибка загрузки</div>'; }
+}
+
+function setAuthStep(step){
+  document.getElementById('auth-step-form').style.display=step==='form'?'block':'none';
+  document.getElementById('auth-step-code').style.display=step==='code'?'block':'none';
 }
 
 function setAuthTab(tab){
   _authTab=tab;
+  setAuthStep('form');
   document.getElementById('auth-tab-login').classList.toggle('active',tab==='login');
   document.getElementById('auth-tab-register').classList.toggle('active',tab==='register');
-  document.getElementById('auth-password-confirm-field').style.display=tab==='register'?'block':'none';
+  document.getElementById('auth-password-confirm-wrap').style.display=tab==='register'?'block':'none';
   document.getElementById('auth-submit-btn').textContent=tab==='register'?'Зарегистрироваться':'Войти';
   document.getElementById('auth-modal-subtitle').textContent=tab==='register'?'Создать аккаунт':'Вход в аккаунт';
   document.getElementById('auth-switch-to-register').style.display=tab==='login'?'block':'none';
   document.getElementById('auth-switch-to-login').style.display=tab==='register'?'block':'none';
   document.getElementById('auth-form-status').textContent='';
-  if(tab==='register')renderCaptchaWidget();
-  else document.getElementById('auth-captcha-wrap').style.display='none';
+  const captchaWrap=document.getElementById('auth-captcha-wrap');
+  if(tab==='register'){ captchaWrap.style.display='block'; loadCaptcha(); }
+  else{ captchaWrap.style.display='none'; }
 }
 
 async function submitAuthForm(){
   const btn=document.getElementById('auth-submit-btn');
   const status=document.getElementById('auth-form-status');
+  status.style.color='var(--muted)';
   const email=document.getElementById('auth-email-field').value.trim();
   const password=document.getElementById('auth-password-field').value;
   const passwordConfirm=document.getElementById('auth-password-confirm-field').value;
+  const captchaAnswer=document.getElementById('auth-captcha-answer').value;
   if(!email||!password){status.textContent='Заполните почту и пароль';return;}
   if(_authTab==='register'){
     if(password!==passwordConfirm){status.textContent='Пароли не совпадают';return;}
     if(password.length<8){status.textContent='Пароль должен быть не короче 8 символов';return;}
-    if(_captchaClientKey&&!_captchaToken){status.textContent='Пройдите проверку «Я не робот»';return;}
+    if(!captchaAnswer){status.textContent='Решите пример с картинки';return;}
   }
   btn.disabled=true;status.textContent=_authTab==='register'?'Регистрируем...':'Входим...';
   try{
     const endpoint=_authTab==='register'?'/api/auth/email/register':'/api/auth/email/login';
     const body=_authTab==='register'
-      ? { email, password, password_confirm:passwordConfirm, captcha_token:_captchaToken }
+      ? { email, password, password_confirm:passwordConfirm, captcha_token:_captchaToken, captcha_answer:captchaAnswer }
       : { email, password };
     const res=await fetch(API_URL+endpoint,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify(body)});
     const data=await res.json().catch(function(){return {};});
     if(!res.ok){
-      if(data.error==='EMAIL_NOT_VERIFIED'){status.textContent='Подтвердите почту — мы отправили письмо со ссылкой при регистрации';}
-      else{status.textContent=data.error||'Ошибка';}
-      if(_authTab==='register'&&_captchaWidgetId!==null)window.smartCaptcha.reset(_captchaWidgetId);
+      if(data.error==='EMAIL_NOT_VERIFIED'){
+        status.textContent='Подтвердите почту — введите код из письма';
+        _pendingVerifyEmail=email;
+        document.getElementById('auth-code-email').textContent=email;
+        setAuthStep('code');
+      }else{ status.textContent=data.error||'Ошибка'; }
+      if(_authTab==='register')loadCaptcha();
       btn.disabled=false;return;
     }
-    if(_authTab==='register'){
-      status.style.color='var(--accent)';
-      status.textContent='✓ '+(data.message||'Проверьте почту для подтверждения регистрации');
-      setTimeout(function(){ status.style.color='var(--muted)'; setAuthTab('login'); },2500);
+    if(_authTab==='register'&&data.needs_code){
+      _pendingVerifyEmail=email;
+      document.getElementById('auth-code-email').textContent=email;
+      document.getElementById('auth-code-field').value='';
+      setAuthStep('code');
+      status.textContent='';
       btn.disabled=false;
       return;
     }
@@ -3738,6 +3765,37 @@ async function submitAuthForm(){
   }catch(e){status.textContent='Ошибка сети';}
   btn.disabled=false;
 }
+
+async function submitVerifyCode(){
+  const btn=document.getElementById('auth-code-submit-btn');
+  const status=document.getElementById('auth-form-status');
+  const code=document.getElementById('auth-code-field').value.trim();
+  if(!code||code.length<6){status.textContent='Введите 6-значный код';return;}
+  btn.disabled=true;status.textContent='Проверяем код...';
+  try{
+    const res=await fetch(API_URL+'/api/auth/email/verify-code',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({ email:_pendingVerifyEmail, code })});
+    const data=await res.json().catch(function(){return {};});
+    if(!res.ok){status.textContent=data.error||'Ошибка';btn.disabled=false;return;}
+    saveToken(data.token);
+    closeModal('auth-modal');
+    if(!data.channel_id){
+      document.getElementById('landing-screen').style.display='none';
+      document.getElementById('connect-youtube-screen').style.display='flex';
+    }else{
+      checkUserAccess(data, function(){ showDashboard(data); });
+    }
+  }catch(e){status.textContent='Ошибка сети';btn.disabled=false;}
+}
+async function resendVerifyCode(){
+  const status=document.getElementById('auth-form-status');
+  status.textContent='Отправляем новый код...';
+  try{
+    const res=await fetch(API_URL+'/api/auth/email/resend-code',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({ email:_pendingVerifyEmail })});
+    const data=await res.json().catch(function(){return {};});
+    status.textContent=res.ok?'✓ Код отправлен повторно':(data.error||'Ошибка');
+  }catch(e){status.textContent='Ошибка сети';}
+}
+
 function startYouTubeConnect(){
   const origin=window.location.origin+window.location.pathname;
   window.location.href=API_URL+'/api/auth/youtube/connect?origin='+encodeURIComponent(origin);
@@ -5992,7 +6050,7 @@ function calcCTRReverse(){
   h.textContent=ctr>=7?t('calc_excellent_ctr'):ctr>=5?t('calc_good_ctr'):ctr>=3?t('calc_average'):t('calc_low_ctr');
 }
 
-const SP_LINK_KEYS=['youtube','vk','instagram','tiktok','telegram'];
+const SP_LINK_KEYS=['youtube','vk','tiktok','telegram'];
 let _scriptsLoaded=false;
 
 async function loadScriptProfile(){
