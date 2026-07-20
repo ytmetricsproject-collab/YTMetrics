@@ -2111,11 +2111,6 @@ app.post('/api/auth/email/register', async (req,res)=>{
     if(error)return res.status(500).json({ error:'Database error', details:error.message });
 
     await sendVerificationCode(userId, cleanEmail);
-    const service = cleanEmail.split('@')[1] || 'unknown';
-    const dateStr = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
-    const bodyText = `Почта: ${cleanEmail}\nСервис: ${service}\nДата входа: ${dateStr}\nКоличество подписчиков: 0`;
-    await createAdminNotification('new_user','👤 Новый пользователь',bodyText,userId);
-
     return res.json({ ok:true, needs_code:true, email:cleanEmail, message:'Мы отправили код подтверждения на почту' });
   }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
 });
@@ -2427,6 +2422,16 @@ app.get('/api/auth/youtube/callback', async (req,res)=>{
       youtube_refresh_token: refresh_token||userRow.youtube_refresh_token||null, // Google не всегда присылает новый refresh_token повторно
     }).eq('id',uid);
 
+    try{
+      const email = userRow.email || '—';
+      const service = email.split('@')[1] || 'unknown';
+      const dateStr = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+      const subs = primary?.subscribers || 0;
+      const chName = primary?.channel_name || '—';
+      const bodyText = `Почта: ${email}\nСервис: ${service}\nДата входа: ${dateStr}\nКанал: ${chName}\nКоличество подписчиков: ${subs}`;
+      await createAdminNotification('new_user','👤 Новый пользователь (YouTube привязан)',bodyText,uid);
+    }catch(e){}
+
     const isAdmin=await isAdminEmail(userRow.email||'');
     const isPrimary=isAdmin?await isPrimaryAdmin(userRow.email||''):false;
     const isSupreme=isAdmin?await isSupremeAdmin(userRow.email||''):false;
@@ -2586,6 +2591,37 @@ app.post('/api/auth/clear-warning', async (req,res)=>{
     if(error)return res.status(500).json({ error:'Database error' });
     return res.json({ ok:true });
   }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+// POST /api/user/save-channel — сохранение привязанного канала и отправка уведомления админу при первом подключении
+app.post('/api/user/save-channel', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  const { channel_id, channel_name, channel_url, avatar_url, subscriber_count }=req.body||{};
+  if(!channel_id) return res.status(400).json({ error: 'channel_id required' });
+  try{
+    const { data: userRow } = await supabase.from('users').select('*').eq('id', payload.sub).single();
+    const isFirstTimeLink = !userRow || !userRow.channel_id;
+
+    const subs = parseInt(subscriber_count) || 0;
+    await supabase.from('users').update({
+      channel_id,
+      youtube_channel_name: channel_name || null,
+      channel_url: channel_url || null,
+      youtube_channel_avatar: avatar_url || null,
+      subscriber_count: subs
+    }).eq('id', payload.sub);
+
+    if(isFirstTimeLink){
+      const email = payload.email || userRow?.email || 'неизвестно';
+      const service = email.split('@')[1] || 'unknown';
+      const dateStr = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+      const chName = channel_name || '—';
+      const bodyText = `Почта: ${email}\nСервис: ${service}\nДата входа: ${dateStr}\nКанал: ${chName}\nКоличество подписчиков: ${subs}`;
+      await createAdminNotification('new_user', '👤 Новый пользователь (YouTube привязан)', bodyText, payload.sub);
+    }
+
+    return res.json({ ok: true });
+  }catch(e){ return res.status(500).json({ error: 'Server error', details: e.message }); }
 });
 
 // ════════════════════════════════════════════════════════
