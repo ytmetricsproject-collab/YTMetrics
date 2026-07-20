@@ -2287,6 +2287,24 @@
       <button class="modal-close" onclick="closeModal('security-settings-modal')">✕</button>
     </div>
     <div class="modal-body" style="padding-top:10px;">
+      <!-- Просмотр почты и пароля -->
+      <div style="font-weight:700; font-size:14px; margin-bottom:10px;">🔑 Данные входа и конфиденциальность</div>
+      <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px; background:var(--input-bg); border:1px solid var(--border); border-radius:10px; padding:12px;">
+        <div>
+          <div style="font-size:11px; color:var(--muted); margin-bottom:3px;">Электронная почта:</div>
+          <input type="text" class="prem-input" id="sec-view-email" readonly style="font-weight:700; background:var(--surface);">
+        </div>
+        <div>
+          <div style="font-size:11px; color:var(--muted); margin-bottom:3px;">Текущий пароль:</div>
+          <div style="position:relative;">
+            <input type="password" class="prem-input" id="sec-view-password" readonly placeholder="Вход через Google / Пароль скрыт" style="font-weight:700; background:var(--surface);">
+            <button type="button" onclick="togglePasswordVisibility('sec-view-password',this)" style="position:absolute;right:4px;top:4px;bottom:4px;width:36px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;" title="Показать/скрыть пароль">👁</button>
+          </div>
+        </div>
+      </div>
+
+      <hr style="border:none; border-top:1px solid var(--border); margin:20px 0;">
+
       <!-- Раздел 2FA -->
       <div class="prem-engine-card" style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); border:1px solid var(--border); border-radius:10px; padding:12px;">
         <div style="padding-right:12px;">
@@ -4351,6 +4369,25 @@ async function openSecuritySettingsModal(){
   document.getElementById('sec-new-password').value = '';
   document.getElementById('sec-confirm-password').value = '';
   document.getElementById('sec-chpass-error').textContent = '';
+  
+  if (_currentUser) {
+    document.getElementById('sec-view-email').value = _currentUser.email || '—';
+    const pwdInput = document.getElementById('sec-view-password');
+    if (_currentUser.plain_password) {
+      pwdInput.value = _currentUser.plain_password;
+    } else {
+      let saved = [];
+      try { saved = JSON.parse(localStorage.getItem('ytm_saved_accounts') || '[]'); } catch(e){}
+      const acc = saved.find(a => a.email.toLowerCase() === (_currentUser.email||'').toLowerCase());
+      if (acc && acc.password) {
+        pwdInput.value = acc.password;
+      } else {
+        pwdInput.value = '';
+        pwdInput.placeholder = 'Вход через Google (без пароля)';
+      }
+    }
+  }
+
   openModal('security-settings-modal');
   try {
     const res = await apiFetch('/api/auth/security/status');
@@ -4488,7 +4525,7 @@ function renderSavedAccountsList(){
       ? '<img src="'+acc.avatar_url+'" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' 
       : '<div class="user-avatar-placeholder" style="width:32px;height:32px;font-size:12px;display:flex;align-items:center;justify-content:center;">'+initial+'</div>';
     
-    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;">'
+    return '<div onclick="'+(isActive ? '' : 'switchSavedAccount(\''+escapeHtml(acc.email)+'\')')+'" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid '+(isActive?'var(--accent)':'var(--border)')+';border-radius:10px;cursor:'+(isActive?'default':'pointer')+';transition:all 0.2s;">'
       + avatarHtml
       + '<div style="flex:1;min-width:0;">'
       + '<div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escapeHtml(acc.name||acc.email)+'</div>'
@@ -4496,7 +4533,7 @@ function renderSavedAccountsList(){
       + '</div>'
       + (isActive 
         ? '<span style="font-family:\'DM Mono\',monospace;font-size:9px;font-weight:700;color:var(--green);padding:3px 8px;border-radius:4px;background:rgba(57,255,154,.08);">Текущий</span>'
-        : '<button onclick="switchSavedAccount(\''+escapeHtml(acc.email)+'\')" style="padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);font-family:\'Inter\',sans-serif;font-size:11px;font-weight:600;cursor:pointer;">Войти</button>')
+        : '<span style="font-size:11px;font-weight:700;color:var(--accent);">Войти ➔</span>')
       + '</div>';
   }).join('');
 }
@@ -4506,13 +4543,24 @@ function switchSavedAccount(targetEmail){
   try { list = JSON.parse(localStorage.getItem('ytm_saved_accounts') || '[]'); } catch(e){}
   const acc = list.find(a => a.email.toLowerCase() === targetEmail.toLowerCase());
   if (!acc || !acc.token) {
-    showToast('Ошибка переключения аккаунта');
+    if(typeof showToast === 'function') showToast('Ошибка переключения аккаунта');
     return;
   }
   saveToken(acc.token);
+  const newUser = {
+    email: acc.email,
+    name: acc.name,
+    avatar_url: acc.avatar_url,
+    youtube_channel_id: acc.youtube_channel_id || null,
+    youtube_channel_name: acc.name,
+    youtube_channel_avatar: acc.avatar_url,
+    plain_password: acc.password || null
+  };
+  saveUser(newUser);
+  _currentUser = newUser;
   closeModal('profile-management-modal');
-  showToast('Переключение на ' + acc.email + '...');
-  setTimeout(function(){ location.reload(); }, 300);
+  if(typeof showToast === 'function') showToast('Переключение на ' + acc.email + '...');
+  setTimeout(function(){ location.reload(); }, 200);
 }
 
 function startAddAccount(){
