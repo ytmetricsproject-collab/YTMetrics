@@ -1608,6 +1608,20 @@
         </div>
       </div>
 
+      <!-- Привязка карты и быстрая оплата -->
+      <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:12px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:20px;">💳</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--text);">Быстрая оплата и авто-привязка карты</div>
+            <div style="font-size:11px;color:var(--muted);">При первой оплате вы можете сохранить карту. Оплата происходит напрямую через защищённый платёжный шлюз Lava.top (СБП / МИР / Visa / MasterCard).</div>
+          </div>
+        </div>
+        <div style="font-size:11px;font-weight:800;color:var(--green);background:rgba(57,255,154,.08);border:1px solid rgba(57,255,154,.2);padding:4px 10px;border-radius:8px;white-space:nowrap;">
+          🔒 SSL Защита Lava.top
+        </div>
+      </div>
+
       <div id="subscriptions-disabled-banner" class="admin-empty" style="display:none;margin-bottom:20px;">Премиум-подписка сейчас не активна на сайте</div>
       <div id="subscriptions-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;">
         <div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div>
@@ -8018,6 +8032,20 @@ async function loadSubscriptionsPage(){
 
 const LAVA_PAYMENT_URL = 'https://app.lava.top/products/98ac73c0-0fc0-46f7-b7a9-67fc8c981b76';
 
+function openPaymentPopup(url){
+  const width = 540;
+  const height = 750;
+  const left = Math.max(0, Math.round((window.screen.width - width) / 2));
+  const top = Math.max(0, Math.round((window.screen.height - height) / 2));
+  
+  const popup = window.open(
+    url,
+    'LavaPaymentPopup',
+    'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',scrollbars=yes,status=no,resizable=yes'
+  );
+  if(popup) popup.focus();
+}
+
 async function buySubscription(plan,btnEl){
   const originalText=btnEl.textContent;
   btnEl.disabled=true;btnEl.textContent='Открываем оплату...';
@@ -8025,11 +8053,11 @@ async function buySubscription(plan,btnEl){
     const res=await apiFetch('/api/payments/create-invoice',{method:'POST',body:JSON.stringify({ plan:plan, promocode:_appliedPromocode })});
     const data=await res.json().catch(function(){return {};});
     const url = (data && data.pay_url) ? data.pay_url : LAVA_PAYMENT_URL;
-    window.open(url,'_blank');
+    openPaymentPopup(url);
     btnEl.textContent='✓ Открыта оплата';
     setTimeout(function(){btnEl.disabled=false;btnEl.textContent=originalText;},2500);
   }catch(e){
-    window.open(LAVA_PAYMENT_URL,'_blank');
+    openPaymentPopup(LAVA_PAYMENT_URL);
     btnEl.textContent='✓ Открыта оплата';
     setTimeout(function(){btnEl.disabled=false;btnEl.textContent=originalText;},2500);
   }
