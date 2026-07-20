@@ -1126,13 +1126,17 @@ async function createLavaInvoice({ amountRub, orderId, email, comment }) {
   return { uuid: (data.data && data.data.id) || orderId, pay_url: payUrl };
 }
 
-const LAVA_DIRECT_URL = process.env.LAVA_DIRECT_URL || 'https://app.lava.top/products/98ac73c0-0fc0-46f7-b7a9-67fc8c981b76';
+const LAVA_DIRECT_URL  = process.env.LAVA_DIRECT_URL  || 'https://app.lava.top/products/98ac73c0-0fc0-46f7-b7a9-67fc8c981b76';
+const LAVA_URL_MONTH   = process.env.LAVA_URL_MONTH   || LAVA_DIRECT_URL;
+const LAVA_URL_6MONTHS = process.env.LAVA_URL_6MONTHS || LAVA_DIRECT_URL;
+const LAVA_URL_YEAR    = process.env.LAVA_URL_YEAR    || LAVA_DIRECT_URL;
 
 // Создать запись платежа + счёт в Lava Pay. purpose: 'subscription' | 'ad'
 async function initiatePayment({ userId, email, purpose, referenceId, amountUsd }) {
   const orderId=purpose+'_'+(referenceId||userId)+'_'+Date.now();
   let invoice = null;
-  
+  const fallbackUrl = { month: LAVA_URL_MONTH, '6months': LAVA_URL_6MONTHS, year: LAVA_URL_YEAR }[referenceId] || LAVA_DIRECT_URL;
+
   if (LAVA_API_KEY && LAVA_SHOP_ID) {
     try {
       const amountRub = Math.round(amountUsd * 90);
@@ -1140,13 +1144,13 @@ async function initiatePayment({ userId, email, purpose, referenceId, amountUsd 
         amountRub: amountRub > 0 ? amountRub : 299,
         orderId,
         email,
-        comment: 'Оплата YTMetrics (' + purpose + ')'
+        comment: 'Оплата YTMetrics (' + purpose + ' — ' + (referenceId || 'премиум') + ')'
       });
     } catch(err) {
-      invoice = { uuid: orderId, pay_url: LAVA_DIRECT_URL };
+      invoice = { uuid: orderId, pay_url: fallbackUrl };
     }
   } else {
-    invoice = { uuid: orderId, pay_url: LAVA_DIRECT_URL };
+    invoice = { uuid: orderId, pay_url: fallbackUrl };
   }
 
   const record={
