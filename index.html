@@ -1221,12 +1221,12 @@
       <div class="nav-item" data-tab="scripts"><span class="nav-icon">🎬</span> <span class="nav-label" data-key="nav_scripts">Сценарии</span></div>
       <div class="nav-item" data-tab="competitors"><span class="nav-icon">🔎</span> <span class="nav-label" data-key="nav_competitors">Конкуренты</span></div>
       <div class="nav-item" data-tab="ads"><span class="nav-icon">📣</span> <span class="nav-label">Реклама</span></div>
-      <div class="nav-item" data-tab="subscriptions"><span class="nav-icon">👑</span> <span class="nav-label">Подписки</span></div>
+      <div class="nav-item" data-tab="subscriptions"><span class="nav-icon">💳</span> <span class="nav-label">Подписки</span></div>
       <div class="nav-item" data-tab="messages"><span class="nav-icon">✉️</span> <span class="nav-label">Сообщения</span> <span id="messages-unread-badge" style="display:none;background:var(--red);color:#fff;font-size:9px;padding:2px 6px;border-radius:5px;margin-left:6px;">0</span></div>
       <div class="nav-item" data-tab="install"><span class="nav-icon">⬇️</span> <span class="nav-label" data-key="nav_install">Скачать приложение</span></div>
       <div class="nav-item" data-tab="settings"><span class="nav-icon">⚙️</span> <span class="nav-label" data-key="nav_settings">Настройки</span></div>
       <div class="nav-item" data-tab="premium" id="nav-premium" style="display:none">
-        <span class="nav-icon">👑</span> <span class="nav-label">Премиум</span>
+        <span class="nav-icon">💎</span> <span class="nav-label">Премиум</span>
       </div>
       <div class="nav-item" data-tab="admin" id="nav-admin" style="display:none">
         <span class="nav-icon">🛡️</span> <span class="nav-label" data-key="nav_admin">Админ-панель</span>
@@ -1595,14 +1595,17 @@
         <div><h2 class="page-title">Подписки</h2><p class="page-sub">Выберите план — удобная оплата картами РФ, СБП и СНГ через Lava.top</p></div>
       </div>
 
-      <!-- Промо-баннер скидки -->
-      <div id="premium-promo-banner" style="background:linear-gradient(135deg, rgba(255,71,87,0.06) 0%, rgba(255,159,71,0.06) 100%); border:1px solid rgba(255,159,71,0.25); border-radius:14px; padding:16px 20px; display:flex; align-items:center; gap:16px; margin-bottom:20px;">
-        <div style="font-size:24px;">🔥</div>
-        <div style="flex:1; min-width:0;">
-          <div style="font-size:13px; font-weight:800; color:var(--text); letter-spacing:-0.2px;" id="promo-banner-title">Ограниченное предложение: Скидка 50% на годовой план!</div>
-          <div style="font-size:11px; color:var(--muted); margin-top:2px;" id="promo-banner-desc">Получите полный доступ ко всем функциям ИИ и прогнозирования по минимальной цене. Срок действия акции ограничен.</div>
+      <!-- Ввод промокода -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;">
+          🏷️ <span>У вас есть промокод?</span>
         </div>
-        <div style="font-family:'DM Mono',monospace; font-size:12px; font-weight:700; color:var(--accent); background:var(--input-bg); border:1px solid var(--border); border-radius:8px; padding:6px 12px; white-space:nowrap;" id="promo-banner-timer">00:00:00</div>
+        <div style="flex:1;min-width:180px;display:flex;align-items:center;gap:8px;">
+          <input type="text" id="user-promo-input" class="prem-input" placeholder="Введите промокод (например, YOUTUBE)" style="text-transform:uppercase;font-weight:700;letter-spacing:1px;font-family:'DM Mono',monospace;height:38px;">
+          <button type="button" onclick="applyUserPromocode(this)" style="height:38px;padding:0 16px;background:var(--accent);color:#080c10;font-weight:800;border:none;border-radius:8px;cursor:pointer;white-space:nowrap;">
+            Применить
+          </button>
+        </div>
       </div>
 
       <div id="subscriptions-disabled-banner" class="admin-empty" style="display:none;margin-bottom:20px;">Премиум-подписка сейчас не активна на сайте</div>
@@ -1675,7 +1678,7 @@
     <div class="tab-panel" id="tab-premium">
       <div class="page-header">
         <div><h2 class="page-title">Премиум</h2><p class="page-sub">Монетизация сайта — доступно главному администратору и админам с правом доступа</p></div>
-        <div class="badge-live" style="background:rgba(255,159,71,.08);border-color:rgba(255,159,71,.25);color:#ff9f47">👑 ADMIN ACCESS</div>
+        <div class="badge-live" style="background:rgba(255,159,71,.08);border-color:rgba(255,159,71,.25);color:#ff9f47">💎 ADMIN ACCESS</div>
       </div>
 
       <div class="prem-engine-card" id="prem-engine-card">
@@ -1695,20 +1698,32 @@
       </div>
 
       <div class="prem-block">
-        <div class="prem-block-title">💬 Цена на сайте</div>
-        <div class="prem-price-row">
-          <input type="text" class="prem-input" id="prem-price-month" placeholder="Например: 299 ₽">
-          <div class="prem-price-suffix">/ месяц</div>
+        <div class="prem-block-title">💬 Тарифные планы и цены</div>
+        <div id="prem-plans-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
+        <button type="button" class="prem-instr-btn" onclick="addPremiumPlanRow()" style="background:rgba(71,200,255,.06);border-color:rgba(71,200,255,.25);color:var(--accent2);width:100%;margin-bottom:12px;">
+          ＋ Добавить тариф
+        </button>
+        <div class="prem-hint">Укажите период подписки (в месяцах) и цену. По умолчанию задан 1 тариф на 1 месяц. Вы можете выставлять любой период подписки (например, 2, 3, 6 или 12 месяцев) и цену. Счета на Lava.top выставляются автоматически.</div>
+      </div>
+
+      <div class="prem-block">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="prem-block-title" style="margin-bottom:0;">💎 Премиум-пользователи</div>
+          <button type="button" class="prem-instr-btn" onclick="openGrantPremiumModal()" style="padding:4px 12px;font-size:11px;background:rgba(57,255,154,.08);border-color:rgba(57,255,154,.25);color:var(--green);">
+            ＋ Выдать премиум вручную
+          </button>
         </div>
-        <div class="prem-price-row">
-          <input type="text" class="prem-input" id="prem-price-6months" placeholder="Например: 1490 ₽">
-          <div class="prem-price-suffix">/ 6 месяцев</div>
-        </div>
-        <div class="prem-price-row">
-          <input type="text" class="prem-input" id="prem-price-year" placeholder="Например: 2490 ₽">
-          <div class="prem-price-suffix">/ год</div>
-        </div>
-        <div class="prem-hint">Это просто текст, который увидят пользователи на кнопках оформления премиума для каждого периода. Реальную сумму счёта задаёт сам платёжный сервис Lava.top при создании счёта — при оплате будет использована цифра, введённая здесь (система парсит число из текста автоматически).</div>
+        <div id="prem-active-users-list"><div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div></div>
+        <div class="prem-hint">Список всех пользователей с активной подпиской или вечным VIP-доступом. Вы можете выдать премиум вручную по email на нужное кол-во дней.</div>
+      </div>
+
+      <div class="prem-block">
+        <div class="prem-block-title">🏷️ Промокоды для зрителей</div>
+        <div id="prem-promocodes-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
+        <button type="button" class="prem-instr-btn" onclick="addPromocodeRow()" style="background:rgba(232,255,71,.06);border-color:rgba(232,255,71,.25);color:var(--accent);width:100%;margin-bottom:12px;">
+          ＋ Добавить промокод
+        </button>
+        <div class="prem-hint">Создавайте промокоды для ваших подписчиков и зрителей (например: скидка % на подписку или бесшовные бесплатные дни доступа).</div>
       </div>
 
       <div class="prem-block">
@@ -5425,12 +5440,272 @@ async function loadPremiumConfig(){
     _premLockableSections=data.lockable_sections||[];
     renderPremiumEngine();
     renderPremiumSections();
-    document.getElementById('prem-price-month').value=_premConfig.price_month||'';
-    document.getElementById('prem-price-6months').value=_premConfig.price_6months||'';
-    document.getElementById('prem-price-year').value=_premConfig.price_year||'';
+    renderPremiumPlanRows();
+    renderPromocodeRows();
+    loadActivePremiumUsers();
     updateExcludedCount();
     await loadPremiumUsersForVip();
   }catch(e){}
+}
+
+function renderPremiumPlanRows(){
+  const container = document.getElementById('prem-plans-list');
+  if(!container) return;
+  const plans = (_premConfig.plans && _premConfig.plans.length)
+    ? _premConfig.plans
+    : [{ id: 'plan_1', months: 1, price: _premConfig.price_month || '299 ₽' }];
+  
+  container.innerHTML = plans.map(function(p, idx){
+    return '<div class="prem-plan-item" style="display:flex;align-items:center;gap:10px;">'
+      +'<div style="display:flex;align-items:center;gap:6px;">'
+      +'<input type="number" class="prem-input plan-months-input" min="1" max="120" value="'+(p.months||1)+'" style="width:75px;text-align:center;">'
+      +'<span style="font-size:12px;color:var(--muted);white-space:nowrap;">мес.</span>'
+      +'</div>'
+      +'<div style="flex:1;min-width:0;">'
+      +'<input type="text" class="prem-input plan-price-input" value="'+escapeHtml(p.price||'')+'" placeholder="Например: 299 ₽">'
+      +'</div>'
+      +'<button type="button" onclick="removePremiumPlanRow(this)" style="background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.25);color:var(--red);border-radius:8px;padding:8px 12px;cursor:pointer;" title="Удалить тариф">🗑</button>'
+      +'</div>';
+  }).join('');
+}
+
+function addPremiumPlanRow(){
+  const container = document.getElementById('prem-plans-list');
+  if(!container) return;
+  const div = document.createElement('div');
+  div.className = 'prem-plan-item';
+  div.style.cssText = 'display:flex;align-items:center;gap:10px;';
+  div.innerHTML = '<div style="display:flex;align-items:center;gap:6px;">'
+    +'<input type="number" class="prem-input plan-months-input" min="1" max="120" value="2" style="width:75px;text-align:center;">'
+    +'<span style="font-size:12px;color:var(--muted);white-space:nowrap;">мес.</span>'
+    +'</div>'
+    +'<div style="flex:1;min-width:0;">'
+    +'<input type="text" class="prem-input plan-price-input" value="" placeholder="Например: 490 ₽">'
+    +'</div>'
+    +'<button type="button" onclick="removePremiumPlanRow(this)" style="background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.25);color:var(--red);border-radius:8px;padding:8px 12px;cursor:pointer;" title="Удалить тариф">🗑</button>';
+  container.appendChild(div);
+}
+
+function removePremiumPlanRow(btn){
+  const container = document.getElementById('prem-plans-list');
+  if(!container) return;
+  const items = container.querySelectorAll('.prem-plan-item');
+  if(items.length <= 1){
+    if(typeof showToast === 'function') showToast('Должен остаться хотя бы 1 тариф!');
+    return;
+  }
+  btn.closest('.prem-plan-item').remove();
+}
+
+async function loadActivePremiumUsers(){
+  const container = document.getElementById('prem-active-users-list');
+  if(!container) return;
+  try{
+    const res = await apiFetch('/api/premium/active-users');
+    if(!res.ok){ container.innerHTML = '<div class="admin-empty">Не удалось загрузить пользователей</div>'; return; }
+    const data = await res.json();
+    const users = data.users || [];
+    if(!users.length){ container.innerHTML = '<div class="admin-empty">Нет активных премиум-пользователей</div>'; return; }
+    
+    container.innerHTML = users.map(function(u){
+      const isVip = u.type === 'vip';
+      const expDate = u.expires_at ? new Date(u.expires_at).toLocaleDateString('ru-RU') : 'Вечный VIP';
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;font-size:12px;">'
+        +'<div>'
+        +'<div style="font-weight:700;color:var(--text);">'+escapeHtml(u.email)+'</div>'
+        +'<div style="font-size:10px;color:var(--muted);">'+(isVip ? '⭐ VIP Исключение' : '💳 Подписка активна до: ' + expDate)+'</div>'
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:6px;">'
+        +(!isVip ? '<button type="button" onclick="revokePremiumUser(\''+escapeHtml(u.email)+'\')" style="background:rgba(255,71,87,.1);border:1px solid rgba(255,71,87,.25);color:var(--red);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;">Отозвать</button>' : '<span style="color:var(--accent);font-weight:700;font-size:11px;">VIP</span>')
+        +'</div>'
+        +'</div>';
+    }).join('');
+  }catch(e){ container.innerHTML = '<div class="admin-empty">Ошибка загрузки</div>'; }
+}
+
+function renderPromocodeRows(){
+  const container = document.getElementById('prem-promocodes-list');
+  if(!container) return;
+  const promos = (_premConfig.promocodes && _premConfig.promocodes.length)
+    ? _premConfig.promocodes
+    : [{ code: 'YOUTUBE', discount_percent: 50, free_days: 0 }];
+
+  container.innerHTML = promos.map(function(p){
+    return '<div class="prem-promo-item" style="display:flex;align-items:center;gap:10px;">'
+      +'<div style="flex:2;min-width:0;">'
+      +'<input type="text" class="prem-input promo-code-input" value="'+escapeHtml(p.code||'')+'" placeholder="КОД (напр. YOUTUBE)" style="text-transform:uppercase;font-family:\'DM Mono\',monospace;font-weight:700;">'
+      +'</div>'
+      +'<div style="flex:1;min-width:0;display:flex;align-items:center;gap:4px;">'
+      +'<input type="number" class="prem-input promo-discount-input" min="0" max="100" value="'+(p.discount_percent||0)+'" style="text-align:center;" placeholder="0">'
+      +'<span style="font-size:11px;color:var(--muted);">% скидки</span>'
+      +'</div>'
+      +'<div style="flex:1;min-width:0;display:flex;align-items:center;gap:4px;">'
+      +'<input type="number" class="prem-input promo-days-input" min="0" max="365" value="'+(p.free_days||0)+'" style="text-align:center;" placeholder="0">'
+      +'<span style="font-size:11px;color:var(--muted);">дн. бесспл.</span>'
+      +'</div>'
+      +'<button type="button" onclick="removePromocodeRow(this)" style="background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.25);color:var(--red);border-radius:8px;padding:8px 12px;cursor:pointer;" title="Удалить промокод">🗑</button>'
+      +'</div>';
+  }).join('');
+}
+
+function addPromocodeRow(){
+  const container = document.getElementById('prem-promocodes-list');
+  if(!container) return;
+  const div = document.createElement('div');
+  div.className = 'prem-promo-item';
+  div.style.cssText = 'display:flex;align-items:center;gap:10px;';
+  div.innerHTML = '<div style="flex:2;min-width:0;">'
+    +'<input type="text" class="prem-input promo-code-input" value="" placeholder="ПРОМОКОД" style="text-transform:uppercase;font-family:\'DM Mono\',monospace;font-weight:700;">'
+    +'</div>'
+    +'<div style="flex:1;min-width:0;display:flex;align-items:center;gap:4px;">'
+    +'<input type="number" class="prem-input promo-discount-input" min="0" max="100" value="50" style="text-align:center;" placeholder="50">'
+    +'<span style="font-size:11px;color:var(--muted);">% скидки</span>'
+    +'</div>'
+    +'<div style="flex:1;min-width:0;display:flex;align-items:center;gap:4px;">'
+    +'<input type="number" class="prem-input promo-days-input" min="0" max="365" value="0" style="text-align:center;" placeholder="0">'
+    +'<span style="font-size:11px;color:var(--muted);">дн. бесспл.</span>'
+    +'</div>'
+    +'<button type="button" onclick="removePromocodeRow(this)" style="background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.25);color:var(--red);border-radius:8px;padding:8px 12px;cursor:pointer;" title="Удалить промокод">🗑</button>';
+  container.appendChild(div);
+}
+
+function removePromocodeRow(btn){
+  btn.closest('.prem-promo-item').remove();
+}
+
+function renderAdminSubPromocodes(){
+  const container = document.getElementById('admin-sub-promo-list');
+  if(!container) return;
+  const promos = (_premConfig.promocodes && _premConfig.promocodes.length)
+    ? _premConfig.promocodes
+    : [{ code: 'YOUTUBE', discount_percent: 50, free_days: 0 }];
+
+  container.innerHTML = promos.map(function(p){
+    return '<div class="admin-sub-promo-item" style="display:flex;align-items:center;gap:10px;">'
+      +'<div style="flex:2;min-width:0;">'
+      +'<input type="text" class="prem-input promo-code-input" value="'+escapeHtml(p.code||'')+'" placeholder="КОД (напр. YOUTUBE)" style="text-transform:uppercase;font-family:\'DM Mono\',monospace;font-weight:700;">'
+      +'</div>'
+      +'<div style="flex:1;min-width:0;display:flex;align-items:center;gap:4px;">'
+      +'<input type="number" class="prem-input promo-discount-input" min="0" max="100" value="'+(p.discount_percent||0)+'" style="text-align:center;" placeholder="0">'
+      +'<span style="font-size:11px;color:var(--muted);">% скидки</span>'
+      +'</div>'
+      +'<div style="flex:1;min-width:0;display:flex;align-items:center;gap:4px;">'
+      +'<input type="number" class="prem-input promo-days-input" min="0" max="365" value="'+(p.free_days||0)+'" style="text-align:center;" placeholder="0">'
+      +'<span style="font-size:11px;color:var(--muted);">дн. бесспл.</span>'
+      +'</div>'
+      +'<button type="button" onclick="this.closest(\'.admin-sub-promo-item\').remove()" style="background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.25);color:var(--red);border-radius:8px;padding:8px 12px;cursor:pointer;" title="Удалить промокод">🗑</button>'
+      +'</div>';
+  }).join('');
+}
+
+function addAdminSubPromoRow(){
+  const container = document.getElementById('admin-sub-promo-list');
+  if(!container) return;
+  const div = document.createElement('div');
+  div.className = 'admin-sub-promo-item';
+  div.style.cssText = 'display:flex;align-items:center;gap:10px;';
+  div.innerHTML = '<div style="flex:2;min-width:0;">'
+    +'<input type="text" class="prem-input promo-code-input" value="" placeholder="ПРОМОКОД" style="text-transform:uppercase;font-family:\'DM Mono\',monospace;font-weight:700;">'
+    +'</div>'
+    +'<div style="flex:1;min-width:0;display:flex;align-items:center;gap:4px;">'
+    +'<input type="number" class="prem-input promo-discount-input" min="0" max="100" value="40" style="text-align:center;" placeholder="40">'
+    +'<span style="font-size:11px;color:var(--muted);">% скидки</span>'
+    +'</div>'
+    +'<div style="flex:1;min-width:0;display:flex;align-items:center;gap:4px;">'
+    +'<input type="number" class="prem-input promo-days-input" min="0" max="365" value="0" style="text-align:center;" placeholder="0">'
+    +'<span style="font-size:11px;color:var(--muted);">дн. бесспл.</span>'
+    +'</div>'
+    +'<button type="button" onclick="this.closest(\'.admin-sub-promo-item\').remove()" style="background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.25);color:var(--red);border-radius:8px;padding:8px 12px;cursor:pointer;" title="Удалить промокод">🗑</button>';
+  container.appendChild(div);
+}
+
+async function saveAdminSubPromocodes(btn){
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = 'Сохранение...';
+
+  try{
+    const items = document.querySelectorAll('.admin-sub-promo-item');
+    const promocodes = [];
+    items.forEach(item => {
+      const code = (item.querySelector('.promo-code-input')?.value || '').trim().toUpperCase();
+      const discount_percent = parseInt(item.querySelector('.promo-discount-input')?.value) || 0;
+      const free_days = parseInt(item.querySelector('.promo-days-input')?.value) || 0;
+      if(code) promocodes.push({ code, discount_percent, free_days });
+    });
+    _premConfig.promocodes = promocodes;
+
+    const res = await apiFetch('/api/premium/config', { method: 'POST', body: JSON.stringify(_premConfig) });
+    if(res.ok){
+      if(typeof showToast === 'function') showToast('✓ Промокоды успешно сохранены!');
+      renderPromocodeRows();
+      renderAdminSubPromocodes();
+    } else {
+      if(typeof showToast === 'function') showToast('⚠️ Ошибка сохранения промокодов');
+    }
+  }catch(e){ if(typeof showToast === 'function') showToast('⚠️ Ошибка сети'); }
+  finally{
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
+async function openGrantPremiumModal(){
+  const email = prompt('Введите email пользователя, которому хотите выдать Премиум:');
+  if(!email || !email.trim()) return;
+  const daysStr = prompt('На сколько дней выдать Премиум? (например: 30)', '30');
+  const days = parseInt(daysStr) || 30;
+  
+  try{
+    const res = await apiFetch('/api/premium/grant-user', { method: 'POST', body: JSON.stringify({ email: email.trim(), days }) });
+    if(res.ok){
+      if(typeof showToast === 'function') showToast('✓ Премиум успешно выдан пользователю ' + email);
+      loadActivePremiumUsers();
+    } else {
+      if(typeof showToast === 'function') showToast('⚠️ Ошибка выдачи премиума');
+    }
+  }catch(e){ if(typeof showToast === 'function') showToast('⚠️ Ошибка сети'); }
+}
+
+async function revokePremiumUser(email){
+  if(!confirm('Вы уверены, что хотите отозвать Премиум у ' + email + '?')) return;
+  try{
+    const res = await apiFetch('/api/premium/revoke-user', { method: 'POST', body: JSON.stringify({ email }) });
+    if(res.ok){
+      if(typeof showToast === 'function') showToast('✓ Премиум отозван');
+      loadActivePremiumUsers();
+    }
+  }catch(e){}
+}
+
+async function applyUserPromocode(btn){
+  const input = document.getElementById('user-promo-input');
+  if(!input) return;
+  const code = input.value.trim();
+  if(!code){ if(typeof showToast === 'function') showToast('Укажите промокод'); return; }
+  
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = '...';
+
+  try{
+    const res = await apiFetch('/api/promocodes/apply', { method: 'POST', body: JSON.stringify({ code }) });
+    const data = await res.json().catch(function(){ return {}; });
+    if(res.ok && data.ok){
+      if(typeof showToast === 'function') showToast(data.message || '✓ Промокод применён!');
+      input.value = '';
+      if(data.type === 'free'){
+        loadPremiumStatus();
+        loadSubscriptionsPage();
+      }
+    } else {
+      if(typeof showToast === 'function') showToast('⚠️ ' + (data.error || 'Промокод не найден'));
+    }
+  }catch(e){ if(typeof showToast === 'function') showToast('⚠️ Ошибка применения промокода'); }
+  finally{
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
 }
 
 function updateExcludedCount(){
@@ -5532,13 +5807,33 @@ async function savePremiumConfig(){
   const status=document.getElementById('prem-save-status');
   btn.disabled=true;status.textContent='Сохранение...';
   try{
-    _premConfig.price_month=document.getElementById('prem-price-month').value.trim();
-    _premConfig.price_6months=document.getElementById('prem-price-6months').value.trim();
-    _premConfig.price_year=document.getElementById('prem-price-year').value.trim();
+    const items = document.querySelectorAll('.prem-plan-item');
+    const plans = [];
+    items.forEach((item, idx) => {
+      const months = parseInt(item.querySelector('.plan-months-input')?.value) || 1;
+      const price = (item.querySelector('.plan-price-input')?.value || '').trim();
+      if(price) plans.push({ id: 'plan_' + months + 'm_' + idx, months, price });
+    });
+    _premConfig.plans = plans.length ? plans : [{ id: 'plan_1', months: 1, price: '299 ₽' }];
+    _premConfig.price_month = _premConfig.plans[0] ? _premConfig.plans[0].price : '';
+
+    const promoItems = document.querySelectorAll('.prem-promo-item');
+    const promocodes = [];
+    promoItems.forEach(item => {
+      const code = (item.querySelector('.promo-code-input')?.value || '').trim().toUpperCase();
+      const discount_percent = parseInt(item.querySelector('.promo-discount-input')?.value) || 0;
+      const free_days = parseInt(item.querySelector('.promo-days-input')?.value) || 0;
+      if(code) promocodes.push({ code, discount_percent, free_days });
+    });
+    _premConfig.promocodes = promocodes;
+
     const res=await apiFetch('/api/premium/config',{method:'POST',body:JSON.stringify(_premConfig)});
     if(!res.ok){const err=await res.json().catch(function(){return {};});status.textContent='Ошибка: '+(err.error||res.status);btn.disabled=false;return;}
     const data=await res.json();
     _premConfig=data.settings||_premConfig;
+    renderPremiumPlanRows();
+    renderPromocodeRows();
+    loadActivePremiumUsers();
     updateExcludedCount();
     status.textContent='✓ Сохранено';
     setTimeout(function(){status.textContent='';},3000);
@@ -7651,6 +7946,9 @@ function goToSubscriptionsTab(){
   if(navItem)navItem.click();
 }
 
+let _appliedPromocode = '';
+let _appliedDiscountPercent = 0;
+
 async function loadSubscriptionsPage(){
   const grid=document.getElementById('subscriptions-cards-grid');
   const banner=document.getElementById('subscriptions-disabled-banner');
@@ -7663,6 +7961,13 @@ async function loadSubscriptionsPage(){
     banner.style.display='block'; grid.style.display='none'; return;
   }
   banner.style.display='none'; grid.style.display='grid';
+
+  const adminPromoMgr = document.getElementById('admin-sub-promo-manager');
+  if(adminPromoMgr){
+    const isAdmin = !!(_premiumStatus.exempt || _isSupreme || (_myPermissions && Object.keys(_myPermissions).length > 0));
+    adminPromoMgr.style.display = isAdmin ? 'block' : 'none';
+    if(isAdmin) renderAdminSubPromocodes();
+  }
 
   const isPaid = Boolean(_premiumStatus && _premiumStatus.gemini_is_paid);
   const aiKeys = ['forecast', 'ai', 'scripts', 'competitors'];
@@ -7677,19 +7982,36 @@ async function loadSubscriptionsPage(){
       }).join('')
     : '<li>✓ Полный доступ ко всем разделам сайта' + (!isPaid ? '<div style="color:var(--red);font-size:11px;font-weight:700;margin-top:2px;line-height:1.2;">ВНИМАНИЕ: ИИ-разделы могут быть нестабильны</div>' : '') + '</li>';
 
-  const plans=[
-    { key:'month',   label:'1 месяц',   sub:'ежемесячно',        price:_premiumStatus.price_month, featured:false },
-    { key:'6months', label:'6 месяцев', sub:'выгоднее помесячно', price:_premiumStatus.price_6months, featured:true },
-    { key:'year',     label:'1 год',     sub:'максимальная выгода', price:_premiumStatus.price_year, featured:false },
-  ];
-  grid.innerHTML=plans.map(function(p){
-    const hasPrice=p.price&&p.price.trim();
-    return '<div class="sub-page-card'+(p.featured?' featured':'')+'">'
-      +(p.featured?'<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:#a855f7;font-weight:800;text-transform:uppercase;">★ Популярный выбор</div>':'')
-      +'<div><div class="sub-page-plan-name">'+p.label+'</div><div style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--muted);margin-top:2px;">'+p.sub+'</div></div>'
-      +'<div class="sub-page-price">'+(hasPrice?escapeHtml(p.price):'цена уточняется')+'</div>'
+  const rawPlans = (_premiumStatus.plans && _premiumStatus.plans.length)
+    ? _premiumStatus.plans
+    : [ { id: 'month', months: 1, price: _premiumStatus.price_month || '299 ₽' } ];
+
+  grid.innerHTML = rawPlans.map(function(p, idx){
+    const m = p.months || 1;
+    const label = p.label || (m === 1 ? '1 месяц' : (m >= 5 ? m + ' месяцев' : m + ' месяца'));
+    const sub = p.sub || (m === 1 ? 'ежемесячно' : 'выгодный тариф на ' + m + ' мес.');
+    const price = p.price || '';
+    const hasPrice = price && price.trim();
+    const isFeatured = (idx === 1 || rawPlans.length === 1);
+    const planKey = p.id || String(m);
+
+    let priceHtml = hasPrice ? escapeHtml(price) : 'цена уточняется';
+    if(hasPrice && _appliedDiscountPercent > 0){
+      const baseNum = parseFloat(price.replace(/[^\d.]/g, ''));
+      if(baseNum && baseNum > 0){
+        const discNum = Math.round(baseNum * (1 - _appliedDiscountPercent / 100));
+        priceHtml = '<span style="text-decoration:line-through;opacity:0.4;font-size:0.75em;margin-right:6px;">' + escapeHtml(price) + '</span> '
+          + discNum + ' ₽ '
+          + '<span style="background:var(--accent);color:#080c10;font-size:10px;font-weight:800;padding:2px 6px;border-radius:6px;margin-left:4px;">-' + _appliedDiscountPercent + '%</span>';
+      }
+    }
+
+    return '<div class="sub-page-card'+(isFeatured ? ' featured' : '')+'">'
+      +(isFeatured ? '<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:#a855f7;font-weight:800;text-transform:uppercase;">★ Популярный выбор</div>' : '')
+      +'<div><div class="sub-page-plan-name">'+escapeHtml(label)+'</div><div style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--muted);margin-top:2px;">'+escapeHtml(sub)+'</div></div>'
+      +'<div class="sub-page-price">'+priceHtml+'</div>'
       +'<ul class="sub-page-features">'+featuresHtml+'</ul>'
-      +'<button class="sub-page-buy-btn" '+(hasPrice?'':'disabled')+' onclick="buySubscription(\''+p.key+'\',this)">Оформить</button>'
+      +'<button class="sub-page-buy-btn" '+(hasPrice ? '' : 'disabled')+' onclick="buySubscription(\''+planKey+'\',this)">Оформить</button>'
       +'</div>';
   }).join('');
 }
@@ -7700,7 +8022,7 @@ async function buySubscription(plan,btnEl){
   const originalText=btnEl.textContent;
   btnEl.disabled=true;btnEl.textContent='Открываем оплату...';
   try{
-    const res=await apiFetch('/api/payments/create-invoice',{method:'POST',body:JSON.stringify({ plan:plan })});
+    const res=await apiFetch('/api/payments/create-invoice',{method:'POST',body:JSON.stringify({ plan:plan, promocode:_appliedPromocode })});
     const data=await res.json().catch(function(){return {};});
     const url = (data && data.pay_url) ? data.pay_url : LAVA_PAYMENT_URL;
     window.open(url,'_blank');
