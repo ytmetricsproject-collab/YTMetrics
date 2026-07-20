@@ -7977,10 +7977,10 @@ async function loadSubscriptionsPage(){
     ? rawSections.map(function(k){
         const label = PREMIUM_SECTION_LABELS[k] || k;
         const isAiSec = aiKeys.includes(k);
-        const warning = (isAiSec && !isPaid) ? '<div style="color:var(--red);font-size:11px;font-weight:700;margin-top:2px;line-height:1.2;">ВНИМАНИЕ: раздел может быть нестабилен</div>' : '';
+        const warning = isAiSec ? '<div style="color:var(--red);font-size:11px;font-weight:700;margin-top:2px;line-height:1.2;">ВНИМАНИЕ: раздел может быть нестабилен</div>' : '';
         return '<li>✓ ' + escapeHtml(label) + warning + '</li>';
       }).join('')
-    : '<li>✓ Полный доступ ко всем разделам сайта' + (!isPaid ? '<div style="color:var(--red);font-size:11px;font-weight:700;margin-top:2px;line-height:1.2;">ВНИМАНИЕ: ИИ-разделы могут быть нестабильны</div>' : '') + '</li>';
+    : '<li>✓ Полный доступ ко всем разделам сайта <div style="color:var(--red);font-size:11px;font-weight:700;margin-top:2px;line-height:1.2;">ВНИМАНИЕ: ИИ-разделы могут быть нестабильны</div></li>';
 
   const rawPlans = (_premiumStatus.plans && _premiumStatus.plans.length)
     ? _premiumStatus.plans
