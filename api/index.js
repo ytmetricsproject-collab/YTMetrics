@@ -1179,7 +1179,9 @@ const PREMIUM_LOCKABLE_SECTIONS = [
 const DEFAULT_PREMIUM_SETTINGS = {
   enabled:false,
   premium_sections:[],
-  price_month:'',
+  plans:[ { id:'plan_1', months:1, price:'299 ₽' } ],
+  promocodes:[ { code:'YOUTUBE', discount_percent:50, free_days:0 } ],
+  price_month:'299 ₽',
   price_6months:'',
   price_year:'',
   excluded_emails:[],
@@ -1189,10 +1191,22 @@ async function getPremiumSettings() {
   try{
     const { data, error }=await supabase.from('premium_settings').select('*').eq('id',1).single();
     if(error||!data)return { ...DEFAULT_PREMIUM_SETTINGS };
+    let plans = Array.isArray(data.plans)?data.plans:[];
+    if(!plans.length){
+      if(data.price_month) plans.push({ id:'plan_1', months:1, price:data.price_month });
+      if(data.price_6months) plans.push({ id:'plan_6', months:6, price:data.price_6months });
+      if(data.price_year) plans.push({ id:'plan_12', months:12, price:data.price_year });
+    }
+    if(!plans.length) plans = [ { id:'plan_1', months:1, price:'299 ₽' } ];
+    let promocodes = Array.isArray(data.promocodes)?data.promocodes:[];
+    if(!promocodes.length) promocodes = [ { code:'YOUTUBE', discount_percent:50, free_days:0 } ];
+
     return {
       enabled: !!data.enabled,
       premium_sections: Array.isArray(data.premium_sections)?data.premium_sections:[],
-      price_month: data.price_month||'',
+      plans,
+      promocodes,
+      price_month: plans[0]?plans[0].price:(data.price_month||''),
       price_6months: data.price_6months||'',
       price_year: data.price_year||'',
       excluded_emails: Array.isArray(data.excluded_emails)?data.excluded_emails:[],
@@ -1220,18 +1234,35 @@ app.get('/api/premium/config', async (req,res)=>{
 // POST /api/premium/config — сохранить конфигурацию.
 app.post('/api/premium/config', async (req,res)=>{
   const payload=await requirePremiumAccess(req,res); if(!payload)return;
-  const { enabled, premium_sections, price_month, price_6months, price_year, excluded_emails }=req.body||{};
+  const { enabled, premium_sections, plans, promocodes, price_month, price_6months, price_year, excluded_emails }=req.body||{};
   try{
     const allowedKeys=PREMIUM_LOCKABLE_SECTIONS.map(s=>s.key);
     const cleanSections=Array.isArray(premium_sections)?premium_sections.filter(k=>allowedKeys.includes(k)):[];
-    // Главного админа исключить из списка "отключить премиум для" нельзя — он и так не ограничен
     const cleanExcluded=Array.isArray(excluded_emails)?excluded_emails.filter(e=>typeof e==='string'&&e!==SUPREME_ADMIN_EMAIL).slice(0,1000):[];
     const clean=s=>typeof s==='string'?s.slice(0,120):'';
+    
+    let cleanPlans = Array.isArray(plans) ? plans.map((p, idx)=>({
+      id: clean(p.id) || ('plan_' + idx),
+      months: Math.max(1, parseInt(p.months) || 1),
+      price: clean(p.price)
+    })).filter(p=>p.price) : [];
+    if(!cleanPlans.length){
+      cleanPlans = [ { id:'plan_1', months:1, price: clean(price_month) || '299 ₽' } ];
+    }
+
+    let cleanPromos = Array.isArray(promocodes) ? promocodes.map(p=>({
+      code: clean(p.code).toUpperCase(),
+      discount_percent: Math.min(100, Math.max(0, parseInt(p.discount_percent) || 0)),
+      free_days: Math.max(0, parseInt(p.free_days) || 0)
+    })).filter(p=>p.code) : [];
+
     const record={
       id:1,
       enabled:!!enabled,
       premium_sections:cleanSections,
-      price_month:clean(price_month),
+      plans:cleanPlans,
+      promocodes:cleanPromos,
+      price_month:cleanPlans[0]?cleanPlans[0].price:clean(price_month),
       price_6months:clean(price_6months),
       price_year:clean(price_year),
       excluded_emails:cleanExcluded,
@@ -1242,6 +1273,93 @@ app.post('/api/premium/config', async (req,res)=>{
     if(error)return res.status(500).json({ error:'Database error', details:error.message });
     const { id,updated_at,updated_by, ...settings }=record;
     return res.json({ ok:true, settings });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+// GET /api/premium/active-users — Список премиум-пользователей для админки
+app.get('/api/premium/active-users', async (req,res)=>{
+  const payload=await requirePremiumAccess(req,res); if(!payload)return;
+  try{
+    const { data: subs } = await supabase.from('subscriptions').select('*').eq('status','active');
+    const settings = await getPremiumSettings();
+    const vipEmails = settings.excluded_emails || [];
+    
+    const users = (subs || []).map(s => ({
+      email: s.user_email,
+      user_id: s.user_id,
+      type: 'subscription',
+      expires_at: s.current_period_end,
+      status: 'active'
+    }));
+
+    vipEmails.forEach(email => {
+      if(!users.some(u => u.email === email)){
+        users.push({ email, user_id: 'vip', type: 'vip', expires_at: null, status: 'permanent' });
+      }
+    });
+
+    return res.json({ users });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+// POST /api/premium/grant-user — вручную выдать премиум по email
+app.post('/api/premium/grant-user', async (req,res)=>{
+  const payload=await requirePremiumAccess(req,res); if(!payload)return;
+  const { email, days }=req.body||{};
+  if(!email)return res.status(400).json({ error:'Email required' });
+  try{
+    const periodDays = parseInt(days) || 30;
+    const periodEnd = new Date(Date.now() + periodDays * 86400000).toISOString();
+    await supabase.from('subscriptions').upsert({
+      user_id: 'manual_' + Date.now(),
+      user_email: email.trim().toLowerCase(),
+      status: 'active',
+      current_period_end: periodEnd,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_email' });
+    return res.json({ ok:true });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+// POST /api/premium/revoke-user — аннулировать премиум
+app.post('/api/premium/revoke-user', async (req,res)=>{
+  const payload=await requirePremiumAccess(req,res); if(!payload)return;
+  const { email }=req.body||{};
+  if(!email)return res.status(400).json({ error:'Email required' });
+  try{
+    await supabase.from('subscriptions').update({ status: 'cancelled' }).eq('user_email', email.trim().toLowerCase());
+    return res.json({ ok:true });
+  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+// POST /api/promocodes/apply — применить промокод пользователем
+app.post('/api/promocodes/apply', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  const { code }=req.body||{};
+  if(!code)return res.status(400).json({ error:'Укажите промокод' });
+  try{
+    const settings=await getPremiumSettings();
+    const cleanCode = String(code).trim().toUpperCase();
+    const promo = (settings.promocodes||[]).find(p => String(p.code).trim().toUpperCase() === cleanCode);
+    if(!promo) return res.status(404).json({ error: 'Промокод не найден или недействителен' });
+
+    if(promo.free_days && promo.free_days > 0){
+      const periodEnd = new Date(Date.now() + promo.free_days * 86400000).toISOString();
+      await supabase.from('subscriptions').upsert({
+        user_id: payload.sub,
+        user_email: payload.email,
+        status: 'active',
+        current_period_end: periodEnd,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+      return res.json({ ok:true, type:'free', free_days: promo.free_days, message: `Промокод активирован! Вам начислено ${promo.free_days} дн. премиума!` });
+    }
+
+    if(promo.discount_percent && promo.discount_percent > 0){
+      return res.json({ ok:true, type:'discount', discount_percent: promo.discount_percent, message: `Промокод применён! Скидка ${promo.discount_percent}%` });
+    }
+
+    return res.status(400).json({ error: 'Недействительный промокод' });
   }catch(e){ return res.status(500).json({ error:'Server error' }); }
 });
 
@@ -1256,6 +1374,7 @@ app.get('/api/premium/status', async (req,res)=>{
     return res.json({
       enabled:settings.enabled,
       premium_sections: settings.enabled?settings.premium_sections:[],
+      plans: settings.plans || [],
       price_month:settings.price_month,
       price_6months:settings.price_6months,
       price_year:settings.price_year,
@@ -1279,18 +1398,35 @@ app.get('/api/premium/wallet-balance', async (req,res)=>{
 });
 
 // POST /api/payments/create-invoice — создать счёт на оплату подписки-премиум пользователем.
-// Сумма берётся из текстового поля цены (админ пишет её сам) — парсим число из строки.
 app.post('/api/payments/create-invoice', async (req,res)=>{
   const payload=await requireAuth(req,res); if(!payload)return;
-  const { plan }=req.body||{}; // 'month' | '6months' | 'year'
-  if(!['month','6months','year'].includes(plan))return res.status(400).json({ error:'Invalid plan' });
+  const { plan, promocode }=req.body||{};
+  if(!plan)return res.status(400).json({ error:'Invalid plan' });
   try{
     const settings=await getPremiumSettings();
     if(!settings.enabled)return res.status(400).json({ error:'Premium is disabled' });
-    const priceField={ month:'price_month', '6months':'price_6months', year:'price_year' }[plan];
-    const amount=parseFloat(String(settings[priceField]).replace(/[^\d.]/g,''));
+    
+    let targetPlan = (settings.plans||[]).find(p => p.id === plan || String(p.months) === String(plan));
+    if(!targetPlan && ['month','6months','year'].includes(plan)){
+      const m = { month: 1, '6months': 6, year: 12 }[plan];
+      targetPlan = (settings.plans||[]).find(p => p.months === m) || { months: m, price: settings['price_' + plan] };
+    }
+    if(!targetPlan) targetPlan = settings.plans && settings.plans[0] ? settings.plans[0] : { months: 1, price: '299 ₽' };
+
+    let amount=parseFloat(String(targetPlan.price||'').replace(/[^\d.]/g,''));
     if(!amount||amount<=0)return res.status(400).json({ error:'Price is not set for this plan' });
-    const { pay_url }=await initiatePayment({ userId:payload.sub, email:payload.email, purpose:'subscription', referenceId:plan, amountUsd:amount });
+
+    if(promocode){
+      const cleanCode = String(promocode).trim().toUpperCase();
+      const promo = (settings.promocodes||[]).find(p => String(p.code).trim().toUpperCase() === cleanCode);
+      if(promo && promo.discount_percent > 0){
+        amount = Math.round(amount * (1 - promo.discount_percent / 100));
+        if(amount < 10) amount = 10;
+      }
+    }
+    
+    const refId = targetPlan.months ? (targetPlan.months + 'm') : plan;
+    const { pay_url }=await initiatePayment({ userId:payload.sub, email:payload.email, purpose:'subscription', referenceId:refId, amountUsd:amount });
     return res.json({ ok:true, pay_url });
   }catch(e){
     if(e.message==='LAVA_NOT_CONFIGURED')return res.status(503).json({ error:'Payment provider is not configured yet' });
@@ -1311,11 +1447,16 @@ app.post('/api/payments/postback', async (req,res)=>{
     await supabase.from('payments').update({ status:'paid', paid_at:new Date().toISOString() }).eq('id',payment.id);
 
     if(payment.purpose==='subscription'){
-      const days={ month:30, '6months':182, year:365 }[payment.reference_id]||30;
-      const periodEnd=new Date(Date.now()+days*86400000).toISOString();
+      const ref = String(payment.reference_id || '1m');
+      let months = parseInt(ref) || 1;
+      if(ref === 'month') months = 1;
+      if(ref === '6months') months = 6;
+      if(ref === 'year') months = 12;
+      const days = months * 30;
+      const periodEnd=new Date(Date.now() + days*86400000).toISOString();
       await supabase.from('subscriptions').upsert({
         user_id:payment.user_id, user_email:payment.user_email, status:'active',
-        current_period_end:periodEnd, last_invoice_uuid:invoice_id, updated_at:new Date().toISOString(),
+        current_period_end:periodEnd, last_invoice_uuid:targetInvoiceId, updated_at:new Date().toISOString(),
       },{ onConflict:'user_id' });
     }
     if(payment.purpose==='ad'){
