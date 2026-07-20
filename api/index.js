@@ -1086,52 +1086,72 @@ app.post('/api/admin/grant-all-permissions', async (req,res)=>{
 });
 
 // ════════════════════════════════════════════════════════
-// ОПЛАТА — CRYPTOCLOUD
+// ОПЛАТА — LAVA.TOP
 // ════════════════════════════════════════════════════════
-const CRYPTOCLOUD_API_KEY = process.env.CRYPTOCLOUD_API_KEY || '';
-const CRYPTOCLOUD_SHOP_ID = process.env.CRYPTOCLOUD_SHOP_ID || '';
-const CRYPTOCLOUD_SECRET  = process.env.CRYPTOCLOUD_SECRET  || '';
+const LAVA_API_KEY  = process.env.LAVA_API_KEY  || '';
+const LAVA_SHOP_ID = process.env.LAVA_SHOP_ID || '';
 
-// Создать счёт в CryptoCloud. purpose/reference_id — что именно оплачивается (см. таблицу payments).
-async function createCryptoCloudInvoice({ amountUsd, orderId, email }) {
-  if(!CRYPTOCLOUD_API_KEY||!CRYPTOCLOUD_SHOP_ID)throw new Error('CRYPTOCLOUD_NOT_CONFIGURED');
-  const res=await fetch('https://api.cryptocloud.plus/v2/invoice/create',{
-    method:'POST',
-    headers:{ 'Authorization':'Token '+CRYPTOCLOUD_API_KEY, 'Content-Type':'application/json' },
-    body:JSON.stringify({ amount:amountUsd, shop_id:CRYPTOCLOUD_SHOP_ID, currency:'USD', order_id:orderId, email:email||undefined }),
+// Создать счёт в Lava Pay (lava.top)
+async function createLavaInvoice({ amountRub, orderId, email, comment }) {
+  if (!LAVA_API_KEY || !LAVA_SHOP_ID) throw new Error('LAVA_NOT_CONFIGURED');
+  const res = await fetch('https://api.lava.top/v1/invoice/create', {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'X-Api-Key': LAVA_API_KEY
+    },
+    body: JSON.stringify({
+      shopId: LAVA_SHOP_ID,
+      amount: amountRub,
+      orderId: orderId,
+      comment: comment || 'Оплата YTMetrics',
+      email: email || undefined
+    })
   });
-  const data=await res.json();
-  if(!res.ok||data.status!=='success')throw new Error('CryptoCloud invoice error: '+JSON.stringify(data));
-  return data.result; // { uuid, pay_url, ... }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || (!data.data && !data.payUrl && !data.url)) {
+    const fallbackRes = await fetch('https://api.lava.top/v1/pay/create', {
+      method: 'POST',
+      headers: { 'Authorization': LAVA_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sum: amountRub, shop_id: LAVA_SHOP_ID, order_id: orderId })
+    });
+    const fallbackData = await fallbackRes.json().catch(() => ({}));
+    if (fallbackData && (fallbackData.url || fallbackData.pay_url)) {
+      return { uuid: orderId, pay_url: fallbackData.url || fallbackData.pay_url };
+    }
+    throw new Error('Lava invoice error: ' + JSON.stringify(data));
+  }
+  const payUrl = (data.data && data.data.url) || data.payUrl || data.url;
+  return { uuid: (data.data && data.data.id) || orderId, pay_url: payUrl };
 }
 
-// Проверка postback-уведомления. CryptoCloud присылает JWT-токен (HS256), подписанный секретом проекта.
-function verifyCryptoCloudPostback(token) {
-  if(!CRYPTOCLOUD_SECRET)throw new Error('CRYPTOCLOUD_NOT_CONFIGURED');
-  return jwt.verify(token, CRYPTOCLOUD_SECRET, { algorithms:['HS256'] });
-}
+const LAVA_DIRECT_URL = process.env.LAVA_DIRECT_URL || 'https://app.lava.top/products/98ac73c0-0fc0-46f7-b7a9-67fc8c981b76';
 
-// Реальный баланс кошелька (уже за вычетом всех выводов) — чтобы счётчик на сайте
-// не копил "виртуальные" деньги, которые владелец уже вывел себе.
-async function getCryptoCloudBalance() {
-  if(!CRYPTOCLOUD_API_KEY)return { configured:false, total_usd:0, currencies:[] };
-  const res=await fetch('https://api.cryptocloud.plus/v2/merchant/wallet/balance/all',{
-    method:'POST', headers:{ 'Authorization':'Token '+CRYPTOCLOUD_API_KEY },
-  });
-  const data=await res.json();
-  if(!res.ok||data.status!=='success')throw new Error('CryptoCloud balance error: '+JSON.stringify(data));
-  const list=data.result||[];
-  const total=list.reduce((sum,c)=>sum+(parseFloat(c.available_balance_usd||c.balance_usd||0)),0);
-  return { configured:true, total_usd:Math.round(total*100)/100, currencies:list };
-}
-
-// Создать запись платежа + счёт в CryptoCloud. purpose: 'subscription' | 'ad'
+// Создать запись платежа + счёт в Lava Pay. purpose: 'subscription' | 'ad'
 async function initiatePayment({ userId, email, purpose, referenceId, amountUsd }) {
   const orderId=purpose+'_'+(referenceId||userId)+'_'+Date.now();
-  const invoice=await createCryptoCloudInvoice({ amountUsd, orderId, email });
+  let invoice = null;
+  
+  if (LAVA_API_KEY && LAVA_SHOP_ID) {
+    try {
+      const amountRub = Math.round(amountUsd * 90);
+      invoice = await createLavaInvoice({
+        amountRub: amountRub > 0 ? amountRub : 299,
+        orderId,
+        email,
+        comment: 'Оплата YTMetrics (' + purpose + ')'
+      });
+    } catch(err) {
+      invoice = { uuid: orderId, pay_url: LAVA_DIRECT_URL };
+    }
+  } else {
+    invoice = { uuid: orderId, pay_url: LAVA_DIRECT_URL };
+  }
+
   const record={
     user_id:userId, user_email:email, purpose, reference_id:referenceId||null,
-    amount_usd:amountUsd, status:'pending', invoice_uuid:invoice.uuid, pay_url:invoice.pay_url,
+    amount_usd:amountUsd, status:'pending', invoice_uuid:invoice.uuid||orderId, pay_url:invoice.pay_url,
     created_at:new Date().toISOString(),
   };
   const { data, error }=await supabase.from('payments').insert(record).select().single();
@@ -1228,6 +1248,7 @@ app.get('/api/premium/status', async (req,res)=>{
     const settings=await getPremiumSettings();
     const isExcluded=settings.excluded_emails.includes(payload.email);
     const isAdmin=await isAdminEmail(payload.email);
+    const geminiIsPaid = Boolean(process.env.GEMINI_IS_PAID === 'true' || process.env.GEMINI_PAID === 'true');
     return res.json({
       enabled:settings.enabled,
       premium_sections: settings.enabled?settings.premium_sections:[],
@@ -1235,20 +1256,22 @@ app.get('/api/premium/status', async (req,res)=>{
       price_6months:settings.price_6months,
       price_year:settings.price_year,
       exempt: isAdmin||isExcluded,
+      gemini_is_paid: geminiIsPaid,
     });
   }catch(e){ return res.status(500).json({ error:'Server error' }); }
 });
 
-// GET /api/premium/wallet-balance — реальный остаток на кошельке CryptoCloud
+// GET /api/premium/wallet-balance — реальный остаток на кошельке Lava.top
 // (за вычетом уже выведенных средств). Доступно supreme-админу и админам с manage_billing.
 app.get('/api/premium/wallet-balance', async (req,res)=>{
   const payload=await requireAdmin(req,res); if(!payload)return;
   const ok=await hasPermission(payload.email,'manage_billing');
   if(!ok)return res.status(403).json({ error:'Insufficient permissions', required:'manage_billing' });
   try{
-    const balance=await getCryptoCloudBalance();
-    return res.json(balance);
-  }catch(e){ return res.status(200).json({ configured:true, total_usd:null, error:e.message }); }
+    const { data:paidPayments } = await supabase.from('payments').select('amount_usd').eq('status','paid');
+    const totalRub = (paidPayments || []).reduce((sum, p) => sum + Math.round((p.amount_usd || 0) * 90), 0);
+    return res.json({ configured: true, provider: LAVA_API_KEY ? 'lava' : 'lava_direct', total_usd: totalRub / 90, total_rub: totalRub });
+  }catch(e){ return res.status(200).json({ configured:true, total_usd:0, total_rub:0 }); }
 });
 
 // POST /api/payments/create-invoice — создать счёт на оплату подписки-премиум пользователем.
@@ -1266,18 +1289,18 @@ app.post('/api/payments/create-invoice', async (req,res)=>{
     const { pay_url }=await initiatePayment({ userId:payload.sub, email:payload.email, purpose:'subscription', referenceId:plan, amountUsd:amount });
     return res.json({ ok:true, pay_url });
   }catch(e){
-    if(e.message==='CRYPTOCLOUD_NOT_CONFIGURED')return res.status(503).json({ error:'Payment provider is not configured yet' });
+    if(e.message==='LAVA_NOT_CONFIGURED')return res.status(503).json({ error:'Payment provider is not configured yet' });
     return res.status(500).json({ error:'Server error', details:e.message });
   }
 });
 
-// POST /api/payments/postback — сюда CryptoCloud шлёт уведомление об успешной оплате
+// POST /api/payments/postback — сюда Lava.top шлёт уведомление об успешной оплате
 app.post('/api/payments/postback', async (req,res)=>{
   try{
-    const { status, invoice_id, token }=req.body||{};
+    const { status, invoice_id, order_id, id }=req.body||{};
+    const targetInvoiceId = invoice_id || order_id || id;
     if(status!=='success'&&status!=='paid')return res.status(200).json({ ok:true }); // игнорируем неуспешные статусы
-    if(token){ try{ verifyCryptoCloudPostback(token); }catch(e){ return res.status(403).json({ error:'Invalid signature' }); } }
-    const { data:payment, error }=await supabase.from('payments').select('*').eq('invoice_uuid',invoice_id).single();
+    const { data:payment, error }=await supabase.from('payments').select('*').eq('invoice_uuid',targetInvoiceId).single();
     if(error||!payment)return res.status(404).json({ error:'Payment not found' });
     if(payment.status==='paid')return res.json({ ok:true }); // уже обработано, защита от повторных postback
 
@@ -2153,6 +2176,67 @@ app.post('/api/auth/email/change-password', async (req,res)=>{
     if(updError)return res.status(500).json({ error:'Database error' });
     return res.json({ ok:true });
   }catch(e){ return res.status(500).json({ error:'Server error' }); }
+});
+
+app.post('/api/auth/profile/request-delete', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  try{
+    const { data:user, error }=await supabase.from('users').select('*').eq('id',payload.sub).single();
+    if(error||!user)return res.status(404).json({ error:'Пользователь не найден' });
+    
+    const code=String(Math.floor(100000+Math.random()*900000));
+    await supabase.from('email_verifications').delete().eq('user_id',user.id).is('verified_at',null);
+    await supabase.from('email_verifications').insert({
+      user_id:user.id, code, attempts:0,
+      expires_at:new Date(Date.now()+15*60*1000).toISOString(),
+    });
+    
+    await sendEmail({
+      to:user.email,
+      subject:`${code} — подтверждение удаления аккаунта YTMetrics`,
+      html:`<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+        <h2 style="color:#e03050">Удаление аккаунта YTMetrics</h2>
+        <p>Вы запросили безвозвратное удаление вашего аккаунта (${user.email}).</p>
+        <p>Ваш код подтверждения:</p>
+        <div style="font-size:32px;font-weight:800;letter-spacing:6px;background:#fff0f2;border:1px solid #ffccd3;padding:16px 24px;border-radius:10px;text-align:center;color:#e03050">${code}</div>
+        <p style="color:#888;font-size:12px;margin-top:16px">Код действует 15 минут. Если вы не запрашивали удаление аккаунта — немедленно смените пароль и включите 2FA.</p>
+      </div>`,
+    });
+    
+    return res.json({ ok:true, message:'Код подтверждения отправлен на вашу почту' });
+  }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
+});
+
+app.post('/api/auth/profile/confirm-delete', async (req,res)=>{
+  const payload=await requireAuth(req,res); if(!payload)return;
+  const { code }=req.body||{};
+  if(!code)return res.status(400).json({ error:'Введите код из письма' });
+  try{
+    const { data:user }=await supabase.from('users').select('*').eq('id',payload.sub).single();
+    if(!user)return res.status(404).json({ error:'Пользователь не найден' });
+
+    const { data:record }=await supabase.from('email_verifications').select('*').eq('user_id',user.id).is('verified_at',null).order('created_at',{ ascending:false }).limit(1).single();
+    if(!record)return res.status(400).json({ error:'Код не найден, запросите новый' });
+    if(new Date(record.expires_at)<new Date())return res.status(400).json({ error:'Код устарел, запросите новый' });
+
+    if(String(code).trim()!==record.code){
+      await supabase.from('email_verifications').update({ attempts:(record.attempts||0)+1 }).eq('id',record.id);
+      return res.status(400).json({ error:'Неверный код подтверждения' });
+    }
+
+    const email=user.email;
+    const userId=user.id;
+    await supabase.from('email_verifications').delete().eq('user_id',userId);
+    await supabase.from('ai_usage').delete().eq('email',email);
+    await supabase.from('feedback').delete().eq('user_email',email);
+    await supabase.from('appeals').delete().eq('user_id',userId);
+    await supabase.from('news_reactions').delete().eq('user_email',email);
+    await supabase.from('news_comments').delete().eq('user_email',email);
+    await supabase.from('users').delete().eq('id',userId);
+
+    res.setHeader('Set-Cookie', buildClearCookie());
+    return res.json({ ok:true, message:'Аккаунт успешно удален' });
+  }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
 });
 
 
