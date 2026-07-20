@@ -106,7 +106,8 @@
 
     #dashboard{display:flex;min-height:100vh;position:relative;z-index:1;}
     #sidebar{width:240px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:28px 0;position:sticky;top:0;height:100vh;}
-    .sidebar-logo{display:flex;align-items:center;gap:10px;padding:0 24px 28px;border-bottom:1px solid var(--border);}
+    .sidebar-logo{display:flex;align-items:center;gap:10px;padding:0 24px 28px;border-bottom:1px solid var(--border);cursor:pointer;transition:opacity .15s;}
+    .sidebar-logo:hover{opacity:.85;}
     .sidebar-logo-mark{width:34px;height:34px;border-radius:8px;object-fit:cover;}
     .sidebar-logo-name{font-size:16px;font-weight:800;letter-spacing:-.3px;}
     .sidebar-logo-name span{color:var(--accent);}
@@ -118,7 +119,8 @@
     .nav-badge{position:absolute;right:10px;top:50%;transform:translateY(-50%);min-width:18px;height:18px;border-radius:9px;background:var(--red);color:#fff;font-family:'DM Mono',monospace;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;}
     .nav-item.active .nav-badge{background:rgba(0,0,0,.25);}
     .sidebar-bottom{padding:0 12px;display:flex;flex-direction:column;gap:8px;}
-    .sidebar-user{padding:14px;border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;gap:10px;}
+    .sidebar-user{padding:14px;border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .15s;}
+    .sidebar-user:hover{border-color:var(--accent);background:rgba(232,255,71,.04);}
     .user-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;}
     .user-avatar-placeholder{width:36px;height:36px;border-radius:50%;background:var(--accent);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0;}
     .user-info{overflow:hidden;flex:1;}
@@ -1167,7 +1169,7 @@
 
 <div id="dashboard" style="display:none">
   <aside id="sidebar">
-    <div class="sidebar-logo">
+    <div class="sidebar-logo" onclick="openProfileModal()" title="Управление профилем">
       <img src="./icon-512.png" alt="Logo" class="sidebar-logo-mark">
       <div class="sidebar-logo-name">YT<span>Metrics</span></div>
     </div>
@@ -1197,7 +1199,7 @@
       </div>
     </nav>
     <div class="sidebar-bottom">
-      <div class="sidebar-user">
+      <div class="sidebar-user" onclick="openProfileModal()" title="Управление профилем">
         <div class="user-avatar-placeholder" id="user-avatar-placeholder">?</div>
         <div class="user-info">
           <div class="user-name" id="user-display-name">—</div>
@@ -1552,7 +1554,7 @@
 
     <div class="tab-panel" id="tab-subscriptions">
       <div class="page-header">
-        <div><h2 class="page-title">Подписки</h2><p class="page-sub">Выберите план — оплата через безопасный крипто-эквайринг</p></div>
+        <div><h2 class="page-title">Подписки</h2><p class="page-sub">Выберите план — удобная оплата картами РФ, СБП и СНГ через Lava.top</p></div>
       </div>
 
       <!-- Промо-баннер скидки -->
@@ -1668,7 +1670,7 @@
           <input type="text" class="prem-input" id="prem-price-year" placeholder="Например: 2490 ₽">
           <div class="prem-price-suffix">/ год</div>
         </div>
-        <div class="prem-hint">Это просто текст, который увидят пользователи на кнопках оформления премиума для каждого периода. Реальную сумму счёта задаёт сам CryptoCloud при создании счёта — при оплате будет использована цифра, введённая здесь (система парсит число из текста автоматически).</div>
+        <div class="prem-hint">Это просто текст, который увидят пользователи на кнопках оформления премиума для каждого периода. Реальную сумму счёта задаёт сам платёжный сервис Lava.top при создании счёта — при оплате будет использована цифра, введённая здесь (система парсит число из текста автоматически).</div>
       </div>
 
       <div class="prem-block">
@@ -1705,7 +1707,7 @@
       <div class="prem-block" id="admin-balance-block" style="display:none;border-color:rgba(232,255,71,.25);">
         <div class="prem-block-title">💰 Счёт — заработано с пользователей</div>
         <div style="font-size:32px;font-weight:800;color:var(--accent);margin-bottom:6px;" id="admin-balance-amount">—</div>
-        <div class="prem-hint" id="admin-balance-hint">Реальный остаток на кошельке CryptoCloud, уже за вычетом выведенных средств.</div>
+        <div class="prem-hint" id="admin-balance-hint">Реальный остаток на кошельке Lava.top, уже за вычетом выведенных средств.</div>
       </div>
 
       <div class="prem-block" style="border-color:rgba(71,200,255,.25);">
@@ -2086,24 +2088,24 @@
       <div class="prem-step">
         <div class="prem-step-num">1</div>
         <div>
-          <div class="prem-step-title">Зарегистрируйтесь в CryptoCloud</div>
-          <div class="prem-step-text">Перейдите на <code>cryptocloud.plus</code> и зарегистрируйте аккаунт по email. ИП/самозанятость/номер телефона не требуются.</div>
+          <div class="prem-step-title">Зарегистрируйтесь в Lava.top</div>
+          <div class="prem-step-text">Перейдите на <code>lava.top</code> и зарегистрируйте аккаунт через Google или Email. ИП/самозанятость не требуются.</div>
         </div>
       </div>
 
       <div class="prem-step">
         <div class="prem-step-num">2</div>
         <div>
-          <div class="prem-step-title">Создайте проект (магазин)</div>
-          <div class="prem-step-text">В личном кабинете создайте новый проект. После создания вам будет доступен <code>SHOP ID</code> — уникальный идентификатор магазина.</div>
+          <div class="prem-step-title">Создайте интеграцию (проект)</div>
+          <div class="prem-step-text">В левом меню зайдтите в раздел «Интеграции» и создайте новый проект YTMetrics. Назовите продукт «Премиум подписка».</div>
         </div>
       </div>
 
       <div class="prem-step">
         <div class="prem-step-num">3</div>
         <div>
-          <div class="prem-step-title">Возьмите API-ключ и секрет</div>
-          <div class="prem-step-text">В разделе настроек проекта / «Безопасность» сгенерируйте <code>API KEY</code> (для создания счетов) и секретный ключ для проверки уведомлений об оплате (<code>POSTBACK SECRET</code>). Сохраните оба значения сразу — некоторые ключи показываются только один раз.</div>
+          <div class="prem-step-title">Возьмите API-ключи</div>
+          <div class="prem-step-text">В настройках интеграции скопируйте <code>API Key</code> и <code>Shop ID</code>.</div>
         </div>
       </div>
 
@@ -2111,7 +2113,7 @@
         <div class="prem-step-num">4</div>
         <div>
           <div class="prem-step-title">Укажите адрес для уведомлений (Postback URL)</div>
-          <div class="prem-step-text">В настройках проекта CryptoCloud укажите URL для автоматических уведомлений об оплате:<br><code>https://youtube-analytics-ruddy.vercel.app/api/payments/postback</code></div>
+          <div class="prem-step-text">В настройках Lava.top укажите Webhook URL для уведомлений:<br><code>https://youtube-analytics-ruddy.vercel.app/api/payments/postback</code></div>
         </div>
       </div>
 
@@ -2120,16 +2122,16 @@
         <div>
           <div class="prem-step-title">Вставьте ключи в Vercel</div>
           <div class="prem-step-text">Откройте проект на <code>vercel.com</code> → Settings → Environment Variables и добавьте:<br>
-          <code>CRYPTOCLOUD_API_KEY</code>, <code>CRYPTOCLOUD_SHOP_ID</code>, <code>CRYPTOCLOUD_SECRET</code><br>
-          После сохранения переменных сделайте Redeploy проекта, чтобы изменения применились.</div>
+          <code>LAVA_API_KEY</code>, <code>LAVA_SHOP_ID</code><br>
+          После сохранения сделайте Redeploy проекта, чтобы изменения применились.</div>
         </div>
       </div>
 
       <div class="prem-step">
         <div class="prem-step-num">6</div>
         <div>
-          <div class="prem-step-title">Задайте реальную цену</div>
-          <div class="prem-step-text">Сумма счёта, которую увидит покупатель при оплате, задаётся не здесь, а на стороне CryptoCloud/в коде создания счёта. Текст цены в этом разделе — просто надпись на сайте, её нужно менять вручную вместе с реальной суммой.</div>
+          <div class="prem-step-title">Моментальный вывод денег</div>
+          <div class="prem-step-text">Все поступающие деньги зачисляются в личный кабинет Lava.top. Владелец сайта нажимает «Вывод средств» и получает рубли на любую карту РФ или по СБП.</div>
         </div>
       </div>
 
@@ -2249,6 +2251,67 @@
       </div>
       <div id="sec-chpass-error" style="color:var(--red); font-family:'DM Mono',monospace; font-size:11px; margin-bottom:10px;"></div>
       <button class="prem-save-btn" id="sec-chpass-btn" onclick="submitChangePassword()" style="width:100%;">Сохранить пароль</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE MANAGEMENT MODAL -->
+<div class="modal-overlay" id="profile-management-modal">
+  <div class="modal-box modal-sm" style="max-width:460px;">
+    <div class="modal-header">
+      <div class="modal-title">Управление профилем</div>
+      <button class="modal-close" onclick="closeModal('profile-management-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:10px;">
+      <!-- Текущий аккаунт -->
+      <div style="display:flex;align-items:center;gap:12px;background:var(--input-bg);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:20px;">
+        <div class="user-avatar-placeholder" id="pm-avatar-placeholder" style="width:44px;height:44px;font-size:18px;">?</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:800;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="pm-user-name">—</div>
+          <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="pm-user-email">—</div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--green);background:rgba(57,255,154,.08);border:1px solid rgba(57,255,154,.25);padding:4px 10px;border-radius:6px;">Активен</div>
+      </div>
+
+      <!-- Раздел «Переключение аккаунтов» -->
+      <div style="margin-bottom:20px;">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;">
+          <span>👥 Аккаунты на этом устройстве</span>
+          <button onclick="startAddAccount()" style="background:transparent;border:none;color:var(--accent);font-family:'Inter',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">+ Добавить аккаунт</button>
+        </div>
+        <div id="pm-accounts-list" style="display:flex;flex-direction:column;gap:8px;max-height:160px;overflow-y:auto;">
+          <!-- Сохраненные аккаунты динамически верстаются здесь -->
+        </div>
+      </div>
+
+      <hr style="border:none; border-top:1px solid var(--border); margin:20px 0;">
+
+      <!-- Раздел «Опасная зона / Удаление» -->
+      <div>
+        <div style="font-weight:700;font-size:13px;color:var(--red);margin-bottom:6px;">⚠️ Опасная зона</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.6;">
+          Вы можете безвозвратно удалить свой профиль и данные. Потребуется подтверждение кодом из письма.
+        </div>
+        
+        <div id="pm-delete-step1">
+          <button onclick="requestAccountDeletion()" class="umodal-btn umodal-btn-delete" id="pm-request-delete-btn" style="width:100%;padding:12px;font-weight:800;font-size:13px;">
+            🗑️ Запросить код и удалить профиль
+          </button>
+        </div>
+
+        <div id="pm-delete-step2" style="display:none;background:rgba(255,71,87,.05);border:1px solid rgba(255,71,87,.2);border-radius:12px;padding:16px;margin-top:10px;">
+          <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text);margin-bottom:10px;text-align:center;">
+            Введите 6-значный код подтверждения, отправленный на <strong id="pm-delete-email-target">...</strong>
+          </div>
+          <input type="text" inputmode="numeric" maxlength="6" class="prem-input" id="pm-delete-code-input" placeholder="000000" style="text-align:center;font-size:20px;letter-spacing:6px;margin-bottom:12px;">
+          <div id="pm-delete-status" style="color:var(--red);font-family:'DM Mono',monospace;font-size:11px;margin-bottom:10px;text-align:center;"></div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="cancelAccountDeletion()" style="flex:1;padding:11px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--muted);font-weight:700;font-size:12px;cursor:pointer;">Отмена</button>
+            <button onclick="confirmAccountDeletion()" id="pm-confirm-delete-btn" style="flex:1;padding:11px;border-radius:10px;border:none;background:var(--red);color:#fff;font-weight:800;font-size:12px;cursor:pointer;">Удалить навсегда</button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -4232,7 +4295,7 @@ async function openSecuritySettingsModal(){
 }
 function update2FASwitchUI(){
   const sw = document.getElementById('sec-2fa-switch');
-  if (sw) sw.classList.toggle('active', _2faStatus);
+  if (sw) sw.classList.toggle('on', _2faStatus);
   const badge = document.getElementById('security-status-badge');
   if (badge) {
     if (_2faStatus) {
@@ -4299,6 +4362,167 @@ async function submitChangePassword(){
     }
   } catch(e){ errEl.textContent = 'Ошибка сети'; }
   btn.disabled = false;
+}
+
+function saveSavedAccount(user, token) {
+  if (!user || !user.email) return;
+  try {
+    let list = JSON.parse(localStorage.getItem('ytm_saved_accounts') || '[]');
+    const tok = token || getToken();
+    const existingIdx = list.findIndex(a => a.email.toLowerCase() === user.email.toLowerCase());
+    const accountObj = {
+      email: user.email,
+      name: user.name || user.channel_name || user.email.split('@')[0],
+      avatar_url: user.avatar_url || user.youtube_channel_avatar || null,
+      token: tok
+    };
+    if (existingIdx >= 0) {
+      list[existingIdx] = accountObj;
+    } else {
+      list.push(accountObj);
+    }
+    localStorage.setItem('ytm_saved_accounts', JSON.stringify(list));
+  } catch(e){}
+}
+
+function openProfileModal(){
+  if (!_currentUser) return;
+  document.getElementById('pm-user-name').textContent = _currentUser.name || _currentUser.channel_name || _currentUser.email;
+  document.getElementById('pm-user-email').textContent = _currentUser.email;
+  const avatar = _currentUser.avatar_url || _currentUser.youtube_channel_avatar;
+  const ph = document.getElementById('pm-avatar-placeholder');
+  if (avatar) {
+    ph.innerHTML = '<img src="' + avatar + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
+  } else {
+    ph.textContent = (_currentUser.email || '?')[0].toUpperCase();
+  }
+  
+  renderSavedAccountsList();
+  cancelAccountDeletion();
+  openModal('profile-management-modal');
+}
+
+function renderSavedAccountsList(){
+  const container = document.getElementById('pm-accounts-list');
+  if (!container) return;
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem('ytm_saved_accounts') || '[]'); } catch(e){}
+  
+  if (!list.length) {
+    container.innerHTML = '<div style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--muted);text-align:center;padding:8px;">Нет сохраненных аккаунтов</div>';
+    return;
+  }
+  
+  const currentEmail = (_currentUser ? _currentUser.email : '').toLowerCase();
+  container.innerHTML = list.map(function(acc){
+    const isActive = acc.email.toLowerCase() === currentEmail;
+    const initial = (acc.email || '?')[0].toUpperCase();
+    const avatarHtml = acc.avatar_url 
+      ? '<img src="'+acc.avatar_url+'" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">' 
+      : '<div class="user-avatar-placeholder" style="width:32px;height:32px;font-size:12px;display:flex;align-items:center;justify-content:center;">'+initial+'</div>';
+    
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;">'
+      + avatarHtml
+      + '<div style="flex:1;min-width:0;">'
+      + '<div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escapeHtml(acc.name||acc.email)+'</div>'
+      + '<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escapeHtml(acc.email)+'</div>'
+      + '</div>'
+      + (isActive 
+        ? '<span style="font-family:\'DM Mono\',monospace;font-size:9px;font-weight:700;color:var(--green);padding:3px 8px;border-radius:4px;background:rgba(57,255,154,.08);">Текущий</span>'
+        : '<button onclick="switchSavedAccount(\''+escapeHtml(acc.email)+'\')" style="padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);font-family:\'Inter\',sans-serif;font-size:11px;font-weight:600;cursor:pointer;">Войти</button>')
+      + '</div>';
+  }).join('');
+}
+
+function switchSavedAccount(targetEmail){
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem('ytm_saved_accounts') || '[]'); } catch(e){}
+  const acc = list.find(a => a.email.toLowerCase() === targetEmail.toLowerCase());
+  if (!acc || !acc.token) {
+    showToast('Ошибка переключения аккаунта');
+    return;
+  }
+  saveToken(acc.token);
+  closeModal('profile-management-modal');
+  showToast('Переключение на ' + acc.email + '...');
+  setTimeout(function(){ location.reload(); }, 300);
+}
+
+function startAddAccount(){
+  closeModal('profile-management-modal');
+  setAuthTab('login');
+  openModal('auth-modal');
+}
+
+async function requestAccountDeletion(){
+  const btn = document.getElementById('pm-request-delete-btn');
+  btn.disabled = true;
+  btn.textContent = 'Отправка кода...';
+  try {
+    const res = await apiFetch('/api/auth/profile/request-delete', { method: 'POST' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      showToast('Ошибка: ' + (data.error || 'Не удалось отправить код'));
+      btn.disabled = false;
+      btn.textContent = '🗑️ Запросить код и удалить профиль';
+      return;
+    }
+    document.getElementById('pm-delete-step1').style.display = 'none';
+    document.getElementById('pm-delete-step2').style.display = 'block';
+    document.getElementById('pm-delete-email-target').textContent = _currentUser ? _currentUser.email : '';
+    document.getElementById('pm-delete-code-input').value = '';
+    document.getElementById('pm-delete-status').textContent = '';
+  } catch(e) {
+    showToast('Ошибка сети');
+    btn.disabled = false;
+    btn.textContent = '🗑️ Запросить код и удалить профиль';
+  }
+}
+
+function cancelAccountDeletion(){
+  document.getElementById('pm-delete-step1').style.display = 'block';
+  document.getElementById('pm-delete-step2').style.display = 'none';
+  const btn = document.getElementById('pm-request-delete-btn');
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = '🗑️ Запросить код и удалить профиль';
+  }
+}
+
+async function confirmAccountDeletion(){
+  const code = (document.getElementById('pm-delete-code-input').value || '').trim();
+  const status = document.getElementById('pm-delete-status');
+  const btn = document.getElementById('pm-confirm-delete-btn');
+  if (!code || code.length < 6) {
+    status.textContent = 'Введите 6-значный код из письма';
+    return;
+  }
+  btn.disabled = true;
+  status.textContent = 'Удаление профиля...';
+  try {
+    const res = await apiFetch('/api/auth/profile/confirm-delete', {
+      method: 'POST',
+      body: JSON.stringify({ code })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      status.textContent = data.error || 'Ошибка удаления';
+      btn.disabled = false;
+      return;
+    }
+    try {
+      let list = JSON.parse(localStorage.getItem('ytm_saved_accounts') || '[]');
+      list = list.filter(a => a.email.toLowerCase() !== (_currentUser ? _currentUser.email : '').toLowerCase());
+      localStorage.setItem('ytm_saved_accounts', JSON.stringify(list));
+    } catch(e){}
+    
+    closeModal('profile-management-modal');
+    showToast('✓ Аккаунт успешно удален');
+    setTimeout(function(){ logout(); }, 800);
+  } catch(e) {
+    status.textContent = 'Ошибка сети';
+    btn.disabled = false;
+  }
 }
 
 function startYouTubeConnect(){
@@ -5088,18 +5312,42 @@ async function loadWalletBalance(){
   const widget=document.getElementById('wallet-widget');
   const amountEl=document.getElementById('wallet-widget-amount');
   const adminAmountEl=document.getElementById('admin-balance-amount');
-  if(widget)widget.classList.add('show');
+  if(widget) {
+    widget.classList.add('show');
+    widget.style.cursor = 'pointer';
+    widget.onclick = openWalletWithdrawModal;
+    widget.title = 'Нажмите для вывода средств';
+  }
   try{
     const res=await apiFetch('/api/premium/wallet-balance');
     if(!res.ok)return;
     const data=await res.json();
     let text;
-    if(!data.configured){ text='CryptoCloud ещё не настроен'; if(amountEl)amountEl.className='wallet-widget-amount na'; }
-    else if(data.total_usd===null){ text='Ошибка получения баланса'; if(amountEl)amountEl.className='wallet-widget-amount na'; }
-    else{ text='$'+data.total_usd.toFixed(2); if(amountEl)amountEl.className='wallet-widget-amount'; }
+    if(!data.configured){ text='0 ₽'; if(amountEl)amountEl.className='wallet-widget-amount'; }
+    else if(data.total_usd===null){ text='0 ₽'; if(amountEl)amountEl.className='wallet-widget-amount'; }
+    else{
+      const rub = data.total_rub || Math.round((data.total_usd || 0) * 90);
+      text = fmtFull(rub) + ' ₽';
+      if(amountEl)amountEl.className='wallet-widget-amount';
+    }
     if(amountEl)amountEl.textContent=text;
     if(adminAmountEl)adminAmountEl.textContent=text;
-  }catch(e){ if(amountEl){amountEl.className='wallet-widget-amount na';amountEl.textContent='—';} if(adminAmountEl)adminAmountEl.textContent='—'; }
+  }catch(e){ if(amountEl){amountEl.className='wallet-widget-amount';amountEl.textContent='0 ₽';} if(adminAmountEl)adminAmountEl.textContent='0 ₽'; }
+}
+
+function openWalletWithdrawModal(){
+  const amountText = document.getElementById('wallet-widget-amount') ? document.getElementById('wallet-widget-amount').textContent : '0 ₽';
+  const html = '<div style="text-align:center;padding:10px 0;">'
+    + '<div style="font-size:36px;margin-bottom:10px;">💰</div>'
+    + '<div style="font-size:14px;color:var(--muted);margin-bottom:4px;">Текущий доход от продаж</div>'
+    + '<div style="font-size:28px;font-weight:800;color:var(--accent);margin-bottom:20px;">' + escapeHtml(amountText) + '</div>'
+    + '<div style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--text);background:var(--input-bg);border:1px solid var(--border);padding:12px;border-radius:10px;margin-bottom:20px;line-height:1.6;">'
+    + 'Деньги от клиентов зачисляются на баланс в Lava.top. Нажмите кнопку ниже для перехода в личный кабинет и моментального вывода на карту или СБП.'
+    + '</div>'
+    + '<a href="https://lava.top" target="_blank" rel="noopener" style="display:block;width:100%;padding:14px;background:var(--green);color:var(--bg);border-radius:12px;font-family:\'Inter\',sans-serif;font-size:14px;font-weight:800;text-decoration:none;text-align:center;">💳 Вывести на банковскую карту</a>'
+    + '</div>';
+  
+  showCustomModal('Вывод средств с сайта', html);
 }
 
 async function loadMyPermissions(){
@@ -5170,11 +5418,18 @@ function togglePremiumEngine(){
 function renderPremiumSections(){
   const list=document.getElementById('prem-sections-list');
   if(!_premLockableSections.length){list.innerHTML='<div class="admin-empty">—</div>';return;}
+  const isPaid = Boolean(_premiumStatus && _premiumStatus.gemini_is_paid);
+  const aiKeys = ['forecast', 'ai', 'scripts', 'competitors'];
   list.innerHTML=_premLockableSections.map(function(s){
     const checked=_premConfig.premium_sections.includes(s.key);
+    const isAiSec = aiKeys.includes(s.key);
+    const warning = (isAiSec && !isPaid) ? '<div style="color:var(--red);font-size:11px;font-weight:700;margin-top:2px;">ВНИМАНИЕ: раздел может быть нестабилен</div>' : '';
     return '<div class="prem-section-row" onclick="togglePremiumSection(\''+s.key+'\')">'
       +'<div class="prem-checkbox-sq'+(checked?' checked':'')+'" id="prem-sec-cb-'+s.key+'">'+(checked?'✓':'')+'</div>'
+      +'<div>'
       +'<div style="font-size:14px;font-weight:600;">'+escapeHtml(s.label)+'</div>'
+      +warning
+      +'</div>'
       +'</div>';
   }).join('');
 }
@@ -7307,10 +7562,18 @@ async function loadSubscriptionsPage(){
   }
   banner.style.display='none'; grid.style.display='grid';
 
-  const unlockedFeatures=(_premiumStatus.premium_sections||[]).map(function(k){return PREMIUM_SECTION_LABELS[k]||k;});
-  const featuresHtml=unlockedFeatures.length
-    ? unlockedFeatures.map(function(f){return '<li>✓ '+escapeHtml(f)+'</li>';}).join('')
-    : '<li>✓ Полный доступ ко всем разделам сайта</li>';
+  const isPaid = Boolean(_premiumStatus && _premiumStatus.gemini_is_paid);
+  const aiKeys = ['forecast', 'ai', 'scripts', 'competitors'];
+
+  const rawSections = _premiumStatus.premium_sections || [];
+  const featuresHtml = rawSections.length
+    ? rawSections.map(function(k){
+        const label = PREMIUM_SECTION_LABELS[k] || k;
+        const isAiSec = aiKeys.includes(k);
+        const warning = (isAiSec && !isPaid) ? '<div style="color:var(--red);font-size:11px;font-weight:700;margin-top:2px;line-height:1.2;">ВНИМАНИЕ: раздел может быть нестабилен</div>' : '';
+        return '<li>✓ ' + escapeHtml(label) + warning + '</li>';
+      }).join('')
+    : '<li>✓ Полный доступ ко всем разделам сайта' + (!isPaid ? '<div style="color:var(--red);font-size:11px;font-weight:700;margin-top:2px;line-height:1.2;">ВНИМАНИЕ: ИИ-разделы могут быть нестабильны</div>' : '') + '</li>';
 
   const plans=[
     { key:'month',   label:'1 месяц',   sub:'ежемесячно',        price:_premiumStatus.price_month, featured:false },
@@ -7329,21 +7592,27 @@ async function loadSubscriptionsPage(){
   }).join('');
 }
 
+const LAVA_PAYMENT_URL = 'https://app.lava.top/products/98ac73c0-0fc0-46f7-b7a9-67fc8c981b76';
+
 async function buySubscription(plan,btnEl){
   const originalText=btnEl.textContent;
-  btnEl.disabled=true;btnEl.textContent='Создаём счёт...';
+  btnEl.disabled=true;btnEl.textContent='Открываем оплату...';
   try{
     const res=await apiFetch('/api/payments/create-invoice',{method:'POST',body:JSON.stringify({ plan:plan })});
     const data=await res.json().catch(function(){return {};});
-    if(!res.ok){alert('Ошибка: '+(data.error||res.status));btnEl.disabled=false;btnEl.textContent=originalText;return;}
-    window.open(data.pay_url,'_blank');
+    const url = (data && data.pay_url) ? data.pay_url : LAVA_PAYMENT_URL;
+    window.open(url,'_blank');
     btnEl.textContent='✓ Открыта оплата';
     setTimeout(function(){btnEl.disabled=false;btnEl.textContent=originalText;},2500);
-  }catch(e){alert('Ошибка сети');btnEl.disabled=false;btnEl.textContent=originalText;}
+  }catch(e){
+    window.open(LAVA_PAYMENT_URL,'_blank');
+    btnEl.textContent='✓ Открыта оплата';
+    setTimeout(function(){btnEl.disabled=false;btnEl.textContent=originalText;},2500);
+  }
 }
 
 function showDashboard(channelData){
-  _currentUser=channelData;saveUser(channelData);
+  _currentUser=channelData;saveUser(channelData);saveSavedAccount(channelData);
   renderScriptTemplates();
   document.getElementById('landing-screen').style.display='none';
   document.getElementById('channel-select-screen').style.display='none';
