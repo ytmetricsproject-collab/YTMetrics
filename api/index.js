@@ -1089,11 +1089,11 @@ app.post('/api/admin/grant-all-permissions', async (req,res)=>{
 // ОПЛАТА — LAVA.TOP
 // ════════════════════════════════════════════════════════
 const LAVA_API_KEY  = process.env.LAVA_API_KEY  || '';
-const LAVA_SHOP_ID = process.env.LAVA_SHOP_ID || '';
+const LAVA_SHOP_ID = process.env.LAVA_SHOP_ID || process.env.LAVA_PROJECT_ID || '98ac73c0-0fc0-46f7-b7a9-67fc8c981b76';
 
 // Создать счёт в Lava Pay (lava.top)
 async function createLavaInvoice({ amountRub, orderId, email, comment }) {
-  if (!LAVA_API_KEY || !LAVA_SHOP_ID) throw new Error('LAVA_NOT_CONFIGURED');
+  if (!LAVA_API_KEY) throw new Error('LAVA_NOT_CONFIGURED');
   const res = await fetch('https://api.lava.top/v1/invoice/create', {
     method: 'POST',
     headers: {
@@ -1137,9 +1137,9 @@ async function initiatePayment({ userId, email, purpose, referenceId, amountUsd 
   let invoice = null;
   const fallbackUrl = { month: LAVA_URL_MONTH, '6months': LAVA_URL_6MONTHS, year: LAVA_URL_YEAR }[referenceId] || LAVA_DIRECT_URL;
 
-  if (LAVA_API_KEY && LAVA_SHOP_ID) {
+  if (LAVA_API_KEY) {
     try {
-      const amountRub = Math.round(amountUsd * 90);
+      const amountRub = Math.round(amountUsd);
       invoice = await createLavaInvoice({
         amountRub: amountRub > 0 ? amountRub : 299,
         orderId,
