@@ -1228,6 +1228,9 @@
           <div id="channel-hours-badge" style="display:none;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px 14px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);">
             ⏱ <span id="channel-hours-count" style="color:var(--text);font-weight:700">—</span> <span id="hours-label-el">ч просмотрено (30д)</span>
           </div>
+          <button class="type-tab" id="refresh-channel-btn" onclick="refreshChannelData(this)" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(71,200,255,0.08);border:1px solid rgba(71,200,255,0.25);border-radius:10px;color:var(--accent2);font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;" title="Обновить данные о канале (название, фото, подписчики) и видео">
+            <span>🔄</span> <span>Обновить</span>
+          </button>
           <div class="badge-live">LIVE DATA</div>
         </div>
       </div>
@@ -6151,6 +6154,70 @@ async function loadRealVideos(user){
       document.getElementById('stats-error-msg').textContent=e.message;
     } else {
       console.warn('Background update failed:', e);
+    }
+  }
+}
+
+async function refreshChannelData(btnEl){
+  if(!_currentUser)return;
+  const originalHtml = btnEl ? btnEl.innerHTML : '';
+  if(btnEl){
+    btnEl.disabled = true;
+    btnEl.innerHTML = '<span style="display:inline-block;animation:spin 1s infinite linear;">🔄</span> <span>Обновление...</span>';
+  }
+  
+  try {
+    const cacheKey = 'ytmetrics_videos_' + (_currentUser.channel_id || _currentUser.email || 'default');
+    try { localStorage.removeItem(cacheKey); } catch(e){}
+
+    const chRes = await apiFetch('/api/youtube/channels');
+    if(chRes.ok){
+      const chData = await chRes.json().catch(function(){return {};});
+      const channels = chData.channels || [];
+      if(channels.length){
+        const updatedCh = channels.find(c => c.channel_id === _currentUser.channel_id) || channels[0];
+        if(updatedCh){
+          if(updatedCh.channel_name) _currentUser.channel_name = updatedCh.channel_name;
+          if(updatedCh.avatar_url) _currentUser.avatar_url = updatedCh.avatar_url;
+          if(updatedCh.subscribers) _currentUser.subscribers = updatedCh.subscribers;
+          saveUser(_currentUser);
+          saveSavedAccount(_currentUser);
+          
+          const nameEl = document.getElementById('user-display-name');
+          if(nameEl) nameEl.textContent = _currentUser.channel_name || _currentUser.name || _currentUser.email || 'Channel';
+          
+          const avatarEl = document.getElementById('user-avatar-placeholder');
+          if(avatarEl && _currentUser.avatar_url){
+            if(avatarEl.tagName === 'DIV'){
+              const img = document.createElement('img');
+              img.src = _currentUser.avatar_url;
+              img.className = 'user-avatar';
+              img.id = 'user-avatar-placeholder';
+              img.alt = '';
+              img.onerror = function(){ img.style.display = 'none'; };
+              avatarEl.replaceWith(img);
+            } else {
+              avatarEl.src = _currentUser.avatar_url;
+              avatarEl.style.display = 'block';
+            }
+          }
+        }
+      }
+    }
+
+    await loadRealVideos(_currentUser);
+
+    if(typeof showToast === 'function') showToast('✓ Данные канала и видео успешно обновлены');
+  } catch(err) {
+    console.error('Refresh channel data error:', err);
+    if(typeof showToast === 'function') showToast('⚠️ Ошибка обновления: ' + err.message);
+  } finally {
+    if(btnEl){
+      btnEl.innerHTML = '✓ Обновлено';
+      setTimeout(function(){
+        btnEl.disabled = false;
+        btnEl.innerHTML = originalHtml;
+      }, 1500);
     }
   }
 }
