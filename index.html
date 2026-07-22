@@ -938,6 +938,44 @@
   margin-right: 0 !important;
   margin-left: 8px !important;
 }
+
+/* ── Пункт 12: анимация всех кнопок сайта ── */
+button, .btn, .type-tab, .nav-item, .prem-save-btn, .prem-instr-btn, .modal-close,
+.ai-btn, .install-btn, .locked-premium-btn, .cooldown-opt, .notif-read-all-btn,
+.auth-tab-btn, .perm-checkbox, .prem-switch, .ad-card, .news-create-card button,
+.logout-btn, .chip, .tag-btn {
+  transition: transform 0.15s cubic-bezier(.4,0,.2,1), box-shadow 0.15s ease, opacity 0.15s ease, background-color 0.15s ease, filter 0.15s ease;
+}
+button:active:not(:disabled), .btn:active, .type-tab:active, .prem-save-btn:active:not(:disabled),
+.prem-instr-btn:active, .ai-btn:active:not(:disabled), .install-btn:active, .locked-premium-btn:active,
+.notif-read-all-btn:active, .logout-btn:active {
+  transform: scale(0.95);
+}
+button:hover:not(:disabled):not(.nav-item), .btn:hover, .prem-save-btn:hover:not(:disabled),
+.ai-btn:hover:not(:disabled), .install-btn:hover, .locked-premium-btn:hover, .prem-instr-btn:hover {
+  filter: brightness(1.08);
+}
+button:disabled { transform: none !important; filter: none !important; }
+
+/* ── Пункт 5: увеличенные, более удобные для нажатия мелкие кнопки ── */
+.modal-close {
+  min-width: 40px; min-height: 40px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+button[onclick*="togglePasswordVisibility"] {
+  min-width: 40px !important;
+}
+#auth-captcha-wrap button[onclick="loadCaptcha()"] {
+  width: 48px !important; height: 52px !important; font-size: 18px !important;
+}
+.type-tab, .cooldown-opt {
+  min-height: 38px;
+  padding-top: 8px; padding-bottom: 8px;
+}
+.perm-checkbox {
+  min-width: 18px; min-height: 18px;
+}
 </style>
 
 <!-- UPDATE MODAL (Overlay) -->
@@ -1144,6 +1182,9 @@
           <input type="password" class="prem-input" id="auth-password-field" placeholder="Пароль" style="padding-right:44px;">
           <button type="button" onclick="togglePasswordVisibility('auth-password-field',this)" style="position:absolute;right:4px;top:4px;bottom:4px;width:36px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;">👁</button>
         </div>
+        <div id="auth-forgot-password-link" style="text-align:right;margin-bottom:10px;margin-top:-4px;">
+          <button type="button" onclick="showForgotPasswordStep()" style="background:none;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;padding:0;text-decoration:underline;">Забыли пароль?</button>
+        </div>
         <div style="position:relative;display:none;margin-bottom:10px;" id="auth-password-confirm-wrap">
           <input type="password" class="prem-input" id="auth-password-confirm-field" placeholder="Повторите пароль" style="padding-right:44px;">
           <button type="button" onclick="togglePasswordVisibility('auth-password-confirm-field',this)" style="position:absolute;right:4px;top:4px;bottom:4px;width:36px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;">👁</button>
@@ -1187,6 +1228,15 @@
         <button class="prem-save-btn" id="auth-2fa-submit-btn" style="width:100%;margin-bottom:12px;" onclick="submit2FA()">Войти</button>
       </div>
 
+      <div id="auth-step-forgot" style="display:none;">
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);text-align:center;margin-bottom:16px;">Укажите почту от аккаунта — мы вышлем новый пароль</div>
+        <input type="email" class="prem-input" id="auth-forgot-email-field" placeholder="Почта" style="margin-bottom:14px;">
+        <button class="prem-save-btn" id="auth-forgot-submit-btn" style="width:100%;margin-bottom:12px;" onclick="submitForgotPassword()">Выслать новый пароль</button>
+        <div style="text-align:center;">
+          <button type="button" onclick="setAuthStep('form')" style="background:none;border:none;color:var(--accent);font-weight:700;cursor:pointer;font-family:'DM Mono',monospace;font-size:12px;padding:0;">← Назад ко входу</button>
+        </div>
+      </div>
+
       <div id="auth-form-status" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);margin-top:12px;text-align:center;"></div>
     </div>
   </div>
@@ -1225,9 +1275,6 @@
       <div class="nav-item" data-tab="messages"><span class="nav-icon">✉️</span> <span class="nav-label">Сообщения</span> <span id="messages-unread-badge" style="display:none;background:var(--red);color:#fff;font-size:9px;padding:2px 6px;border-radius:5px;margin-left:6px;">0</span></div>
       <div class="nav-item" data-tab="install"><span class="nav-icon">⬇️</span> <span class="nav-label" data-key="nav_install">Скачать приложение</span></div>
       <div class="nav-item" data-tab="settings"><span class="nav-icon">⚙️</span> <span class="nav-label" data-key="nav_settings">Настройки</span></div>
-      <div class="nav-item" data-tab="premium" id="nav-premium" style="display:none">
-        <span class="nav-icon">💎</span> <span class="nav-label">Премиум</span>
-      </div>
       <div class="nav-item" data-tab="admin" id="nav-admin" style="display:none">
         <span class="nav-icon">🛡️</span> <span class="nav-label" data-key="nav_admin">Админ-панель</span>
         <span class="nav-badge" id="nav-admin-badge" style="display:none">0</span>
@@ -1246,6 +1293,16 @@
   </aside>
 
   <main id="main">
+
+    <button id="new-version-btn" onclick="window.location.reload()" style="display:none;position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;background:linear-gradient(135deg,#47c8ff,#8e54ff);border:none;border-radius:30px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(71,200,255,0.35);align-items:center;gap:8px;">
+      🔄 Доступно обновление — нажмите, чтобы обновить
+    </button>
+
+    <div id="connect-channel-banner" style="display:none;margin-bottom:20px;padding:28px 24px;text-align:center;background:linear-gradient(135deg, rgba(71,200,255,0.10), rgba(142,84,255,0.10));border:1px solid rgba(71,200,255,0.25);border-radius:16px;">
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">📺 YouTube-канал не подключён</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;max-width:480px;margin-left:auto;margin-right:auto;">Чтобы видеть статистику, прогнозы и другие разделы, подключите свой YouTube-канал</div>
+      <button class="btn-animated" onclick="startYouTubeConnect()" style="padding:12px 28px;background:var(--accent-gradient, linear-gradient(135deg,#47c8ff,#8e54ff));border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">🔗 Подключить YouTube-канал</button>
+    </div>
 
     <div class="tab-panel active fade-up" id="tab-stats">
       <div class="page-header">
@@ -1291,6 +1348,7 @@
     <div class="tab-panel" id="tab-forecast">
       <div class="page-header">
         <div><h2 class="page-title" id="forecast-page-title">Прогноз ролика</h2><p class="page-sub" id="forecast-sub">Симулятор параметров видео</p></div>
+        <button class="type-tab" onclick="refreshForecastTab(this)" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(71,200,255,0.08);border:1px solid rgba(71,200,255,0.25);border-radius:10px;color:var(--accent2);font-size:12px;font-weight:700;cursor:pointer;" title="Обновить данные">🔄 Обновить</button>
       </div>
       <div id="fc-video-list">
         <div class="type-filter">
@@ -1361,7 +1419,7 @@
     <div class="tab-panel" id="tab-news">
       <div class="page-header">
         <div><h2 class="page-title" id="news-page-title">Новости</h2><p class="page-sub" id="news-sub">Обновления и объявления YTMetrics</p></div>
-        <div class="badge-live" style="background:rgba(232,255,71,.08);border-color:rgba(232,255,71,.25);color:var(--accent)">📰 NEWS</div>
+        <div style="display:flex;align-items:center;gap:8px;"><button class="type-tab" onclick="refreshNewsTab(this)" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(71,200,255,0.08);border:1px solid rgba(71,200,255,0.25);border-radius:10px;color:var(--accent2);font-size:12px;font-weight:700;cursor:pointer;" title="Обновить данные">🔄 Обновить</button><div class="badge-live" style="background:rgba(232,255,71,.08);border-color:rgba(232,255,71,.25);color:var(--accent)">📰 NEWS</div></div>
       </div>
       <div class="news-create-card" id="news-create-card" style="display:none">
         <div class="news-create-title"><span id="news-form-icon">✏️</span> <span id="news-form-title">Новый пост</span></div>
@@ -1427,7 +1485,7 @@
     <div class="tab-panel" id="tab-scripts">
       <div class="page-header">
         <div><h2 class="page-title" id="scripts-page-title">Сценарии</h2><p class="page-sub" id="scripts-page-sub">Заполни анкету — ИИ предложит 3 варианта сценария под тебя</p></div>
-        <div class="badge-live" style="background:rgba(71,200,255,.1);border-color:rgba(71,200,255,.3);color:var(--accent2)">🎬 SCRIPTS</div>
+        <div style="display:flex;align-items:center;gap:8px;"><button class="type-tab" onclick="refreshScriptsTab(this)" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(71,200,255,0.08);border:1px solid rgba(71,200,255,0.25);border-radius:10px;color:var(--accent2);font-size:12px;font-weight:700;cursor:pointer;" title="Обновить данные">🔄 Обновить</button><div class="badge-live" style="background:rgba(71,200,255,.1);border-color:rgba(71,200,255,.3);color:var(--accent2)">🎬 SCRIPTS</div></div>
       </div>
 
       <div class="calc-block" style="margin-bottom:16px">
@@ -1471,7 +1529,7 @@
     <div class="tab-panel" id="tab-competitors">
       <div class="page-header">
         <div><h2 class="page-title" id="competitors-page-title">Поиск конкурентов</h2><p class="page-sub" id="competitors-page-sub">Опиши свою нишу — ИИ найдёт релевантные каналы и видео на YouTube</p></div>
-        <div class="badge-live" style="background:rgba(232,255,71,.08);border-color:rgba(232,255,71,.25);color:var(--accent)">🔎 SEARCH</div>
+        <div style="display:flex;align-items:center;gap:8px;"><button class="type-tab" onclick="refreshCompetitorsTab(this)" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(71,200,255,0.08);border:1px solid rgba(71,200,255,0.25);border-radius:10px;color:var(--accent2);font-size:12px;font-weight:700;cursor:pointer;" title="Обновить данные">🔄 Обновить</button><div class="badge-live" style="background:rgba(232,255,71,.08);border-color:rgba(232,255,71,.25);color:var(--accent)">🔎 SEARCH</div></div>
       </div>
 
       <div class="calc-block" style="margin-bottom:20px">
@@ -1492,7 +1550,7 @@
     <div class="tab-panel" id="tab-install">
       <div class="page-header">
         <div><h2 class="page-title" id="install-page-title">Скачать приложение</h2><p class="page-sub" id="install-page-sub">Установите YTMetrics как PWA-приложение на устройство</p></div>
-        <div class="badge-live" style="background:rgba(232,255,71,.08);border-color:rgba(232,255,71,.25);color:var(--accent)">📱 PWA</div>
+        <div style="display:flex;align-items:center;gap:8px;"><button class="type-tab" onclick="refreshInstallTab(this)" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(71,200,255,0.08);border:1px solid rgba(71,200,255,0.25);border-radius:10px;color:var(--accent2);font-size:12px;font-weight:700;cursor:pointer;" title="Обновить данные">🔄 Обновить</button><div class="badge-live" style="background:rgba(232,255,71,.08);border-color:rgba(232,255,71,.25);color:var(--accent)">📱 PWA</div></div>
       </div>
 
       <div id="install-main-content">
@@ -1512,7 +1570,7 @@
     </div>
 
     <div class="tab-panel" id="tab-settings">
-      <div class="page-header"><div><h2 class="page-title" id="settings-page-title">Настройки</h2><p class="page-sub" id="settings-sub">Персонализация</p></div></div>
+      <div class="page-header"><div><h2 class="page-title" id="settings-page-title">Настройки</h2><p class="page-sub" id="settings-sub">Персонализация</p></div><button class="type-tab" onclick="refreshSettingsTab(this)" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(71,200,255,0.08);border:1px solid rgba(71,200,255,0.25);border-radius:10px;color:var(--accent2);font-size:12px;font-weight:700;cursor:pointer;" title="Обновить данные">🔄 Обновить</button></div>
       
       <div class="video-list">
         <!-- Тема -->
@@ -1631,7 +1689,7 @@
     <div class="tab-panel" id="tab-messages">
       <div class="page-header">
         <div><h2 class="page-title">Сообщения</h2><p class="page-sub">Личные уведомления: предупреждения и обновления сайта</p></div>
-        <button class="notif-read-all-btn" onclick="markAllMessagesRead()">✓ Прочитать все</button>
+        <div style="display:flex;align-items:center;gap:8px;"><button class="type-tab" onclick="refreshMessagesTab(this)" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(71,200,255,0.08);border:1px solid rgba(71,200,255,0.25);border-radius:10px;color:var(--accent2);font-size:12px;font-weight:700;cursor:pointer;" title="Обновить данные">🔄 Обновить</button><button class="notif-read-all-btn" onclick="markAllMessagesRead()">✓ Прочитать все</button></div>
       </div>
       <div class="notif-list" id="messages-list"><div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div></div>
     </div>
@@ -1666,6 +1724,11 @@
           <input type="text" class="prem-input" id="ads-price-text" placeholder="Например: 500 ₽ за размещение">
         </div>
         <div style="margin-bottom:16px;">
+          <div class="prem-block-title" style="margin-bottom:8px;">offer_id рекламы в Lava.top</div>
+          <input type="text" class="prem-input" id="ads-offer-id" placeholder="offer_id из личного кабинета Lava.top" style="font-family:'DM Mono',monospace;font-size:12px;">
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;">Создайте в Lava.top отдельное предложение с ценой из поля выше и вставьте его ID сюда — без этого оплата рекламы работать не будет.</div>
+        </div>
+        <div style="margin-bottom:16px;">
           <div class="prem-block-title" style="margin-bottom:8px;">Как часто один пользователь может размещать рекламу</div>
           <div class="cooldown-opt-row">
             <div class="cooldown-opt" id="cooldown-opt-week" onclick="setCooldownType('week')">Раз в неделю</div>
@@ -1689,10 +1752,15 @@
       </div>
     </div>
 
-    <div class="tab-panel" id="tab-premium">
+    <div class="modal-overlay" id="premium-config-modal">
+     <div class="modal-box" style="max-width:820px;">
+      <div class="modal-header">
+        <div class="modal-title">💎 Настройка премиум</div>
+        <button class="modal-close" onclick="closeModal('premium-config-modal')">✕</button>
+      </div>
+      <div class="modal-body">
       <div class="page-header">
-        <div><h2 class="page-title">Премиум</h2><p class="page-sub">Монетизация сайта — доступно главному администратору и админам с правом доступа</p></div>
-        <div class="badge-live" style="background:rgba(255,159,71,.08);border-color:rgba(255,159,71,.25);color:#ff9f47">💎 ADMIN ACCESS</div>
+        <div><p class="page-sub">Монетизация сайта — доступно главному администратору и админам с правом доступа</p></div>
       </div>
 
       <div class="prem-engine-card" id="prem-engine-card">
@@ -1756,6 +1824,8 @@
       <button class="prem-instr-btn" onclick="openModal('prem-instructions-modal')">
         📖 Инструкция: как подключить приём платежей
       </button>
+      </div>
+     </div>
     </div>
 
     <div class="tab-panel" id="tab-admin">
@@ -1777,13 +1847,20 @@
         <div class="prem-hint" id="admin-balance-hint">Реальный остаток на кошельке Lava.top, уже за вычетом выведенных средств.</div>
       </div>
 
+      <div class="prem-block" id="premium-config-open-block" style="border-color:rgba(232,255,71,.25);">
+        <button class="prem-instr-btn" style="width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;" onclick="openModal('premium-config-modal');loadPremiumConfig();">
+          <span>💎 Настроить премиум — тарифы, промокоды, реклама, монетизация</span>
+          <span>→</span>
+        </button>
+      </div>
+
       <div class="prem-block" style="border-color:rgba(71,200,255,.25);">
-        <div class="prem-block-title">📢 Отправить запрос на обновление</div>
-        <div class="prem-hint" style="margin-bottom:10px;">Все пользователи получат уведомление в разделе «Сообщения» с описанием, что нового.</div>
+        <div class="prem-block-title">📢 Опубликовать новость об обновлении</div>
+        <div class="prem-hint" style="margin-bottom:10px;">Публикуется в разделе «Новости» — увидят все пользователи, без спама в личные сообщения.</div>
         <input type="text" class="prem-input" id="update-broadcast-title" placeholder="Заголовок, например: Вышло обновление 2.4" style="margin-bottom:10px;">
         <textarea class="prem-input" id="update-broadcast-body" rows="3" placeholder="Что изменилось..." style="resize:vertical;font-family:inherit;margin-bottom:10px;"></textarea>
         <div style="display:flex;align-items:center;gap:16px;">
-          <button class="prem-save-btn" onclick="sendUpdateBroadcast()">Отправить всем пользователям</button>
+          <button class="prem-save-btn" onclick="sendUpdateBroadcast()">Опубликовать в новостях</button>
           <span id="update-broadcast-status" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);"></span>
         </div>
       </div>
@@ -2163,46 +2240,54 @@
       <div class="prem-step">
         <div class="prem-step-num">2</div>
         <div>
-          <div class="prem-step-title">Создайте интеграцию (проект)</div>
-          <div class="prem-step-text">В левом меню зайдтите в раздел «Интеграции» и создайте новый проект YTMetrics. Назовите продукт «Премиум подписка».</div>
+          <div class="prem-step-title">Создайте продукт и «предложения» (offer)</div>
+          <div class="prem-step-text">В личном кабинете Lava.top создайте продукт «Премиум подписка YTMetrics». Для <b>каждого</b> тарифа (1 мес, 6 мес, год и т.д.) и для <b>каждого</b> промокода со скидкой создайте отдельное «предложение» (offer) с нужной ценой — цена в Lava.top задаётся именно так, а не передаётся из приложения.</div>
         </div>
       </div>
 
       <div class="prem-step">
         <div class="prem-step-num">3</div>
         <div>
-          <div class="prem-step-title">Возьмите API-ключи</div>
-          <div class="prem-step-text">В настройках интеграции скопируйте <code>API Key</code> и <code>Shop ID</code>.</div>
+          <div class="prem-step-title">Скопируйте ID предложений (offer_id)</div>
+          <div class="prem-step-text">У каждого созданного предложения есть свой UUID (offer_id). Скопируйте его — он понадобится ниже, в блоке «Тарифные планы и цены» этой панели: вставьте offer_id в соответствующий тариф/промокод.</div>
         </div>
       </div>
 
       <div class="prem-step">
         <div class="prem-step-num">4</div>
         <div>
-          <div class="prem-step-title">Укажите адрес для уведомлений (Postback URL)</div>
-          <div class="prem-step-text">В настройках Lava.top укажите Webhook URL для уведомлений:<br><code>https://youtube-analytics-ruddy.vercel.app/api/payments/postback</code></div>
+          <div class="prem-step-title">Возьмите API-ключ</div>
+          <div class="prem-step-text">В разделе «Интеграции» → «API» скопируйте <code>API Key</code> (X-Api-Key).</div>
         </div>
       </div>
 
       <div class="prem-step">
         <div class="prem-step-num">5</div>
         <div>
-          <div class="prem-step-title">Вставьте ключи в Vercel</div>
-          <div class="prem-step-text">Откройте проект на <code>vercel.com</code> → Settings → Environment Variables и добавьте:<br>
-          <code>LAVA_API_KEY</code>, <code>LAVA_SHOP_ID</code><br>
-          После сохранения сделайте Redeploy проекта, чтобы изменения применились.</div>
+          <div class="prem-step-title">Укажите адрес для уведомлений (Webhook URL)</div>
+          <div class="prem-step-text">В настройках Lava.top укажите Webhook URL для уведомлений о покупках:<br><code>https://youtube-analytics-ruddy.vercel.app/api/payments/postback</code></div>
         </div>
       </div>
 
       <div class="prem-step">
         <div class="prem-step-num">6</div>
         <div>
+          <div class="prem-step-title">Вставьте ключ в Vercel</div>
+          <div class="prem-step-text">Откройте проект на <code>vercel.com</code> → Settings → Environment Variables и добавьте:<br>
+          <code>LAVA_API_KEY</code><br>
+          После сохранения сделайте Redeploy проекта, чтобы изменения применились.</div>
+        </div>
+      </div>
+
+      <div class="prem-step">
+        <div class="prem-step-num">7</div>
+        <div>
           <div class="prem-step-title">Моментальный вывод денег</div>
           <div class="prem-step-text">Все поступающие деньги зачисляются в личный кабинет Lava.top. Владелец сайта нажимает «Вывод средств» и получает рубли на любую карту РФ или по СБП.</div>
         </div>
       </div>
 
-      <div class="prem-hint" style="margin-top:6px;">Пока переменные окружения не заданы, кнопка оплаты на сайте будет показывать ошибку — это ожидаемо до завершения настройки.</div>
+      <div class="prem-hint" style="margin-top:6px;">Пока не задан <code>LAVA_API_KEY</code> и/или offer_id у тарифа — кнопка оплаты будет честно показывать ошибку вместо открытия страницы с неверной ценой. Это ожидаемо до завершения настройки.</div>
     </div>
   </div>
 </div>
@@ -2216,6 +2301,7 @@
       <button class="modal-close" onclick="closeModal('ad-create-modal')">✕</button>
     </div>
     <div class="modal-body" style="padding-top:10px;">
+      <div id="ad-form-price-banner" style="margin-bottom:14px;padding:10px 14px;border-radius:10px;background:rgba(232,255,71,.08);border:1px solid rgba(232,255,71,.25);font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--accent);text-align:center;"></div>
       <div style="margin-bottom:14px;">
         <div class="prem-block-title" style="margin-bottom:8px;">Ссылка на ваш YouTube-канал</div>
         <input type="text" class="prem-input" id="ad-form-channel-url" placeholder="https://www.youtube.com/@ваш_канал">
@@ -4228,6 +4314,36 @@ function setAuthStep(step){
   document.getElementById('auth-step-form').style.display=step==='form'?'block':'none';
   document.getElementById('auth-step-code').style.display=step==='code'?'block':'none';
   document.getElementById('auth-step-2fa').style.display=step==='2fa'?'block':'none';
+  document.getElementById('auth-step-forgot').style.display=step==='forgot'?'block':'none';
+}
+
+function showForgotPasswordStep(){
+  const prefillEmail=document.getElementById('auth-email-field').value.trim();
+  document.getElementById('auth-forgot-email-field').value=prefillEmail;
+  document.getElementById('auth-form-status').textContent='';
+  setAuthStep('forgot');
+}
+
+async function submitForgotPassword(){
+  const btn=document.getElementById('auth-forgot-submit-btn');
+  const status=document.getElementById('auth-form-status');
+  const email=document.getElementById('auth-forgot-email-field').value.trim();
+  if(!email){status.textContent='Укажите почту';return;}
+  btn.disabled=true;
+  const originalText=btn.textContent;
+  btn.textContent='Отправляем...';
+  status.style.color='var(--muted)';
+  status.textContent='';
+  try{
+    const res=await apiFetch('/api/auth/email/forgot-password',{method:'POST',body:JSON.stringify({ email })});
+    const data=await res.json().catch(function(){return {};});
+    status.textContent=data.message||'Если такой аккаунт существует — новый пароль уже отправлен на почту';
+    setTimeout(function(){ setAuthStep('form'); status.textContent=''; },4000);
+  }catch(e){
+    status.textContent='Ошибка сети, попробуйте ещё раз';
+  }finally{
+    btn.disabled=false;btn.textContent=originalText;
+  }
 }
 
 function setAuthTab(tab){
@@ -5416,7 +5532,7 @@ async function refreshAdminNavAccess(){
   const canPremium = _isSupreme || (_myPermissions&&_myPermissions.access_premium_panel);
   const canBilling = _isSupreme || (_myPermissions&&_myPermissions.manage_billing);
   const navAdmin=document.getElementById('nav-admin'); if(navAdmin)navAdmin.style.display=canAdmin?'flex':'none';
-  const navPremium=document.getElementById('nav-premium'); if(navPremium)navPremium.style.display=canPremium?'flex':'none';
+  const navPremium=document.getElementById('premium-config-open-block'); if(navPremium)navPremium.style.display=canPremium?'block':'none';
   const adsAdminBlock=document.getElementById('ads-admin-block'); if(adsAdminBlock)adsAdminBlock.style.display=canPremium?'block':'none';
   const balanceBlock=document.getElementById('admin-balance-block'); if(balanceBlock)balanceBlock.style.display=canBilling?'block':'none';
   if(canPremium)loadAdsAdminConfig();
@@ -5518,13 +5634,16 @@ function renderPremiumPlanRows(){
     : [{ id: 'plan_1', months: 1, price: _premConfig.price_month || '299 ₽' }];
   
   container.innerHTML = plans.map(function(p, idx){
-    return '<div class="prem-plan-item" style="display:flex;align-items:center;gap:10px;">'
+    return '<div class="prem-plan-item" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
       +'<div style="display:flex;align-items:center;gap:6px;">'
       +'<input type="number" class="prem-input plan-months-input" min="1" max="120" value="'+(p.months||1)+'" style="width:75px;text-align:center;">'
       +'<span style="font-size:12px;color:var(--muted);white-space:nowrap;">мес.</span>'
       +'</div>'
-      +'<div style="flex:1;min-width:0;">'
+      +'<div style="flex:1;min-width:90px;">'
       +'<input type="text" class="prem-input plan-price-input" value="'+escapeHtml(p.price||'')+'" placeholder="Например: 299 ₽">'
+      +'</div>'
+      +'<div style="flex:2;min-width:160px;">'
+      +'<input type="text" class="prem-input plan-offerid-input" value="'+escapeHtml(p.offer_id||'')+'" placeholder="offer_id из Lava.top" style="font-family:\'DM Mono\',monospace;font-size:11px;">'
       +'</div>'
       +'<button type="button" onclick="removePremiumPlanRow(this)" style="background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.25);color:var(--red);border-radius:8px;padding:8px 12px;cursor:pointer;" title="Удалить тариф">🗑</button>'
       +'</div>';
@@ -5537,12 +5656,16 @@ function addPremiumPlanRow(){
   const div = document.createElement('div');
   div.className = 'prem-plan-item';
   div.style.cssText = 'display:flex;align-items:center;gap:10px;';
+  div.style.cssText += 'flex-wrap:wrap;';
   div.innerHTML = '<div style="display:flex;align-items:center;gap:6px;">'
     +'<input type="number" class="prem-input plan-months-input" min="1" max="120" value="2" style="width:75px;text-align:center;">'
     +'<span style="font-size:12px;color:var(--muted);white-space:nowrap;">мес.</span>'
     +'</div>'
-    +'<div style="flex:1;min-width:0;">'
+    +'<div style="flex:1;min-width:90px;">'
     +'<input type="text" class="prem-input plan-price-input" value="" placeholder="Например: 490 ₽">'
+    +'</div>'
+    +'<div style="flex:2;min-width:160px;">'
+    +'<input type="text" class="prem-input plan-offerid-input" value="" placeholder="offer_id из Lava.top" style="font-family:\'DM Mono\',monospace;font-size:11px;">'
     +'</div>'
     +'<button type="button" onclick="removePremiumPlanRow(this)" style="background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.25);color:var(--red);border-radius:8px;padding:8px 12px;cursor:pointer;" title="Удалить тариф">🗑</button>';
   container.appendChild(div);
@@ -5593,7 +5716,7 @@ function renderPromocodeRows(){
     : [{ code: 'YOUTUBE', discount_percent: 50, free_days: 0 }];
 
   container.innerHTML = promos.map(function(p){
-    return '<div class="prem-promo-item" style="display:flex;align-items:center;gap:10px;">'
+    return '<div class="prem-promo-item" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
       +'<div style="flex:2;min-width:0;">'
       +'<input type="text" class="prem-input promo-code-input" value="'+escapeHtml(p.code||'')+'" placeholder="КОД (напр. YOUTUBE)" style="text-transform:uppercase;font-family:\'DM Mono\',monospace;font-weight:700;">'
       +'</div>'
@@ -5604,6 +5727,9 @@ function renderPromocodeRows(){
       +'<div style="flex:1;min-width:0;display:flex;align-items:center;gap:4px;">'
       +'<input type="number" class="prem-input promo-days-input" min="0" max="365" value="'+(p.free_days||0)+'" style="text-align:center;" placeholder="0">'
       +'<span style="font-size:11px;color:var(--muted);">дн. бесспл.</span>'
+      +'</div>'
+      +'<div style="flex:2;min-width:160px;">'
+      +'<input type="text" class="prem-input promo-offerid-input" value="'+escapeHtml(p.offer_id||'')+'" placeholder="offer_id для платной скидки (необязат.)" style="font-family:\'DM Mono\',monospace;font-size:11px;">'
       +'</div>'
       +'<button type="button" onclick="removePromocodeRow(this)" style="background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.25);color:var(--red);border-radius:8px;padding:8px 12px;cursor:pointer;" title="Удалить промокод">🗑</button>'
       +'</div>';
@@ -5616,6 +5742,7 @@ function addPromocodeRow(){
   const div = document.createElement('div');
   div.className = 'prem-promo-item';
   div.style.cssText = 'display:flex;align-items:center;gap:10px;';
+  div.style.cssText += 'flex-wrap:wrap;';
   div.innerHTML = '<div style="flex:2;min-width:0;">'
     +'<input type="text" class="prem-input promo-code-input" value="" placeholder="ПРОМОКОД" style="text-transform:uppercase;font-family:\'DM Mono\',monospace;font-weight:700;">'
     +'</div>'
@@ -5626,6 +5753,9 @@ function addPromocodeRow(){
     +'<div style="flex:1;min-width:0;display:flex;align-items:center;gap:4px;">'
     +'<input type="number" class="prem-input promo-days-input" min="0" max="365" value="0" style="text-align:center;" placeholder="0">'
     +'<span style="font-size:11px;color:var(--muted);">дн. бесспл.</span>'
+    +'</div>'
+    +'<div style="flex:2;min-width:160px;">'
+    +'<input type="text" class="prem-input promo-offerid-input" value="" placeholder="offer_id для платной скидки (необязат.)" style="font-family:\'DM Mono\',monospace;font-size:11px;">'
     +'</div>'
     +'<button type="button" onclick="removePromocodeRow(this)" style="background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.25);color:var(--red);border-radius:8px;padding:8px 12px;cursor:pointer;" title="Удалить промокод">🗑</button>';
   container.appendChild(div);
@@ -5643,7 +5773,7 @@ function renderAdminSubPromocodes(){
     : [{ code: 'YOUTUBE', discount_percent: 50, free_days: 0 }];
 
   container.innerHTML = promos.map(function(p){
-    return '<div class="admin-sub-promo-item" style="display:flex;align-items:center;gap:10px;">'
+    return '<div class="admin-sub-promo-item" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
       +'<div style="flex:2;min-width:0;">'
       +'<input type="text" class="prem-input promo-code-input" value="'+escapeHtml(p.code||'')+'" placeholder="КОД (напр. YOUTUBE)" style="text-transform:uppercase;font-family:\'DM Mono\',monospace;font-weight:700;">'
       +'</div>'
@@ -5655,6 +5785,9 @@ function renderAdminSubPromocodes(){
       +'<input type="number" class="prem-input promo-days-input" min="0" max="365" value="'+(p.free_days||0)+'" style="text-align:center;" placeholder="0">'
       +'<span style="font-size:11px;color:var(--muted);">дн. бесспл.</span>'
       +'</div>'
+      +'<div style="flex:2;min-width:160px;">'
+      +'<input type="text" class="prem-input promo-offerid-input" value="'+escapeHtml(p.offer_id||'')+'" placeholder="offer_id для платной скидки (необязат.)" style="font-family:\'DM Mono\',monospace;font-size:11px;">'
+      +'</div>'
       +'<button type="button" onclick="this.closest(\'.admin-sub-promo-item\').remove()" style="background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.25);color:var(--red);border-radius:8px;padding:8px 12px;cursor:pointer;" title="Удалить промокод">🗑</button>'
       +'</div>';
   }).join('');
@@ -5665,7 +5798,7 @@ function addAdminSubPromoRow(){
   if(!container) return;
   const div = document.createElement('div');
   div.className = 'admin-sub-promo-item';
-  div.style.cssText = 'display:flex;align-items:center;gap:10px;';
+  div.style.cssText = 'display:flex;align-items:center;gap:10px;flex-wrap:wrap;';
   div.innerHTML = '<div style="flex:2;min-width:0;">'
     +'<input type="text" class="prem-input promo-code-input" value="" placeholder="ПРОМОКОД" style="text-transform:uppercase;font-family:\'DM Mono\',monospace;font-weight:700;">'
     +'</div>'
@@ -5676,6 +5809,9 @@ function addAdminSubPromoRow(){
     +'<div style="flex:1;min-width:0;display:flex;align-items:center;gap:4px;">'
     +'<input type="number" class="prem-input promo-days-input" min="0" max="365" value="0" style="text-align:center;" placeholder="0">'
     +'<span style="font-size:11px;color:var(--muted);">дн. бесспл.</span>'
+    +'</div>'
+    +'<div style="flex:2;min-width:160px;">'
+    +'<input type="text" class="prem-input promo-offerid-input" value="" placeholder="offer_id для платной скидки (необязат.)" style="font-family:\'DM Mono\',monospace;font-size:11px;">'
     +'</div>'
     +'<button type="button" onclick="this.closest(\'.admin-sub-promo-item\').remove()" style="background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.25);color:var(--red);border-radius:8px;padding:8px 12px;cursor:pointer;" title="Удалить промокод">🗑</button>';
   container.appendChild(div);
@@ -5693,7 +5829,8 @@ async function saveAdminSubPromocodes(btn){
       const code = (item.querySelector('.promo-code-input')?.value || '').trim().toUpperCase();
       const discount_percent = parseInt(item.querySelector('.promo-discount-input')?.value) || 0;
       const free_days = parseInt(item.querySelector('.promo-days-input')?.value) || 0;
-      if(code) promocodes.push({ code, discount_percent, free_days });
+      const offer_id = (item.querySelector('.promo-offerid-input')?.value || '').trim();
+      if(code) promocodes.push({ code, discount_percent, free_days, offer_id });
     });
     _premConfig.promocodes = promocodes;
 
@@ -5874,7 +6011,8 @@ async function savePremiumConfig(){
     items.forEach((item, idx) => {
       const months = parseInt(item.querySelector('.plan-months-input')?.value) || 1;
       const price = (item.querySelector('.plan-price-input')?.value || '').trim();
-      if(price) plans.push({ id: 'plan_' + months + 'm_' + idx, months, price });
+      const offer_id = (item.querySelector('.plan-offerid-input')?.value || '').trim();
+      if(price) plans.push({ id: 'plan_' + months + 'm_' + idx, months, price, offer_id });
     });
     _premConfig.plans = plans.length ? plans : [{ id: 'plan_1', months: 1, price: '299 ₽' }];
     _premConfig.price_month = _premConfig.plans[0] ? _premConfig.plans[0].price : '';
@@ -5885,7 +6023,8 @@ async function savePremiumConfig(){
       const code = (item.querySelector('.promo-code-input')?.value || '').trim().toUpperCase();
       const discount_percent = parseInt(item.querySelector('.promo-discount-input')?.value) || 0;
       const free_days = parseInt(item.querySelector('.promo-days-input')?.value) || 0;
-      if(code) promocodes.push({ code, discount_percent, free_days });
+      const offer_id = (item.querySelector('.promo-offerid-input')?.value || '').trim();
+      if(code) promocodes.push({ code, discount_percent, free_days, offer_id });
     });
     _premConfig.promocodes = promocodes;
 
@@ -5920,6 +6059,7 @@ async function loadAdsAdminConfig(){
     _adsConfig=data.settings||_adsConfig;
     renderAdsEngine();
     document.getElementById('ads-price-text').value=_adsConfig.price_text||'';
+    document.getElementById('ads-offer-id').value=_adsConfig.offer_id||'';
     setCooldownType(_adsConfig.cooldown_type||'week',true);
     document.getElementById('ads-cooldown-days').value=_adsConfig.cooldown_custom_days||30;
   }catch(e){}
@@ -5951,6 +6091,7 @@ async function saveAdsConfig(){
   status.textContent='Сохранение...';
   try{
     _adsConfig.price_text=document.getElementById('ads-price-text').value.trim();
+    _adsConfig.offer_id=document.getElementById('ads-offer-id').value.trim();
     _adsConfig.cooldown_custom_days=parseInt(document.getElementById('ads-cooldown-days').value)||30;
     const res=await apiFetch('/api/ads/admin-config',{method:'POST',body:JSON.stringify(_adsConfig)});
     if(!res.ok){const err=await res.json().catch(()=>({}));status.textContent='Ошибка: '+(err.error||res.status);return;}
@@ -5961,6 +6102,7 @@ async function saveAdsConfig(){
   }catch(e){status.textContent='Ошибка сети';}
 }
 
+let _adsPublicSettings={enabled:false,price_text:''};
 async function loadAdsMy(){
   const grid=document.getElementById('ads-my-grid');
   const disabledBanner=document.getElementById('ads-disabled-banner');
@@ -5968,6 +6110,7 @@ async function loadAdsMy(){
   try{
     const settingsRes=await apiFetch('/api/ads/settings');
     const settings=settingsRes.ok?await settingsRes.json():{enabled:false};
+    _adsPublicSettings=settings;
     if(!settings.enabled&&!(_isSupreme||(_myPermissions&&_myPermissions.access_premium_panel))){
       disabledBanner.style.display='block'; myWrap.style.display='none'; return;
     }
@@ -5995,6 +6138,16 @@ function openAdCreateModal(){
   document.getElementById('ad-photo-placeholder').style.display='block';
   document.getElementById('ad-form-status').textContent='';
   _adPhotoBase64=null;
+  const priceBanner=document.getElementById('ad-form-price-banner');
+  if(priceBanner){
+    const priceText=(_adsPublicSettings&&_adsPublicSettings.price_text||'').trim();
+    const amount=parseFloat(String(priceText).replace(/[^\d.]/g,''));
+    if(!priceText||!amount||amount<=0){
+      priceBanner.textContent='🎁 Размещение бесплатно';
+    }else{
+      priceBanner.textContent='💰 Стоимость размещения: '+priceText;
+    }
+  }
   openModal('ad-create-modal');
 }
 
@@ -6031,7 +6184,7 @@ async function submitAdCreate(){
     }
     if(data.pay_url){
       status.textContent='✓ Проверка пройдена! Открываем страницу оплаты...';
-      window.open(data.pay_url,'_blank');
+      openPaymentPopup(data.pay_url);
     }else{
       status.textContent='✓ Проверка пройдена. '+(data.note||'Ожидайте оплату.');
     }
@@ -6063,12 +6216,12 @@ async function sendUpdateBroadcast(){
   const title=document.getElementById('update-broadcast-title').value.trim();
   const body=document.getElementById('update-broadcast-body').value.trim();
   if(!title){status.textContent='Введите заголовок';return;}
-  status.textContent='Отправляем...';
+  status.textContent='Публикуем...';
   try{
     const res=await apiFetch('/api/admin/updates/broadcast',{method:'POST',body:JSON.stringify({ title, body })});
     const data=await res.json().catch(()=>({}));
     if(!res.ok){status.textContent='Ошибка: '+(data.error||res.status);return;}
-    status.textContent='✓ Отправлено '+data.sent_to+' пользователям';
+    status.textContent='✓ Опубликовано в новостях';
     document.getElementById('update-broadcast-title').value='';
     document.getElementById('update-broadcast-body').value='';
     setTimeout(function(){status.textContent='';},4000);
@@ -8078,8 +8231,6 @@ async function loadSubscriptionsPage(){
   }).join('');
 }
 
-const LAVA_PAYMENT_URL = 'https://app.lava.top/products/98ac73c0-0fc0-46f7-b7a9-67fc8c981b76';
-
 function openPaymentPopup(url){
   const width = 540;
   const height = 750;
@@ -8100,16 +8251,52 @@ async function buySubscription(plan,btnEl){
   try{
     const res=await apiFetch('/api/payments/create-invoice',{method:'POST',body:JSON.stringify({ plan:plan, promocode:_appliedPromocode })});
     const data=await res.json().catch(function(){return {};});
-    const url = (data && data.pay_url) ? data.pay_url : LAVA_PAYMENT_URL;
-    openPaymentPopup(url);
+    if(!res.ok || !data.pay_url){
+      showToast(data.error || 'Оплата для этого тарифа пока недоступна, попробуйте позже');
+      btnEl.disabled=false;btnEl.textContent=originalText;
+      return;
+    }
+    openPaymentPopup(data.pay_url);
     btnEl.textContent='✓ Открыта оплата';
     setTimeout(function(){btnEl.disabled=false;btnEl.textContent=originalText;},2500);
   }catch(e){
-    openPaymentPopup(LAVA_PAYMENT_URL);
-    btnEl.textContent='✓ Открыта оплата';
-    setTimeout(function(){btnEl.disabled=false;btnEl.textContent=originalText;},2500);
+    showToast('Ошибка сети, попробуйте ещё раз');
+    btnEl.disabled=false;btnEl.textContent=originalText;
   }
 }
+
+let _appBuildId=null;
+async function checkAppVersion(){
+  try{
+    const res=await fetch(API_URL+'/api/app-version');
+    if(!res.ok)return;
+    const data=await res.json();
+    if(_appBuildId===null){ _appBuildId=data.build; return; } // первая проверка — просто запоминаем
+    if(data.build && data.build!==_appBuildId){
+      const btn=document.getElementById('new-version-btn');
+      if(btn)btn.style.display='flex';
+    }
+  }catch(e){}
+}
+checkAppVersion();
+setInterval(checkAppVersion, 3*60*1000); // проверяем раз в 3 минуты
+
+// Универсальная кнопка "Обновить" для разделов (везде, кроме админки/подписки/рекламы/ИИ-чата/калькулятора)
+async function refreshTabButton(btnEl, asyncFn){
+  if(!btnEl)return;
+  const original=btnEl.innerHTML;
+  btnEl.disabled=true;
+  btnEl.innerHTML='<span style="display:inline-block;animation:spin-update 0.8s infinite linear;">🔄</span>';
+  try{ await asyncFn(); }catch(e){}
+  setTimeout(function(){ btnEl.disabled=false; btnEl.innerHTML=original; },400);
+}
+function refreshForecastTab(btnEl){ refreshTabButton(btnEl, async function(){ await loadRealVideos(_currentUser); renderForecastGrid(); showVideoList(); }); }
+function refreshNewsTab(btnEl){ refreshTabButton(btnEl, loadNews); }
+function refreshScriptsTab(btnEl){ refreshTabButton(btnEl, async function(){ await loadScriptProfile(); }); }
+function refreshCompetitorsTab(btnEl){ refreshTabButton(btnEl, fetchAndRenderLimits); }
+function refreshInstallTab(btnEl){ refreshTabButton(btnEl, async function(){ initInstallTab(); }); }
+function refreshSettingsTab(btnEl){ refreshTabButton(btnEl, async function(){ updatePinStatusBadge(); }); }
+function refreshMessagesTab(btnEl){ refreshTabButton(btnEl, loadMyMessages); }
 
 function showDashboard(channelData){
   _currentUser=channelData;saveUser(channelData);saveSavedAccount(channelData);
@@ -8119,6 +8306,8 @@ function showDashboard(channelData){
   const connScreen = document.getElementById('connect-youtube-screen');
   if(connScreen) connScreen.style.display='none';
   document.getElementById('dashboard').style.display='flex';
+  const connectBanner=document.getElementById('connect-channel-banner');
+  if(connectBanner) connectBanner.style.display=channelData.channel_id?'none':'block';
   document.getElementById('user-display-name').textContent=channelData.channel_name||channelData.name||channelData.email||'Channel';
   document.getElementById('user-display-email').textContent=channelData.email||channelData.channel_id||'';
   const avatarUrl=channelData.avatar_url||channelData.picture||null;
@@ -8150,6 +8339,15 @@ function showDashboard(channelData){
     }
   }
   fetchAndRenderLimits();loadChatHistory();updatePinStatusBadge();initInstallTab();loadPremiumStatusForUser();pollMessagesUnreadCount();setInterval(pollMessagesUnreadCount,60000);
+  try{
+    const params=new URLSearchParams(window.location.search);
+    if(params.get('action')==='change_password'){
+      setTimeout(function(){ openModal('security-settings-modal'); },400);
+      params.delete('action');
+      const newUrl=window.location.pathname+(params.toString()?'?'+params.toString():'');
+      window.history.replaceState({}, '', newUrl);
+    }
+  }catch(e){}
   _realVideos=[];
   const wrapper=document.getElementById('ai-video-analyzer-wrap');if(wrapper)wrapper.style.display='none';
   const badge=document.getElementById('context-sent-badge');if(badge)badge.style.display='none';
@@ -8183,7 +8381,6 @@ document.querySelectorAll('.nav-item').forEach(function(item){
     if(tab==='scripts')loadScriptProfile();
     if(tab==='competitors'){}
     if(tab==='admin'&&_isAdmin){loadAdminUsers();loadAdminNotifications();}
-    if(tab==='premium'&&(_isSupreme||(_myPermissions&&_myPermissions.access_premium_panel))){loadPremiumConfig();}
     if(tab==='ads'){loadAdsMy();}
     if(tab==='messages'){loadMyMessages();}
     if(tab==='subscriptions'){loadSubscriptionsPage();}
