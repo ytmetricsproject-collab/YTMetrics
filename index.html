@@ -1176,7 +1176,7 @@ button[onclick*="togglePasswordVisibility"] {
           <button class="auth-tab-btn" id="auth-tab-register" onclick="setAuthTab('register')">Регистрация</button>
         </div>
 
-        <input type="email" class="prem-input" id="auth-email-field" placeholder="Почта (не Gmail/iCloud)" style="margin-bottom:10px;">
+        <input type="email" class="prem-input" id="auth-email-field" placeholder="Почта" style="margin-bottom:10px;">
 
         <div style="position:relative;margin-bottom:10px;">
           <input type="password" class="prem-input" id="auth-password-field" placeholder="Пароль" style="padding-right:44px;">
@@ -1550,7 +1550,7 @@ button[onclick*="togglePasswordVisibility"] {
     <div class="tab-panel" id="tab-install">
       <div class="page-header">
         <div><h2 class="page-title" id="install-page-title">Скачать приложение</h2><p class="page-sub" id="install-page-sub">Установите YTMetrics как PWA-приложение на устройство</p></div>
-        <div style="display:flex;align-items:center;gap:8px;"><button class="type-tab" onclick="refreshInstallTab(this)" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(71,200,255,0.08);border:1px solid rgba(71,200,255,0.25);border-radius:10px;color:var(--accent2);font-size:12px;font-weight:700;cursor:pointer;" title="Обновить данные">🔄 Обновить</button><div class="badge-live" style="background:rgba(232,255,71,.08);border-color:rgba(232,255,71,.25);color:var(--accent)">📱 PWA</div></div>
+        <div style="display:flex;align-items:center;gap:8px;"><div class="badge-live" style="background:rgba(232,255,71,.08);border-color:rgba(232,255,71,.25);color:var(--accent)">📱 PWA</div></div>
       </div>
 
       <div id="install-main-content">
@@ -1570,7 +1570,7 @@ button[onclick*="togglePasswordVisibility"] {
     </div>
 
     <div class="tab-panel" id="tab-settings">
-      <div class="page-header"><div><h2 class="page-title" id="settings-page-title">Настройки</h2><p class="page-sub" id="settings-sub">Персонализация</p></div><button class="type-tab" onclick="refreshSettingsTab(this)" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(71,200,255,0.08);border:1px solid rgba(71,200,255,0.25);border-radius:10px;color:var(--accent2);font-size:12px;font-weight:700;cursor:pointer;" title="Обновить данные">🔄 Обновить</button></div>
+      <div class="page-header"><div><h2 class="page-title" id="settings-page-title">Настройки</h2><p class="page-sub" id="settings-sub">Персонализация</p></div></div>
       
       <div class="video-list">
         <!-- Тема -->
@@ -1708,8 +1708,23 @@ button[onclick*="togglePasswordVisibility"] {
         <div><h2 class="page-title">Реклама</h2><p class="page-sub">Продвижение вашего YouTube-канала на YTMetrics</p></div>
       </div>
 
-      <div class="prem-block" id="ads-admin-block" style="display:none;border-color:rgba(255,159,71,.25);">
-        <div class="prem-block-title">👑 Настройки рекламы (админ)</div>
+      <div id="ads-disabled-banner" class="admin-empty" style="display:none;margin-bottom:20px;">Реклама сейчас отключена администратором сайта</div>
+
+      <div id="ads-my-wrap">
+        <div class="prem-block-title" style="padding:0 4px;">Мои рекламы</div>
+        <div class="ads-my-grid" id="ads-my-grid"><div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div></div>
+        <button class="ads-create-fab" id="ads-create-fab" onclick="openAdCreateModal()" title="Создать рекламу">＋</button>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="ads-config-modal">
+     <div class="modal-box" style="max-width:640px;">
+      <div class="modal-header">
+        <div class="modal-title">📢 Настройка рекламы</div>
+        <button class="modal-close" onclick="closeModal('ads-config-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+      <div class="prem-block" id="ads-admin-block" style="border-color:rgba(255,159,71,.25);">
         <div class="prem-engine-card" id="ads-engine-card" style="margin-bottom:16px;">
           <div>
             <div class="prem-engine-title">Реклама на сайте</div>
@@ -1742,17 +1757,10 @@ button[onclick*="togglePasswordVisibility"] {
           <span id="ads-save-status" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);"></span>
         </div>
       </div>
-
-      <div id="ads-disabled-banner" class="admin-empty" style="display:none;margin-bottom:20px;">Реклама сейчас отключена администратором сайта</div>
-
-      <div id="ads-my-wrap">
-        <div class="prem-block-title" style="padding:0 4px;">Мои рекламы</div>
-        <div class="ads-my-grid" id="ads-my-grid"><div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div></div>
-        <button class="ads-create-fab" id="ads-create-fab" onclick="openAdCreateModal()" title="Создать рекламу">＋</button>
       </div>
+     </div>
     </div>
 
-    <div class="modal-overlay" id="premium-config-modal">
      <div class="modal-box" style="max-width:820px;">
       <div class="modal-header">
         <div class="modal-title">💎 Настройка премиум</div>
@@ -1789,12 +1797,10 @@ button[onclick*="togglePasswordVisibility"] {
       </div>
 
       <div class="prem-block">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <div class="prem-block-title" style="margin-bottom:0;">💎 Премиум-пользователи</div>
-          <button type="button" class="prem-instr-btn" onclick="openGrantPremiumModal()" style="padding:4px 12px;font-size:11px;background:rgba(57,255,154,.08);border-color:rgba(57,255,154,.25);color:var(--green);">
-            ＋ Выдать премиум вручную
-          </button>
-        </div>
+        <div class="prem-block-title" style="margin-bottom:12px;">💎 Премиум-пользователи</div>
+        <button type="button" class="prem-instr-btn" onclick="openGrantPremiumModal()" style="background:rgba(57,255,154,.08);border-color:rgba(57,255,154,.25);color:var(--green);width:100%;margin-bottom:12px;">
+          ＋ Выдать премиум вручную
+        </button>
         <div id="prem-active-users-list"><div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div></div>
         <div class="prem-hint">Список всех пользователей с активной подпиской или вечным VIP-доступом. Вы можете выдать премиум вручную по email на нужное кол-во дней.</div>
       </div>
@@ -1849,7 +1855,14 @@ button[onclick*="togglePasswordVisibility"] {
 
       <div class="prem-block" id="premium-config-open-block" style="border-color:rgba(232,255,71,.25);">
         <button class="prem-instr-btn" style="width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;" onclick="openModal('premium-config-modal');loadPremiumConfig();">
-          <span>💎 Настроить премиум — тарифы, промокоды, реклама, монетизация</span>
+          <span>💎 Настроить монетизацию — тарифы, промокоды, премиум-доступ</span>
+          <span>→</span>
+        </button>
+      </div>
+
+      <div class="prem-block" id="ads-config-open-block" style="border-color:rgba(255,159,71,.25);">
+        <button class="prem-instr-btn" style="width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;background:rgba(255,159,71,.06);border-color:rgba(255,159,71,.25);color:#ff9f47;" onclick="openModal('ads-config-modal');loadAdsAdminConfig();">
+          <span>📢 Настроить рекламу — цена, лимиты, включение/выключение</span>
           <span>→</span>
         </button>
       </div>
@@ -4757,6 +4770,10 @@ async function confirmAccountDeletion(){
 }
 
 function startYouTubeConnect(){
+  try{
+    const cached=getUser();
+    if(cached){ cached.skip_channel_connect=false; saveUser(cached); }
+  }catch(e){}
   const origin=window.location.origin+window.location.pathname;
   window.location.href=API_URL+'/api/auth/youtube/connect?origin='+encodeURIComponent(origin);
 }
@@ -5533,6 +5550,7 @@ async function refreshAdminNavAccess(){
   const canBilling = _isSupreme || (_myPermissions&&_myPermissions.manage_billing);
   const navAdmin=document.getElementById('nav-admin'); if(navAdmin)navAdmin.style.display=canAdmin?'flex':'none';
   const navPremium=document.getElementById('premium-config-open-block'); if(navPremium)navPremium.style.display=canPremium?'block':'none';
+  const adsConfigOpenBlock=document.getElementById('ads-config-open-block'); if(adsConfigOpenBlock)adsConfigOpenBlock.style.display=canPremium?'block':'none';
   const adsAdminBlock=document.getElementById('ads-admin-block'); if(adsAdminBlock)adsAdminBlock.style.display=canPremium?'block':'none';
   const balanceBlock=document.getElementById('admin-balance-block'); if(balanceBlock)balanceBlock.style.display=canBilling?'block':'none';
   if(canPremium)loadAdsAdminConfig();
@@ -8294,8 +8312,6 @@ function refreshForecastTab(btnEl){ refreshTabButton(btnEl, async function(){ aw
 function refreshNewsTab(btnEl){ refreshTabButton(btnEl, loadNews); }
 function refreshScriptsTab(btnEl){ refreshTabButton(btnEl, async function(){ await loadScriptProfile(); }); }
 function refreshCompetitorsTab(btnEl){ refreshTabButton(btnEl, fetchAndRenderLimits); }
-function refreshInstallTab(btnEl){ refreshTabButton(btnEl, async function(){ initInstallTab(); }); }
-function refreshSettingsTab(btnEl){ refreshTabButton(btnEl, async function(){ updatePinStatusBadge(); }); }
 function refreshMessagesTab(btnEl){ refreshTabButton(btnEl, loadMyMessages); }
 
 function showDashboard(channelData){
@@ -8438,7 +8454,7 @@ async function handleInitAuthMeResponse(res) {
   document.getElementById('channel-select-screen').style.display='none';
 
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js').then(reg => {
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg => {
       reg.update().catch(function(){});
       if (reg.waiting) {
         _newServiceWorker = reg.waiting;

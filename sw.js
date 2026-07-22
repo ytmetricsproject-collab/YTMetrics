@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ytmetrics-cache-v20';
+const CACHE_NAME = 'ytmetrics-cache-v21';
 const ASSETS = [
   './',
   './index.html',
@@ -58,7 +58,7 @@ self.addEventListener('fetch', event => {
 
   if (isNavigation) {
     event.respondWith(
-      fetch(event.request).then(response => {
+      fetch(event.request, { cache: 'no-store' }).then(response => {
         if (response && response.status === 200) {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
