@@ -1088,13 +1088,20 @@ app.post('/api/admin/grant-all-permissions', async (req,res)=>{
 // ════════════════════════════════════════════════════════
 // ОПЛАТА — LAVA.TOP
 // ════════════════════════════════════════════════════════
-const LAVA_API_KEY  = process.env.LAVA_API_KEY  || '';
-const LAVA_SHOP_ID = process.env.LAVA_SHOP_ID || process.env.LAVA_PROJECT_ID || '98ac73c0-0fc0-46f7-b7a9-67fc8c981b76';
+// ВАЖНО: у Lava.top (gate.lava.top) сумма счёта НЕ передаётся в запросе —
+// она целиком определяется заранее настроенным в личном кабинете Lava.top
+// "предложением" (offer), у которого есть свой offerId (UUID) и своя цена.
+// Поэтому каждый тариф подписки и (при необходимости) промокод должны быть
+// связаны с собственным offer_id, который админ создаёт на стороне Lava.top
+// и вставляет в панели администратора YTMetrics.
+const LAVA_API_KEY = process.env.LAVA_API_KEY || '';
+const LAVA_PAYMENT_METHOD = process.env.LAVA_PAYMENT_METHOD || 'BANK131';
 
-// Создать счёт в Lava Pay (lava.top)
-async function createLavaInvoice({ amountRub, orderId, email, comment }) {
+// Создать счёт в Lava.top по конкретному offerId (правильный публичный API v2)
+async function createLavaInvoice({ offerId, orderId, email }) {
   if (!LAVA_API_KEY) throw new Error('LAVA_NOT_CONFIGURED');
-  const res = await fetch('https://api.lava.top/v1/invoice/create', {
+  if (!offerId) throw new Error('LAVA_OFFER_NOT_CONFIGURED');
+  const res = await fetch('https://gate.lava.top/api/v2/invoice', {
     method: 'POST',
     headers: {
       'Accept': 'application/json',
@@ -1102,56 +1109,34 @@ async function createLavaInvoice({ amountRub, orderId, email, comment }) {
       'X-Api-Key': LAVA_API_KEY
     },
     body: JSON.stringify({
-      shopId: LAVA_SHOP_ID,
-      amount: amountRub,
-      orderId: orderId,
-      comment: comment || 'Оплата YTMetrics',
-      email: email || undefined
+      email: email || undefined,
+      offerId: offerId,
+      periodicity: 'ONE_TIME',
+      currency: 'RUB',
+      paymentMethod: LAVA_PAYMENT_METHOD,
+      buyerLanguage: 'RU',
+      clientUtm: { utm_content: orderId },
     })
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok || (!data.data && !data.payUrl && !data.url)) {
-    const fallbackRes = await fetch('https://api.lava.top/v1/pay/create', {
-      method: 'POST',
-      headers: { 'Authorization': LAVA_API_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sum: amountRub, shop_id: LAVA_SHOP_ID, order_id: orderId })
-    });
-    const fallbackData = await fallbackRes.json().catch(() => ({}));
-    if (fallbackData && (fallbackData.url || fallbackData.pay_url)) {
-      return { uuid: orderId, pay_url: fallbackData.url || fallbackData.pay_url };
-    }
-    throw new Error('Lava invoice error: ' + JSON.stringify(data));
+  if (!res.ok) {
+    console.error('Lava.top invoice error:', res.status, JSON.stringify(data));
+    throw new Error('Lava invoice error: ' + (data?.error?.message || data?.message || res.status));
   }
-  const payUrl = (data.data && data.data.url) || data.payUrl || data.url;
-  return { uuid: (data.data && data.data.id) || orderId, pay_url: payUrl };
+  const payUrl = data.paymentUrl || data.payUrl || data.url;
+  if (!payUrl) {
+    console.error('Lava.top invoice: no paymentUrl in response:', JSON.stringify(data));
+    throw new Error('Lava invoice error: no paymentUrl in response');
+  }
+  return { uuid: data.id || data.invoiceId || orderId, pay_url: payUrl };
 }
 
-const LAVA_DIRECT_URL  = process.env.LAVA_DIRECT_URL  || 'https://app.lava.top/products/98ac73c0-0fc0-46f7-b7a9-67fc8c981b76';
-const LAVA_URL_MONTH   = process.env.LAVA_URL_MONTH   || LAVA_DIRECT_URL;
-const LAVA_URL_6MONTHS = process.env.LAVA_URL_6MONTHS || LAVA_DIRECT_URL;
-const LAVA_URL_YEAR    = process.env.LAVA_URL_YEAR    || LAVA_DIRECT_URL;
-
-// Создать запись платежа + счёт в Lava Pay. purpose: 'subscription' | 'ad'
-async function initiatePayment({ userId, email, purpose, referenceId, amountUsd }) {
+// Создать запись платежа + счёт в Lava.top. purpose: 'subscription' | 'ad'
+// offerId — обязателен для реальной оплаты через Lava.top (см. комментарий выше).
+async function initiatePayment({ userId, email, purpose, referenceId, amountUsd, offerId }) {
   const orderId=purpose+'_'+(referenceId||userId)+'_'+Date.now();
-  let invoice = null;
-  const fallbackUrl = { month: LAVA_URL_MONTH, '6months': LAVA_URL_6MONTHS, year: LAVA_URL_YEAR }[referenceId] || LAVA_DIRECT_URL;
-
-  if (LAVA_API_KEY) {
-    try {
-      const amountRub = Math.round(amountUsd);
-      invoice = await createLavaInvoice({
-        amountRub: amountRub > 0 ? amountRub : 299,
-        orderId,
-        email,
-        comment: 'Оплата YTMetrics (' + purpose + ' — ' + (referenceId || 'премиум') + ')'
-      });
-    } catch(err) {
-      invoice = { uuid: orderId, pay_url: fallbackUrl };
-    }
-  } else {
-    invoice = { uuid: orderId, pay_url: fallbackUrl };
-  }
+  if (!offerId) throw new Error('LAVA_OFFER_NOT_CONFIGURED');
+  const invoice = await createLavaInvoice({ offerId, orderId, email });
 
   const record={
     user_id:userId, user_email:email, purpose, reference_id:referenceId||null,
@@ -1179,8 +1164,8 @@ const PREMIUM_LOCKABLE_SECTIONS = [
 const DEFAULT_PREMIUM_SETTINGS = {
   enabled:false,
   premium_sections:[],
-  plans:[ { id:'plan_1', months:1, price:'299 ₽' } ],
-  promocodes:[ { code:'YOUTUBE', discount_percent:50, free_days:0 } ],
+  plans:[ { id:'plan_1', months:1, price:'299 ₽', offer_id:'' } ],
+  promocodes:[ { code:'YOUTUBE', discount_percent:50, free_days:0, offer_id:'' } ],
   price_month:'299 ₽',
   price_6months:'',
   price_year:'',
@@ -1197,9 +1182,9 @@ async function getPremiumSettings() {
       if(data.price_6months) plans.push({ id:'plan_6', months:6, price:data.price_6months });
       if(data.price_year) plans.push({ id:'plan_12', months:12, price:data.price_year });
     }
-    if(!plans.length) plans = [ { id:'plan_1', months:1, price:'299 ₽' } ];
+    if(!plans.length) plans = [ { id:'plan_1', months:1, price:'299 ₽', offer_id:'' } ];
     let promocodes = Array.isArray(data.promocodes)?data.promocodes:[];
-    if(!promocodes.length) promocodes = [ { code:'YOUTUBE', discount_percent:50, free_days:0 } ];
+    if(!promocodes.length) promocodes = [ { code:'YOUTUBE', discount_percent:50, free_days:0, offer_id:'' } ];
 
     return {
       enabled: !!data.enabled,
@@ -1244,16 +1229,18 @@ app.post('/api/premium/config', async (req,res)=>{
     let cleanPlans = Array.isArray(plans) ? plans.map((p, idx)=>({
       id: clean(p.id) || ('plan_' + idx),
       months: Math.max(1, parseInt(p.months) || 1),
-      price: clean(p.price)
+      price: clean(p.price),
+      offer_id: clean(p.offer_id)
     })).filter(p=>p.price) : [];
     if(!cleanPlans.length){
-      cleanPlans = [ { id:'plan_1', months:1, price: clean(price_month) || '299 ₽' } ];
+      cleanPlans = [ { id:'plan_1', months:1, price: clean(price_month) || '299 ₽', offer_id:'' } ];
     }
 
     let cleanPromos = Array.isArray(promocodes) ? promocodes.map(p=>({
       code: clean(p.code).toUpperCase(),
       discount_percent: Math.min(100, Math.max(0, parseInt(p.discount_percent) || 0)),
-      free_days: Math.max(0, parseInt(p.free_days) || 0)
+      free_days: Math.max(0, parseInt(p.free_days) || 0),
+      offer_id: clean(p.offer_id)
     })).filter(p=>p.code) : [];
 
     const record={
@@ -1392,8 +1379,9 @@ app.get('/api/premium/wallet-balance', async (req,res)=>{
   if(!ok)return res.status(403).json({ error:'Insufficient permissions', required:'manage_billing' });
   try{
     const { data:paidPayments } = await supabase.from('payments').select('amount_usd').eq('status','paid');
-    const totalRub = (paidPayments || []).reduce((sum, p) => sum + Math.round((p.amount_usd || 0) * 90), 0);
-    return res.json({ configured: true, provider: LAVA_API_KEY ? 'lava' : 'lava_direct', total_usd: totalRub / 90, total_rub: totalRub });
+    // amount_usd исторически хранит сумму именно в рублях (см. initiatePayment), поэтому без домножения.
+    const totalRub = (paidPayments || []).reduce((sum, p) => sum + Math.round(p.amount_usd || 0), 0);
+    return res.json({ configured: !!LAVA_API_KEY, provider: LAVA_API_KEY ? 'lava' : 'not_configured', total_usd: totalRub / 90, total_rub: totalRub });
   }catch(e){ return res.status(200).json({ configured:true, total_usd:0, total_rub:0 }); }
 });
 
@@ -1416,20 +1404,30 @@ app.post('/api/payments/create-invoice', async (req,res)=>{
     let amount=parseFloat(String(targetPlan.price||'').replace(/[^\d.]/g,''));
     if(!amount||amount<=0)return res.status(400).json({ error:'Price is not set for this plan' });
 
+    // По умолчанию используем offer_id самого тарифа. Если промокод даёт скидку и
+    // у него настроен собственный offer_id (отдельное предложение в Lava.top с уже
+    // сниженной ценой) — используем его вместо тарифного.
+    let offerId = targetPlan.offer_id || '';
     if(promocode){
       const cleanCode = String(promocode).trim().toUpperCase();
       const promo = (settings.promocodes||[]).find(p => String(p.code).trim().toUpperCase() === cleanCode);
       if(promo && promo.discount_percent > 0){
         amount = Math.round(amount * (1 - promo.discount_percent / 100));
         if(amount < 10) amount = 10;
+        if(promo.offer_id) offerId = promo.offer_id;
       }
     }
-    
+
+    if(!offerId){
+      return res.status(503).json({ error:'Оплата для этого тарифа ещё не настроена администратором (не указан ID предложения Lava.top)' });
+    }
+
     const refId = targetPlan.months ? (targetPlan.months + 'm') : plan;
-    const { pay_url }=await initiatePayment({ userId:payload.sub, email:payload.email, purpose:'subscription', referenceId:refId, amountUsd:amount });
+    const { pay_url }=await initiatePayment({ userId:payload.sub, email:payload.email, purpose:'subscription', referenceId:refId, amountUsd:amount, offerId });
     return res.json({ ok:true, pay_url });
   }catch(e){
-    if(e.message==='LAVA_NOT_CONFIGURED')return res.status(503).json({ error:'Payment provider is not configured yet' });
+    if(e.message==='LAVA_NOT_CONFIGURED')return res.status(503).json({ error:'Платёжная система не настроена (нет LAVA_API_KEY)' });
+    if(e.message==='LAVA_OFFER_NOT_CONFIGURED')return res.status(503).json({ error:'Оплата для этого тарифа ещё не настроена администратором' });
     return res.status(500).json({ error:'Server error', details:e.message });
   }
 });
@@ -1437,12 +1435,31 @@ app.post('/api/payments/create-invoice', async (req,res)=>{
 // POST /api/payments/postback — сюда Lava.top шлёт уведомление об успешной оплате
 app.post('/api/payments/postback', async (req,res)=>{
   try{
-    const { status, invoice_id, order_id, id }=req.body||{};
-    const targetInvoiceId = invoice_id || order_id || id;
-    if(status!=='success'&&status!=='paid')return res.status(200).json({ ok:true }); // игнорируем неуспешные статусы
-    const { data:payment, error }=await supabase.from('payments').select('*').eq('invoice_uuid',targetInvoiceId).single();
-    if(error||!payment)return res.status(404).json({ error:'Payment not found' });
+    const body=req.body||{};
+    // Реальный формат вебхука Lava.top: { eventType: "payment.success", buyer:{email}, contractId, product:{id}, clientUtm:{utm_content} , ... }
+    // utm_content — это наш orderId, который мы передавали при создании счёта.
+    const eventType = body.eventType || body.event_type || body.status || '';
+    const isSuccess = /success|paid/i.test(String(eventType));
+    if(!isSuccess)return res.status(200).json({ ok:true }); // игнорируем неуспешные/прочие события
+
+    const orderIdFromUtm = body.clientUtm?.utm_content || body.client_utm?.utm_content || null;
+    const contractId = body.contractId || body.contract_id || body.id || null;
+    const buyerEmail = body.buyer?.email || body.buyerEmail || body.email || null;
+    // Пытаемся сопоставить платёж: сперва по orderId (invoice_uuid хранит его, если Lava не вернула свой id),
+    // либо по contractId, либо (в крайнем случае) по email + статус pending — самый свежий счёт.
+    let payment=null;
+    for(const candidate of [orderIdFromUtm, contractId]){
+      if(!candidate)continue;
+      const { data }=await supabase.from('payments').select('*').eq('invoice_uuid',candidate).single();
+      if(data){ payment=data; break; }
+    }
+    if(!payment && buyerEmail){
+      const { data }=await supabase.from('payments').select('*').eq('user_email',buyerEmail).eq('status','pending').order('created_at',{ ascending:false }).limit(1).single();
+      if(data)payment=data;
+    }
+    if(!payment)return res.status(404).json({ error:'Payment not found' });
     if(payment.status==='paid')return res.json({ ok:true }); // уже обработано, защита от повторных postback
+    const targetInvoiceId = payment.invoice_uuid;
 
     await supabase.from('payments').update({ status:'paid', paid_at:new Date().toISOString() }).eq('id',payment.id);
 
@@ -1469,7 +1486,7 @@ app.post('/api/payments/postback', async (req,res)=>{
 // ════════════════════════════════════════════════════════
 // РЕКЛАМА
 // ════════════════════════════════════════════════════════
-const DEFAULT_AD_SETTINGS = { enabled:false, price_text:'', cooldown_type:'week', cooldown_custom_days:30 };
+const DEFAULT_AD_SETTINGS = { enabled:false, price_text:'', offer_id:'', cooldown_type:'week', cooldown_custom_days:30 };
 
 const AD_MODERATION_SYSTEM_PROMPT = `Ты — модератор рекламных объявлений платформы YTMetrics. Тебе присылают: текст объявления и данные YouTube-канала, который рекламируют (название, описание, иногда — статистика). Проверь на нарушения правил площадки.
 
@@ -1493,6 +1510,7 @@ async function getAdSettings() {
     return {
       enabled: !!data.enabled,
       price_text: data.price_text||'',
+      offer_id: data.offer_id||'',
       cooldown_type: data.cooldown_type||'week',
       cooldown_custom_days: data.cooldown_custom_days||30,
     };
@@ -1531,11 +1549,12 @@ app.get('/api/ads/admin-config', async (req,res)=>{
 });
 app.post('/api/ads/admin-config', async (req,res)=>{
   const payload=await requirePremiumAccess(req,res); if(!payload)return;
-  const { enabled, price_text, cooldown_type, cooldown_custom_days }=req.body||{};
+  const { enabled, price_text, offer_id, cooldown_type, cooldown_custom_days }=req.body||{};
   try{
     const record={
       id:1, enabled:!!enabled,
       price_text: typeof price_text==='string'?price_text.slice(0,120):'',
+      offer_id: typeof offer_id==='string'?offer_id.slice(0,120):'',
       cooldown_type: ['week','month','custom'].includes(cooldown_type)?cooldown_type:'week',
       cooldown_custom_days: Math.max(1,Math.min(365,parseInt(cooldown_custom_days)||30)),
       updated_at:new Date().toISOString(), updated_by:payload.email,
@@ -1636,8 +1655,9 @@ app.post('/api/ads/create', async (req,res)=>{
     // Прошло модерацию — создаём счёт на оплату
     const amount=parseFloat(String(adSettings.price_text).replace(/[^\d.]/g,''));
     if(!amount||amount<=0)return res.json({ ok:true, status:'awaiting_payment', ad_id:inserted.id, pay_url:null, note:'Цена рекламы не задана администратором' });
+    if(!adSettings.offer_id)return res.json({ ok:true, status:'awaiting_payment', ad_id:inserted.id, pay_url:null, note:'Оплата рекламы ещё не настроена администратором' });
     try{
-      const { pay_url }=await initiatePayment({ userId:payload.sub, email:payload.email, purpose:'ad', referenceId:inserted.id, amountUsd:amount });
+      const { pay_url }=await initiatePayment({ userId:payload.sub, email:payload.email, purpose:'ad', referenceId:inserted.id, amountUsd:amount, offerId:adSettings.offer_id });
       return res.json({ ok:true, status:'awaiting_payment', ad_id:inserted.id, pay_url });
     }catch(e){
       return res.json({ ok:true, status:'awaiting_payment', ad_id:inserted.id, pay_url:null, note:'Платёжная система ещё не настроена' });
@@ -1712,19 +1732,20 @@ app.post('/api/messages/read-all', async (req,res)=>{
 });
 
 // POST /api/admin/updates/broadcast — админ рассылает уведомление об обновлении всем пользователям
+// Публикует объявление об обновлении в общую ленту новостей — так его увидят все,
+// не заваливая при этом персональные "Сообщения" у каждого пользователя.
 app.post('/api/admin/updates/broadcast', async (req,res)=>{
   const payload=await requireAdmin(req,res); if(!payload)return;
   const { title, body }=req.body||{};
   if(!title||!title.trim())return res.status(400).json({ error:'Заголовок обновления обязателен' });
   try{
-    const { data:users, error }=await supabase.from('users').select('id');
-    if(error)return res.status(500).json({ error:'Database error' });
-    const rows=(users||[]).map(u=>({ user_id:u.id, type:'update', title:title.trim().slice(0,200), body:(body||'').trim().slice(0,2000), created_at:new Date().toISOString(), read:false }));
-    if(rows.length){
-      const { error:insErr }=await supabase.from('user_messages').insert(rows);
-      if(insErr)return res.status(500).json({ error:'Database error', details:insErr.message });
-    }
-    return res.json({ ok:true, sent_to:rows.length });
+    const { data:userData }=await supabase.from('users').select('name').eq('email',payload.email).single();
+    const { data, error }=await supabase.from('news_posts').insert({
+      author_email:payload.email, author_name:userData?.name||payload.email,
+      title:'🚀 '+title.trim().slice(0,200), content:(body||'').trim().slice(0,4000),
+    }).select().single();
+    if(error)return res.status(500).json({ error:'Database error', details:error.message });
+    return res.json({ ok:true, post:data });
   }catch(e){ return res.status(500).json({ error:'Server error' }); }
 });
 
@@ -2031,22 +2052,27 @@ async function sendEmail({ to, subject, html }) {
 // отрисованный в SVG с шумом. Ответ хранится не в базе, а в подписанном коротком JWT,
 // который фронт присылает обратно вместе с ответом пользователя — так не нужна отдельная таблица.
 function renderCaptchaSVG(text){
+  // Ровная строка без хаотичного разброса — символы должны легко читаться.
+  // Небольшой (единый по знаку в пределах ±3°) наклон и лёгкий шум фона достаточны против ботов.
+  const n=text.length;
+  const charW=26;
+  const totalW=n*charW;
+  const startX=Math.round((160-totalW)/2)+charW/2;
+  const baseY=33;
   let glyphs='';
-  for(let i=0;i<text.length;i++){
-    const x=16+i*22+Math.floor(Math.random()*4-2);
-    const y=32+Math.floor(Math.random()*4-2);
-    const rot=Math.floor(Math.random()*16-8); // reduced rotation for legibility
-    const size=22+Math.floor(Math.random()*4);
-    glyphs+=`<text x="${x}" y="${y}" font-size="${size}" font-family="system-ui, -apple-system, sans-serif" font-weight="bold" fill="#e2ff33" transform="rotate(${rot} ${x} ${y})">${text[i]}</text>`;
+  for(let i=0;i<n;i++){
+    const x=startX+i*charW;
+    const rot=Math.floor(Math.random()*6-3); // лёгкий наклон, не мешает чтению
+    glyphs+=`<text x="${x}" y="${baseY}" font-size="24" font-family="system-ui, -apple-system, sans-serif" font-weight="bold" fill="#e2ff33" text-anchor="middle" transform="rotate(${rot} ${x} ${baseY})">${text[i]}</text>`;
   }
   let noise='';
-  for(let i=0;i<4;i++){ // slightly reduced lines count to prevent text obstruction
-    const x1=Math.floor(Math.random()*160),y1=Math.floor(Math.random()*50);
-    const x2=Math.floor(Math.random()*160),y2=Math.floor(Math.random()*50);
-    noise+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#333" stroke-width="1.5" opacity="0.4"/>`;
+  for(let i=0;i<3;i++){ // фоновые линии не должны пересекать зону текста по центру
+    const y1=Math.random()<0.5?Math.floor(Math.random()*10):Math.floor(40+Math.random()*10);
+    const y2=Math.random()<0.5?Math.floor(Math.random()*10):Math.floor(40+Math.random()*10);
+    noise+=`<line x1="0" y1="${y1}" x2="160" y2="${y2}" stroke="#333" stroke-width="1.5" opacity="0.35"/>`;
   }
-  for(let i=0;i<15;i++){ // slightly reduced noise circles
-    noise+=`<circle cx="${Math.floor(Math.random()*160)}" cy="${Math.floor(Math.random()*50)}" r="1" fill="#444" opacity="0.4"/>`;
+  for(let i=0;i<10;i++){
+    noise+=`<circle cx="${Math.floor(Math.random()*160)}" cy="${Math.floor(Math.random()*50)}" r="1" fill="#444" opacity="0.35"/>`;
   }
   return `<svg viewBox="0 0 160 50" xmlns="http://www.w3.org/2000/svg" style="background:#1a1a1a;border-radius:8px"><rect width="160" height="50" fill="#161616"/>${noise}${glyphs}</svg>`;
 }
@@ -2207,6 +2233,42 @@ async function send2FACode(user) {
     </div>`
   });
 }
+
+// POST /api/auth/email/forgot-password — генерирует новый пароль и высылает на почту
+// Ответ всегда одинаковый (чтобы не палить, существует ли аккаунт с такой почтой)
+app.post('/api/auth/email/forgot-password', async (req,res)=>{
+  const { email }=req.body||{};
+  const genericMessage='Если аккаунт с такой почтой существует — новый пароль уже отправлен на неё';
+  if(!email)return res.status(400).json({ error:'Укажите почту' });
+  const cleanEmail=String(email).trim().toLowerCase();
+  try{
+    const { data:user }=await supabase.from('users').select('*').eq('email',cleanEmail).eq('auth_provider','email').single();
+    if(user){
+      const newPassword=crypto.randomBytes(6).toString('base64').replace(/[^a-zA-Z0-9]/g,'').slice(0,10) || 'Ytm'+Date.now();
+      const newHash=hashPassword(newPassword);
+      await supabase.from('users').update({ password_hash:newHash }).eq('id',user.id);
+      const changePasswordLink=APP_URL+(APP_URL.includes('?')?'&':'?')+'action=change_password';
+      await sendEmail({
+        to:user.email,
+        subject:'Восстановление пароля — YTMetrics',
+        html:`<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+          <h2 style="color:#111">Восстановление пароля YTMetrics</h2>
+          <p>Ваш новый пароль для входа:</p>
+          <div style="font-size:22px;font-weight:800;letter-spacing:2px;background:#f5f5f5;padding:16px 24px;border-radius:10px;text-align:center;color:#111;font-family:monospace">${newPassword}</div>
+          <p style="margin-top:20px">Войдите с этим паролем, а затем при желании смените его на свой:</p>
+          <div style="text-align:center;margin-top:12px">
+            <a href="${changePasswordLink}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:700">Хотите сменить пароль?</a>
+          </div>
+          <p style="color:#888;font-size:12px;margin-top:20px">Если это были не вы — срочно войдите и смените пароль, либо напишите в поддержку.</p>
+        </div>`
+      }).catch(e=>console.error('forgot-password email error:', e.message));
+    }
+    return res.json({ ok:true, message:genericMessage });
+  }catch(e){
+    console.error('forgot-password error:', e.message);
+    return res.json({ ok:true, message:genericMessage }); // не палим внутренние ошибки наружу
+  }
+});
 
 app.post('/api/auth/email/login', async (req,res)=>{
   const { email, password }=req.body||{};
@@ -3007,6 +3069,14 @@ app.get('/api/youtube/channel-analytics', async (req,res)=>{
 
 app.get('/api/health', (req,res)=>{
   res.json({ ok:true, ts:new Date().toISOString(), version:'10.0.0', ai:'gemini-2.5-flash', limits:{ user:USER_DAILY_LIMIT, admin:ADMIN_DAILY_LIMIT, feedback:FEEDBACK_DAILY_LIMIT } });
+});
+
+// GET /api/app-version — версия текущего деплоя. Используется фронтом, чтобы показать
+// кнопку "Обновить", когда вышел новый деплой (VERCEL_GIT_COMMIT_SHA одинаков для всех
+// serverless-инстансов одного и того же деплоя, поэтому это надёжнее Date.now()).
+app.get('/api/app-version', (req,res)=>{
+  const buildId = process.env.VERCEL_GIT_COMMIT_SHA || process.env.VERCEL_DEPLOYMENT_ID || 'dev';
+  res.json({ build: buildId });
 });
 
 export default app;
