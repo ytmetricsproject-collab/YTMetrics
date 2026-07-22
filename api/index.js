@@ -175,13 +175,8 @@ function verifyPassword(password, stored){
   const check=crypto.scryptSync(password, salt, 64).toString('hex');
   try{ return crypto.timingSafeEqual(Buffer.from(hash,'hex'), Buffer.from(check,'hex')); }catch(e){ return false; }
 }
-// Домены, запрещённые для регистрации по email — это Google/Apple, вход через которые
-// в России теперь не должен использоваться для аутентификации (закон №199-ФЗ, июль 2026)
-const BLOCKED_EMAIL_DOMAINS=['gmail.com','googlemail.com','icloud.com','me.com','mac.com'];
-function isBlockedEmailDomain(email){
-  const domain=(email||'').split('@')[1]?.toLowerCase()||'';
-  return BLOCKED_EMAIL_DOMAINS.includes(domain);
-}
+// Регистрация — обычный email + пароль на своей базе данных, без реальной проверки
+// личности через внешние сервисы (Google/Apple и т.п.) — поэтому ограничений по домену почты нет.
 function extractToken(req) {
   const raw=req.headers.cookie||'';
   const match=raw.match(/ytm_session=([^;]+)/);
@@ -223,6 +218,13 @@ function parseDurationToSeconds(duration) {
 }
 function getDateDaysAgo(days){ const d=new Date(); d.setDate(d.getDate()-days); return d.toISOString().split('T')[0]; }
 function getTodayString(){ return new Date().toISOString().split('T')[0]; }
+// Для метрик КОНКРЕТНОГО видео (удержание, CTR, свайпы, репосты) нужны данные за ВСЁ время
+// жизни ролика, а не скользящее окно "последние 30 дней". Иначе для видео старше месяца
+// окно съезжает вперёд каждый день, основная масса просмотров (обычно в первые дни после
+// публикации) выпадает из диапазона — и метрики то показывают "нет данных", то внезапно
+// появляются/пропадают на следующий день. YouTube создан в 2005 году, эта дата гарантированно
+// раньше публикации любого видео на канале и работает как "с начала времён".
+const ALL_TIME_START_DATE='2005-01-01';
 function videoAgeLabel(publishedAt){
   if(!publishedAt)return 'дата публикации неизвестна';
   const diffMs=Date.now()-new Date(publishedAt).getTime();
@@ -2105,8 +2107,11 @@ app.get('/api/captcha/generate', (req,res)=>{
 
 // ════════════════════════════════════════════════════════
 // ВХОД ПО EMAIL + ПАРОЛЬ
-// (не Google/Apple — согласно 199-ФЗ такие сервисы нельзя использовать для входа в РФ)
-// Регистрация: email → пароль → повтор пароля → капча → письмо-подтверждение
+// Регистрация: email → пароль → повтор пароля → капча → письмо-подтверждение.
+// Раньше здесь была блокировка Gmail/iCloud доменов (чтобы не путать с реальным входом
+// через Google/Apple ID). Теперь регистрация — это просто email+пароль на своей базе
+// данных, без какой-либо передачи проверки личности во внешние сервисы, поэтому сам домен
+// почты (в т.ч. gmail.com/icloud.com) значения не имеет и больше не ограничивается.
 // ════════════════════════════════════════════════════════
 app.post('/api/auth/email/register', async (req,res)=>{
   const { email, password, password_confirm, captcha_token, captcha_answer }=req.body||{};
@@ -2115,7 +2120,6 @@ app.post('/api/auth/email/register', async (req,res)=>{
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail))return res.status(400).json({ error:'Некорректный email' });
   const supremeEmail = await getSupremeAdminEmail();
   const isSupreme = cleanEmail === supremeEmail.toLowerCase();
-  if(isBlockedEmailDomain(cleanEmail) && !isSupreme)return res.status(400).json({ error:'Регистрация через Gmail/iCloud не поддерживается. Используйте другую почту.' });
   if(String(password).length<8)return res.status(400).json({ error:'Пароль должен быть не короче 8 символов' });
   if(password!==password_confirm)return res.status(400).json({ error:'Пароли не совпадают' });
 
@@ -2725,7 +2729,7 @@ app.get('/api/youtube/videos', async (req,res)=>{
       channelTotalViews=safeInt(chStats.viewCount)||0;
     }catch(e){}
 
-    const endDate=getTodayString(), startDate=getDateDaysAgo(30);
+    const endDate=getTodayString(), startDate=ALL_TIME_START_DATE; // пожизненные метрики видео, не скользящее окно
 
     let analyticsMap={};
     let channelWatchMinutes=0;
@@ -2783,28 +2787,25 @@ app.get('/api/youtube/videos', async (req,res)=>{
       }
     }catch(e){ console.warn('CTR API (non-fatal, impressions data may not be ready yet):',e.message); }
 
-    // Для Shorts официального "% свайпов" в публичном API нет — используем
-    // то же реальное среднее удержание (averageViewPercentage), которое уже
-    // получили выше, и производим из него оценку "досмотрели / пролистнули".
+    // Для Shorts официального "% свайпов" в публичном API нет — YouTube Studio считает его
+    // по внутренним данным, недоступным через Analytics API. Поэтому даём ЧЕСТНУЮ оценку на
+    // основе реального среднего удержания (averageViewPercentage): чем оно выше — тем меньше
+    // людей пролистнули ролик, не досмотрев. Раньше здесь была "подмена" случайными числами,
+    // построенными на коде символа ID видео — это и есть источник "выдуманных" цифр. Убрано.
     const shortCandidates=(statsData.items||[]).filter(item=>{ const dur=parseDurationToSeconds((item.contentDetails||{}).duration); return dur>0&&dur<=60; }).map(i=>i.id);
     let swipeMap={};
     for(const vid of shortCandidates){
       const a=analyticsMap[vid];
       if(a&&a.retentionPct!=null){
         const retention=a.retentionPct;
-        let swiped=100-(retention*0.85);
-        if(swiped<8){
-          swiped=7.5+(vid.charCodeAt(0)%30)/10;
-        }else if(swiped>95){
-          swiped=95-(vid.charCodeAt(0)%20)/10;
-        }
-        swiped=parseFloat(swiped.toFixed(1));
+        const swiped=parseFloat(Math.max(0,Math.min(100,100-retention)).toFixed(1));
         const viewed=parseFloat((100-swiped).toFixed(1));
         swipeMap[vid]={
           viewedRatio:viewed,
           swipedRatio:swiped,
           avgDurSec:a.avgDurSec,
-          rewatched:retention>=100
+          rewatched:retention>=100,
+          is_estimate:true, // не точная метрика Studio, а оценка по удержанию
         };
       }
     }
@@ -2930,7 +2931,7 @@ app.get('/api/youtube/playlists/:playlistId/videos', async (req,res)=>{
     if(!videoIds.length)return res.json({ videos:[], summary:{ total_views:0, total_watch_hours:0, video_count:0 } });
 
     const statsData=await gFetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds.join(',')}`,accessToken);
-    const endDate=getTodayString(), startDate=getDateDaysAgo(30);
+    const endDate=getTodayString(), startDate=ALL_TIME_START_DATE; // пожизненные метрики видео, не скользящее окно
 
     let analyticsMap={};
     try{
@@ -2972,19 +2973,14 @@ app.get('/api/youtube/playlists/:playlistId/videos', async (req,res)=>{
       const a=analyticsMap[vid];
       if(a&&a.retentionPct!=null){
         const retention=a.retentionPct;
-        let swiped=100-(retention*0.85);
-        if(swiped<8){
-          swiped=7.5+(vid.charCodeAt(0)%30)/10;
-        }else if(swiped>95){
-          swiped=95-(vid.charCodeAt(0)%20)/10;
-        }
-        swiped=parseFloat(swiped.toFixed(1));
+        const swiped=parseFloat(Math.max(0,Math.min(100,100-retention)).toFixed(1));
         const viewed=parseFloat((100-swiped).toFixed(1));
         swipeMap[vid]={
           viewedRatio:viewed,
           swipedRatio:swiped,
           avgDurSec:a.avgDurSec,
-          rewatched:retention>=100
+          rewatched:retention>=100,
+          is_estimate:true,
         };
       }
     }
