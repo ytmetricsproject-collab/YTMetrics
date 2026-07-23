@@ -1146,10 +1146,15 @@ async function createLavaInvoice({ offerId, orderId, email, periodicity }) {
       clientUtm: { utm_content: orderId },
     })
   });
-  const data = await res.json().catch(() => ({}));
+  const rawText = await res.text();
+  let data = {};
+  try { data = JSON.parse(rawText); } catch (e) { /* тело не JSON — используем rawText ниже */ }
   if (!res.ok) {
-    console.error('Lava.top invoice error:', res.status, JSON.stringify(data));
-    throw new Error('Lava invoice error: ' + (data?.error?.message || data?.message || res.status));
+    console.error('Lava.top invoice error:', res.status, rawText);
+    const reason = data?.error?.message || data?.message || data?.error || data?.detail
+      || (Array.isArray(data?.errors) ? data.errors.map(x=>x.message||x).join('; ') : '')
+      || rawText.slice(0, 200) || res.status;
+    throw new Error('Lava invoice error ' + res.status + ': ' + reason);
   }
   const payUrl = data.paymentUrl || data.payUrl || data.url;
   if (!payUrl) {
