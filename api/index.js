@@ -1092,15 +1092,41 @@ app.post('/api/admin/grant-all-permissions', async (req,res)=>{
 // ════════════════════════════════════════════════════════
 // ВАЖНО: у Lava.top (gate.lava.top) сумма счёта НЕ передаётся в запросе —
 // она целиком определяется заранее настроенным в личном кабинете Lava.top
-// "предложением" (offer), у которого есть свой offerId (UUID) и своя цена.
-// Поэтому каждый тариф подписки и (при необходимости) промокод должны быть
-// связаны с собственным offer_id, который админ создаёт на стороне Lava.top
-// и вставляет в панели администратора YTMetrics.
+// "предложением" (offer) типа "подписка" — у него один offerId (UUID) на все
+// периоды разом (месяц/3мес/6мес/год), а сам период выбирает/подтверждает
+// покупатель на странице оплаты Lava.top. Поэтому нам достаточно ОДНОЙ ссылки
+// (или её offer_id) на весь сайт — она задаётся в панели администратора.
 const LAVA_API_KEY = process.env.LAVA_API_KEY || '';
 const LAVA_PAYMENT_METHOD = process.env.LAVA_PAYMENT_METHOD || 'BANK131';
 
-// Создать счёт в Lava.top по конкретному offerId (правильный публичный API v2)
-async function createLavaInvoice({ offerId, orderId, email }) {
+// Достаёт offer_id из того, что вставил админ: либо это уже готовый UUID,
+// либо полная ссылка вида https://app.lava.top/products/{productId}/{offerId} —
+// в этом случае offer_id это последний сегмент пути.
+function extractLavaOfferId(raw) {
+  const val = String(raw || '').trim();
+  if (!val) return '';
+  if (/^https?:\/\//i.test(val)) {
+    try {
+      const u = new URL(val);
+      const parts = u.pathname.split('/').filter(Boolean);
+      return parts[parts.length - 1] || '';
+    } catch (e) { /* falls through */ }
+  }
+  return val.split('/').filter(Boolean).pop() || val;
+}
+
+// Переводит период тарифа (в месяцах) в periodicity, который понимает Lava.top.
+function periodicityForMonths(months) {
+  const m = parseInt(months) || 1;
+  if (m >= 12) return 'PERIOD_YEAR';
+  if (m >= 6) return 'PERIOD_180_DAYS';
+  if (m >= 3) return 'PERIOD_90_DAYS';
+  return 'MONTHLY';
+}
+
+// Создать счёт/подписку в Lava.top по offerId (публичный API v2).
+// periodicity: 'MONTHLY' | 'PERIOD_90_DAYS' | 'PERIOD_180_DAYS' | 'PERIOD_YEAR' | 'ONE_TIME'
+async function createLavaInvoice({ offerId, orderId, email, periodicity }) {
   if (!LAVA_API_KEY) throw new Error('LAVA_NOT_CONFIGURED');
   if (!offerId) throw new Error('LAVA_OFFER_NOT_CONFIGURED');
   const res = await fetch('https://gate.lava.top/api/v2/invoice', {
@@ -1113,7 +1139,7 @@ async function createLavaInvoice({ offerId, orderId, email }) {
     body: JSON.stringify({
       email: email || undefined,
       offerId: offerId,
-      periodicity: 'ONE_TIME',
+      periodicity: periodicity || 'MONTHLY',
       currency: 'RUB',
       paymentMethod: LAVA_PAYMENT_METHOD,
       buyerLanguage: 'RU',
@@ -1135,10 +1161,10 @@ async function createLavaInvoice({ offerId, orderId, email }) {
 
 // Создать запись платежа + счёт в Lava.top. purpose: 'subscription' | 'ad'
 // offerId — обязателен для реальной оплаты через Lava.top (см. комментарий выше).
-async function initiatePayment({ userId, email, purpose, referenceId, amountUsd, offerId }) {
+async function initiatePayment({ userId, email, purpose, referenceId, amountUsd, offerId, periodicity }) {
   const orderId=purpose+'_'+(referenceId||userId)+'_'+Date.now();
   if (!offerId) throw new Error('LAVA_OFFER_NOT_CONFIGURED');
-  const invoice = await createLavaInvoice({ offerId, orderId, email });
+  const invoice = await createLavaInvoice({ offerId, orderId, email, periodicity });
 
   const record={
     user_id:userId, user_email:email, purpose, reference_id:referenceId||null,
@@ -1166,8 +1192,9 @@ const PREMIUM_LOCKABLE_SECTIONS = [
 const DEFAULT_PREMIUM_SETTINGS = {
   enabled:false,
   premium_sections:[],
-  plans:[ { id:'plan_1', months:1, price:'299 ₽', offer_id:'' } ],
-  promocodes:[ { code:'YOUTUBE', discount_percent:50, free_days:0, offer_id:'' } ],
+  plans:[ { id:'plan_1', months:1, price:'299 ₽' } ],
+  promocodes:[],
+  lava_offer_id:'',
   price_month:'299 ₽',
   price_6months:'',
   price_year:'',
@@ -1184,15 +1211,15 @@ async function getPremiumSettings() {
       if(data.price_6months) plans.push({ id:'plan_6', months:6, price:data.price_6months });
       if(data.price_year) plans.push({ id:'plan_12', months:12, price:data.price_year });
     }
-    if(!plans.length) plans = [ { id:'plan_1', months:1, price:'299 ₽', offer_id:'' } ];
+    if(!plans.length) plans = [ { id:'plan_1', months:1, price:'299 ₽' } ];
     let promocodes = Array.isArray(data.promocodes)?data.promocodes:[];
-    if(!promocodes.length) promocodes = [ { code:'YOUTUBE', discount_percent:50, free_days:0, offer_id:'' } ];
 
     return {
       enabled: !!data.enabled,
       premium_sections: Array.isArray(data.premium_sections)?data.premium_sections:[],
       plans,
       promocodes,
+      lava_offer_id: data.lava_offer_id || '',
       price_month: plans[0]?plans[0].price:(data.price_month||''),
       price_6months: data.price_6months||'',
       price_year: data.price_year||'',
@@ -1221,28 +1248,28 @@ app.get('/api/premium/config', async (req,res)=>{
 // POST /api/premium/config — сохранить конфигурацию.
 app.post('/api/premium/config', async (req,res)=>{
   const payload=await requirePremiumAccess(req,res); if(!payload)return;
-  const { enabled, premium_sections, plans, promocodes, price_month, price_6months, price_year, excluded_emails }=req.body||{};
+  const { enabled, premium_sections, plans, promocodes, lava_offer_id, price_month, price_6months, price_year, excluded_emails }=req.body||{};
   try{
     const allowedKeys=PREMIUM_LOCKABLE_SECTIONS.map(s=>s.key);
     const cleanSections=Array.isArray(premium_sections)?premium_sections.filter(k=>allowedKeys.includes(k)):[];
     const cleanExcluded=Array.isArray(excluded_emails)?excluded_emails.filter(e=>typeof e==='string'&&e!==SUPREME_ADMIN_EMAIL).slice(0,1000):[];
     const clean=s=>typeof s==='string'?s.slice(0,120):'';
-    
+
     let cleanPlans = Array.isArray(plans) ? plans.map((p, idx)=>({
       id: clean(p.id) || ('plan_' + idx),
       months: Math.max(1, parseInt(p.months) || 1),
       price: clean(p.price),
-      offer_id: clean(p.offer_id)
     })).filter(p=>p.price) : [];
     if(!cleanPlans.length){
-      cleanPlans = [ { id:'plan_1', months:1, price: clean(price_month) || '299 ₽', offer_id:'' } ];
+      cleanPlans = [ { id:'plan_1', months:1, price: clean(price_month) || '299 ₽' } ];
     }
 
+    // Промокоды больше не редактируются из этой панели — что пришло, то и
+    // сохраняем как есть (не даём странице их случайно обнулить).
     let cleanPromos = Array.isArray(promocodes) ? promocodes.map(p=>({
       code: clean(p.code).toUpperCase(),
       discount_percent: Math.min(100, Math.max(0, parseInt(p.discount_percent) || 0)),
       free_days: Math.max(0, parseInt(p.free_days) || 0),
-      offer_id: clean(p.offer_id)
     })).filter(p=>p.code) : [];
 
     const record={
@@ -1251,6 +1278,7 @@ app.post('/api/premium/config', async (req,res)=>{
       premium_sections:cleanSections,
       plans:cleanPlans,
       promocodes:cleanPromos,
+      lava_offer_id: extractLavaOfferId(lava_offer_id),
       price_month:cleanPlans[0]?cleanPlans[0].price:clean(price_month),
       price_6months:clean(price_6months),
       price_year:clean(price_year),
@@ -1406,30 +1434,29 @@ app.post('/api/payments/create-invoice', async (req,res)=>{
     let amount=parseFloat(String(targetPlan.price||'').replace(/[^\d.]/g,''));
     if(!amount||amount<=0)return res.status(400).json({ error:'Price is not set for this plan' });
 
-    // По умолчанию используем offer_id самого тарифа. Если промокод даёт скидку и
-    // у него настроен собственный offer_id (отдельное предложение в Lava.top с уже
-    // сниженной ценой) — используем его вместо тарифного.
-    let offerId = targetPlan.offer_id || '';
+    // Скидка по промокоду влияет только на нашу учётную запись платежа —
+    // реальную сумму счёта определяет цена оффера на стороне Lava.top.
     if(promocode){
       const cleanCode = String(promocode).trim().toUpperCase();
       const promo = (settings.promocodes||[]).find(p => String(p.code).trim().toUpperCase() === cleanCode);
       if(promo && promo.discount_percent > 0){
         amount = Math.round(amount * (1 - promo.discount_percent / 100));
         if(amount < 10) amount = 10;
-        if(promo.offer_id) offerId = promo.offer_id;
       }
     }
 
+    const offerId = settings.lava_offer_id || '';
     if(!offerId){
-      return res.status(503).json({ error:'Оплата для этого тарифа ещё не настроена администратором (не указан ID предложения Lava.top)' });
+      return res.status(503).json({ error:'Оплата ещё не настроена администратором (не указана ссылка/ID подписки Lava.top)' });
     }
+    const periodicity = periodicityForMonths(targetPlan.months);
 
     const refId = targetPlan.months ? (targetPlan.months + 'm') : plan;
-    const { pay_url }=await initiatePayment({ userId:payload.sub, email:payload.email, purpose:'subscription', referenceId:refId, amountUsd:amount, offerId });
+    const { pay_url }=await initiatePayment({ userId:payload.sub, email:payload.email, purpose:'subscription', referenceId:refId, amountUsd:amount, offerId, periodicity });
     return res.json({ ok:true, pay_url });
   }catch(e){
     if(e.message==='LAVA_NOT_CONFIGURED')return res.status(503).json({ error:'Платёжная система не настроена (нет LAVA_API_KEY)' });
-    if(e.message==='LAVA_OFFER_NOT_CONFIGURED')return res.status(503).json({ error:'Оплата для этого тарифа ещё не настроена администратором' });
+    if(e.message==='LAVA_OFFER_NOT_CONFIGURED')return res.status(503).json({ error:'Оплата ещё не настроена администратором' });
     return res.status(500).json({ error:'Server error', details:e.message });
   }
 });
