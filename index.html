@@ -1733,13 +1733,23 @@ button[onclick*="togglePasswordVisibility"] {
           </div>
         </div>
         <div style="margin-bottom:16px;">
-          <div class="prem-block-title" style="margin-bottom:8px;">Цена размещения</div>
-          <input type="text" class="prem-input" id="ads-price-text" placeholder="Например: 500 ₽ за размещение">
+          <div class="prem-block-title" style="margin-bottom:8px;">Реклама платная или бесплатная</div>
+          <div class="cooldown-opt-row">
+            <div class="cooldown-opt" id="ads-mode-paid" onclick="setAdsMode(false)">💳 Платная</div>
+            <div class="cooldown-opt" id="ads-mode-free" onclick="setAdsMode(true)">🆓 Бесплатная</div>
+          </div>
+          <div class="prem-hint" style="margin-top:8px;" id="ads-mode-hint">Бесплатная реклама публикуется сразу после модерации, без привязки карты и оплаты.</div>
         </div>
-        <div style="margin-bottom:16px;">
-          <div class="prem-block-title" style="margin-bottom:8px;">offer_id рекламы в Lava.top</div>
-          <input type="text" class="prem-input" id="ads-offer-id" placeholder="offer_id из личного кабинета Lava.top" style="font-family:'DM Mono',monospace;font-size:12px;">
-          <div style="font-size:11px;color:var(--muted);margin-top:6px;">Создайте в Lava.top отдельное предложение с ценой из поля выше и вставьте его ID сюда — без этого оплата рекламы работать не будет.</div>
+        <div id="ads-paid-fields">
+          <div style="margin-bottom:16px;">
+            <div class="prem-block-title" style="margin-bottom:8px;">Цена размещения</div>
+            <input type="text" class="prem-input" id="ads-price-text" placeholder="Например: 500 ₽ за размещение">
+          </div>
+          <div style="margin-bottom:16px;">
+            <div class="prem-block-title" style="margin-bottom:8px;">Ссылка на размещение в Lava.top</div>
+            <input type="text" class="prem-input" id="ads-offer-id" placeholder="Вставьте ссылку на продукт из Lava.top" style="font-family:'DM Mono',monospace;font-size:12px;">
+            <div style="font-size:11px;color:var(--muted);margin-top:6px;">Создайте в Lava.top отдельное предложение с ценой из поля выше и вставьте ссылку (или её ID) сюда — без этого оплата рекламы работать не будет.</div>
+          </div>
         </div>
         <div style="margin-bottom:16px;">
           <div class="prem-block-title" style="margin-bottom:8px;">Как часто один пользователь может размещать рекламу</div>
@@ -6092,7 +6102,7 @@ async function savePremiumConfig(){
 // РЕКЛАМА
 // ════════════════════════════════════════════════════════
 const SUPREME_ADMIN_EMAIL_CLIENT='ytmetrics.project@gmail.com'; // для фронтовой фильтрации в поиске исключений
-let _adsConfig={enabled:false,price_text:'',cooldown_type:'week',cooldown_custom_days:30};
+let _adsConfig={enabled:false,free:false,price_text:'',cooldown_type:'week',cooldown_custom_days:30};
 let _adPhotoBase64=null;
 let _adsMyList=[];
 let _adDetailsCurrentId=null;
@@ -6104,6 +6114,7 @@ async function loadAdsAdminConfig(){
     const data=await res.json();
     _adsConfig=data.settings||_adsConfig;
     renderAdsEngine();
+    renderAdsMode();
     document.getElementById('ads-price-text').value=_adsConfig.price_text||'';
     document.getElementById('ads-offer-id').value=_adsConfig.offer_id||'';
     setCooldownType(_adsConfig.cooldown_type||'week',true);
@@ -6121,6 +6132,20 @@ function renderAdsEngine(){
   status.textContent=on?'Включена — пользователи могут создавать рекламу':'Выключена — раздел скрыт от пользователей';
 }
 function toggleAdsEngine(){ _adsConfig.enabled=!_adsConfig.enabled; renderAdsEngine(); }
+
+function renderAdsMode(){
+  const free=!!_adsConfig.free;
+  const paidBtn=document.getElementById('ads-mode-paid');
+  const freeBtn=document.getElementById('ads-mode-free');
+  const paidFields=document.getElementById('ads-paid-fields');
+  if(paidBtn)paidBtn.classList.toggle('active',!free);
+  if(freeBtn)freeBtn.classList.toggle('active',free);
+  if(paidFields)paidFields.style.display=free?'none':'block';
+}
+function setAdsMode(free){
+  _adsConfig.free=!!free;
+  renderAdsMode();
+}
 
 function setCooldownType(type,skipInputToggle){
   _adsConfig.cooldown_type=type;
@@ -6143,6 +6168,8 @@ async function saveAdsConfig(){
     if(!res.ok){const err=await res.json().catch(()=>({}));status.textContent='Ошибка: '+(err.details||err.error||res.status);return;}
     const data=await res.json();
     _adsConfig=data.settings||_adsConfig;
+    document.getElementById('ads-offer-id').value=_adsConfig.offer_id||'';
+    renderAdsMode();
     status.textContent='✓ Сохранено';
     setTimeout(function(){status.textContent='';},3000);
   }catch(e){status.textContent='Ошибка сети';}
@@ -6228,7 +6255,9 @@ async function submitAdCreate(){
       setTimeout(function(){loadAdsMy();},2500);
       return;
     }
-    if(data.pay_url){
+    if(data.status==='active'){
+      status.textContent='✅ Проверка пройдена — реклама опубликована бесплатно!';
+    }else if(data.pay_url){
       status.textContent='✓ Проверка пройдена! Открываем страницу оплаты...';
       openPaymentPopup(data.pay_url);
     }else{
@@ -8278,8 +8307,8 @@ async function loadSubscriptionsPage(){
 }
 
 function openPaymentPopup(url){
-  const width = 540;
-  const height = 750;
+  const width = 880;
+  const height = 820;
   const left = Math.max(0, Math.round((window.screen.width - width) / 2));
   const top = Math.max(0, Math.round((window.screen.height - height) / 2));
   

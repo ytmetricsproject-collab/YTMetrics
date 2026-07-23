@@ -1527,7 +1527,7 @@ app.post('/api/payments/postback', async (req,res)=>{
 // ════════════════════════════════════════════════════════
 // РЕКЛАМА
 // ════════════════════════════════════════════════════════
-const DEFAULT_AD_SETTINGS = { enabled:false, price_text:'', offer_id:'', cooldown_type:'week', cooldown_custom_days:30 };
+const DEFAULT_AD_SETTINGS = { enabled:false, free:false, price_text:'', offer_id:'', cooldown_type:'week', cooldown_custom_days:30 };
 
 const AD_MODERATION_SYSTEM_PROMPT = `Ты — модератор рекламных объявлений платформы YTMetrics. Тебе присылают: текст объявления и данные YouTube-канала, который рекламируют (название, описание, иногда — статистика). Проверь на нарушения правил площадки.
 
@@ -1550,6 +1550,7 @@ async function getAdSettings() {
     if(error||!data)return { ...DEFAULT_AD_SETTINGS };
     return {
       enabled: !!data.enabled,
+      free: !!data.free,
       price_text: data.price_text||'',
       offer_id: data.offer_id||'',
       cooldown_type: data.cooldown_type||'week',
@@ -1590,12 +1591,12 @@ app.get('/api/ads/admin-config', async (req,res)=>{
 });
 app.post('/api/ads/admin-config', async (req,res)=>{
   const payload=await requirePremiumAccess(req,res); if(!payload)return;
-  const { enabled, price_text, offer_id, cooldown_type, cooldown_custom_days }=req.body||{};
+  const { enabled, free, price_text, offer_id, cooldown_type, cooldown_custom_days }=req.body||{};
   try{
     const record={
-      id:1, enabled:!!enabled,
+      id:1, enabled:!!enabled, free:!!free,
       price_text: typeof price_text==='string'?price_text.slice(0,120):'',
-      offer_id: typeof offer_id==='string'?offer_id.slice(0,120):'',
+      offer_id: extractLavaOfferId(offer_id),
       cooldown_type: ['week','month','custom'].includes(cooldown_type)?cooldown_type:'week',
       cooldown_custom_days: Math.max(1,Math.min(365,parseInt(cooldown_custom_days)||30)),
       updated_at:new Date().toISOString(), updated_by:payload.email,
@@ -1687,16 +1688,23 @@ app.post('/api/ads/create', async (req,res)=>{
       user_id:payload.sub, user_email:payload.email, ad_text:ad_text.trim().slice(0,500),
       photo_data: photo_base64? String(photo_base64).slice(0,7_000_000) : null,
       youtube_channel_url:youtube_channel_url.trim(),
-      status: rejection?'rejected':'awaiting_payment',
+      status: rejection?'rejected':(adSettings.free?'active':'awaiting_payment'),
       rejection_reason: rejection,
       created_at:new Date().toISOString(),
     };
+    if(!rejection&&adSettings.free) record.published_at=new Date().toISOString();
     const { data:inserted, error:insErr }=await supabase.from('ads').insert(record).select().single();
     if(insErr)return res.status(500).json({ error:'Database error', details:insErr.message });
 
     if(rejection){
       await sendUserMessage(payload.sub,'violation_warning','⚠️ Реклама отклонена модератором',`Ваша реклама не прошла проверку: ${rejection}`);
       return res.json({ ok:true, status:'rejected', reason:rejection });
+    }
+
+    // Реклама бесплатная — модерация пройдена, публикуем сразу, без оплаты.
+    if(adSettings.free){
+      await sendUserMessage(payload.sub,'ad_published','✅ Реклама опубликована','Ваша реклама прошла проверку и уже опубликована — бесплатно, оплата не требуется.');
+      return res.json({ ok:true, status:'active', ad_id:inserted.id });
     }
 
     // Прошло модерацию — создаём счёт на оплату
