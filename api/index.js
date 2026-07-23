@@ -1463,6 +1463,7 @@ app.post('/api/payments/create-invoice', async (req,res)=>{
   }catch(e){
     if(e.message==='LAVA_NOT_CONFIGURED')return res.status(503).json({ error:'Платёжная система не настроена (нет LAVA_API_KEY)' });
     if(e.message==='LAVA_OFFER_NOT_CONFIGURED')return res.status(503).json({ error:'Оплата ещё не настроена администратором' });
+    console.error('create-invoice error:', e);
     return res.status(500).json({ error:'Server error', details:e.message });
   }
 });
