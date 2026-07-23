@@ -1595,10 +1595,16 @@ app.post('/api/ads/admin-config', async (req,res)=>{
       updated_at:new Date().toISOString(), updated_by:payload.email,
     };
     const { error }=await supabase.from('ad_settings').upsert(record,{ onConflict:'id' });
-    if(error)return res.status(500).json({ error:'Database error', details:error.message });
+    if(error){
+      console.error('ad_settings upsert error:', JSON.stringify(error));
+      return res.status(500).json({ error:'Database error', details:error.message||error.hint||JSON.stringify(error) });
+    }
     const { id,updated_at,updated_by, ...settings }=record;
     return res.json({ ok:true, settings });
-  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+  }catch(e){
+    console.error('ads/admin-config save error:', e);
+    return res.status(500).json({ error:'Server error', details:e.message });
+  }
 });
 
 // GET /api/ads/my — список объявлений текущего пользователя + статистика

@@ -6153,7 +6153,7 @@ async function saveAdsConfig(){
     _adsConfig.offer_id=document.getElementById('ads-offer-id').value.trim();
     _adsConfig.cooldown_custom_days=parseInt(document.getElementById('ads-cooldown-days').value)||30;
     const res=await apiFetch('/api/ads/admin-config',{method:'POST',body:JSON.stringify(_adsConfig)});
-    if(!res.ok){const err=await res.json().catch(()=>({}));status.textContent='Ошибка: '+(err.error||res.status);return;}
+    if(!res.ok){const err=await res.json().catch(()=>({}));status.textContent='Ошибка: '+(err.details||err.error||res.status);return;}
     const data=await res.json();
     _adsConfig=data.settings||_adsConfig;
     status.textContent='✓ Сохранено';
