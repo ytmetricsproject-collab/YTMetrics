@@ -1789,12 +1789,18 @@ button[onclick*="togglePasswordVisibility"] {
       </div>
 
       <div class="prem-block">
+        <div class="prem-block-title">🔗 Ссылка на подписку в Lava.top</div>
+        <input type="text" class="prem-input" id="prem-lava-link" placeholder="Вставьте ссылку на продукт из Lava.top" style="font-family:'DM Mono',monospace;font-size:12px;">
+        <div class="prem-hint" style="margin-top:10px;">Одна ссылка (или её ID) на весь сайт — этого достаточно, период подписки (месяц / 3 мес / 6 мес / год) покупатель выбирает и подтверждает уже на самой странице оплаты Lava.top. Можно вставить как полную ссылку на страницу товара, так и просто его ID — система сама разберёт, что нужно.</div>
+      </div>
+
+      <div class="prem-block">
         <div class="prem-block-title">💬 Тарифные планы и цены</div>
         <div id="prem-plans-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
         <button type="button" class="prem-instr-btn" onclick="addPremiumPlanRow()" style="background:rgba(71,200,255,.06);border-color:rgba(71,200,255,.25);color:var(--accent2);width:100%;margin-bottom:12px;">
           ＋ Добавить тариф
         </button>
-        <div class="prem-hint">Укажите период подписки (в месяцах) и цену. По умолчанию задан 1 тариф на 1 месяц. Вы можете выставлять любой период подписки (например, 2, 3, 6 или 12 месяцев) и цену. Счета на Lava.top выставляются автоматически.</div>
+        <div class="prem-hint">Укажите период подписки (в месяцах) и цену — это только то, что видит пользователь на карточке тарифа у нас на сайте. Точную цену и итоговую периодичность оплаты определяет сама ссылка Lava.top выше.</div>
       </div>
 
       <div class="prem-block">
@@ -1804,23 +1810,6 @@ button[onclick*="togglePasswordVisibility"] {
         </button>
         <div id="prem-active-users-list"><div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div></div>
         <div class="prem-hint">Список всех пользователей с активной подпиской или вечным VIP-доступом. Вы можете выдать премиум вручную по email на нужное кол-во дней.</div>
-      </div>
-
-      <div class="prem-block">
-        <div class="prem-block-title">🏷️ Промокоды для зрителей</div>
-        <div id="prem-promocodes-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
-        <button type="button" class="prem-instr-btn" onclick="addPromocodeRow()" style="background:rgba(232,255,71,.06);border-color:rgba(232,255,71,.25);color:var(--accent);width:100%;margin-bottom:12px;">
-          ＋ Добавить промокод
-        </button>
-        <div class="prem-hint">Создавайте промокоды для ваших подписчиков и зрителей (например: скидка % на подписку или бесшовные бесплатные дни доступа).</div>
-      </div>
-
-      <div class="prem-block">
-        <div class="prem-block-title">🚫 Исключения из премиума</div>
-        <button class="prem-instr-btn" style="background:rgba(232,255,71,.06);border-color:rgba(232,255,71,.25);color:var(--accent);" onclick="openPremiumExcludeModal()">
-          ⭐ Отключить премиум для: <span id="prem-excluded-count" style="margin-left:6px;font-weight:800;">0 выбрано</span>
-        </button>
-        <div class="prem-hint">Выбранные пользователи получают полный доступ ко всем разделам, даже если монетизация включена. Администраторы сайта всегда имеют полный доступ автоматически, и их нельзя выбрать в этом списке.</div>
       </div>
 
       <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:24px;">
@@ -2254,16 +2243,16 @@ button[onclick*="togglePasswordVisibility"] {
       <div class="prem-step">
         <div class="prem-step-num">2</div>
         <div>
-          <div class="prem-step-title">Создайте продукт и «предложения» (offer)</div>
-          <div class="prem-step-text">В личном кабинете Lava.top создайте продукт «Премиум подписка YTMetrics». Для <b>каждого</b> тарифа (1 мес, 6 мес, год и т.д.) и для <b>каждого</b> промокода со скидкой создайте отдельное «предложение» (offer) с нужной ценой — цена в Lava.top задаётся именно так, а не передаётся из приложения.</div>
+          <div class="prem-step-title">Создайте продукт-подписку (offer)</div>
+          <div class="prem-step-text">В личном кабинете Lava.top создайте продукт «Премиум подписка YTMetrics» типа «Подписка», с нужными периодами оплаты (месяц / 3 мес / 6 мес / год) и ценами — все периоды настраиваются в рамках одного предложения (offer), их выбирает сам покупатель на странице оплаты.</div>
         </div>
       </div>
 
       <div class="prem-step">
         <div class="prem-step-num">3</div>
         <div>
-          <div class="prem-step-title">Скопируйте ID предложений (offer_id)</div>
-          <div class="prem-step-text">У каждого созданного предложения есть свой UUID (offer_id). Скопируйте его — он понадобится ниже, в блоке «Тарифные планы и цены» этой панели: вставьте offer_id в соответствующий тариф/промокод.</div>
+          <div class="prem-step-title">Скопируйте ссылку на предложение</div>
+          <div class="prem-step-text">Скопируйте ссылку на страницу товара (или его ID) и вставьте её в поле «Ссылка на подписку в Lava.top» этой панели — одной ссылки достаточно на все тарифы сайта.</div>
         </div>
       </div>
 
@@ -2301,7 +2290,7 @@ button[onclick*="togglePasswordVisibility"] {
         </div>
       </div>
 
-      <div class="prem-hint" style="margin-top:6px;">Пока не задан <code>LAVA_API_KEY</code> и/или offer_id у тарифа — кнопка оплаты будет честно показывать ошибку вместо открытия страницы с неверной ценой. Это ожидаемо до завершения настройки.</div>
+      <div class="prem-hint" style="margin-top:6px;">Пока не задан <code>LAVA_API_KEY</code> и/или ссылка на подписку — кнопка оплаты будет честно показывать ошибку вместо открытия страницы с неверной ценой. Это ожидаемо до завершения настройки.</div>
     </div>
   </div>
 </div>
@@ -5638,9 +5627,9 @@ async function loadPremiumConfig(){
     renderPremiumEngine();
     renderPremiumSections();
     renderPremiumPlanRows();
-    renderPromocodeRows();
+    const linkInput=document.getElementById('prem-lava-link');
+    if(linkInput) linkInput.value=_premConfig.lava_offer_id||'';
     loadActivePremiumUsers();
-    updateExcludedCount();
     await loadPremiumUsersForVip();
   }catch(e){}
 }
@@ -5661,9 +5650,6 @@ function renderPremiumPlanRows(){
       +'<div style="flex:1;min-width:90px;">'
       +'<input type="text" class="prem-input plan-price-input" value="'+escapeHtml(p.price||'')+'" placeholder="Например: 299 ₽">'
       +'</div>'
-      +'<div style="flex:2;min-width:160px;">'
-      +'<input type="text" class="prem-input plan-offerid-input" value="'+escapeHtml(p.offer_id||'')+'" placeholder="offer_id из Lava.top" style="font-family:\'DM Mono\',monospace;font-size:11px;">'
-      +'</div>'
       +'<button type="button" onclick="removePremiumPlanRow(this)" style="background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.25);color:var(--red);border-radius:8px;padding:8px 12px;cursor:pointer;" title="Удалить тариф">🗑</button>'
       +'</div>';
   }).join('');
@@ -5682,9 +5668,6 @@ function addPremiumPlanRow(){
     +'</div>'
     +'<div style="flex:1;min-width:90px;">'
     +'<input type="text" class="prem-input plan-price-input" value="" placeholder="Например: 490 ₽">'
-    +'</div>'
-    +'<div style="flex:2;min-width:160px;">'
-    +'<input type="text" class="prem-input plan-offerid-input" value="" placeholder="offer_id из Lava.top" style="font-family:\'DM Mono\',monospace;font-size:11px;">'
     +'</div>'
     +'<button type="button" onclick="removePremiumPlanRow(this)" style="background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.25);color:var(--red);border-radius:8px;padding:8px 12px;cursor:pointer;" title="Удалить тариф">🗑</button>';
   container.appendChild(div);
@@ -6030,31 +6013,23 @@ async function savePremiumConfig(){
     items.forEach((item, idx) => {
       const months = parseInt(item.querySelector('.plan-months-input')?.value) || 1;
       const price = (item.querySelector('.plan-price-input')?.value || '').trim();
-      const offer_id = (item.querySelector('.plan-offerid-input')?.value || '').trim();
-      if(price) plans.push({ id: 'plan_' + months + 'm_' + idx, months, price, offer_id });
+      if(price) plans.push({ id: 'plan_' + months + 'm_' + idx, months, price });
     });
     _premConfig.plans = plans.length ? plans : [{ id: 'plan_1', months: 1, price: '299 ₽' }];
     _premConfig.price_month = _premConfig.plans[0] ? _premConfig.plans[0].price : '';
 
-    const promoItems = document.querySelectorAll('.prem-promo-item');
-    const promocodes = [];
-    promoItems.forEach(item => {
-      const code = (item.querySelector('.promo-code-input')?.value || '').trim().toUpperCase();
-      const discount_percent = parseInt(item.querySelector('.promo-discount-input')?.value) || 0;
-      const free_days = parseInt(item.querySelector('.promo-days-input')?.value) || 0;
-      const offer_id = (item.querySelector('.promo-offerid-input')?.value || '').trim();
-      if(code) promocodes.push({ code, discount_percent, free_days, offer_id });
-    });
-    _premConfig.promocodes = promocodes;
+    // Промокоды и список исключений здесь больше не редактируются — отправляем
+    // то, что уже было загружено, чтобы сохранение из этой панели их не стёрло.
+    _premConfig.lava_offer_id = (document.getElementById('prem-lava-link')?.value || '').trim();
 
     const res=await apiFetch('/api/premium/config',{method:'POST',body:JSON.stringify(_premConfig)});
     if(!res.ok){const err=await res.json().catch(function(){return {};});status.textContent='Ошибка: '+(err.error||res.status);btn.disabled=false;return;}
     const data=await res.json();
     _premConfig=data.settings||_premConfig;
     renderPremiumPlanRows();
-    renderPromocodeRows();
+    const linkInput=document.getElementById('prem-lava-link');
+    if(linkInput) linkInput.value=_premConfig.lava_offer_id||'';
     loadActivePremiumUsers();
-    updateExcludedCount();
     status.textContent='✓ Сохранено';
     setTimeout(function(){status.textContent='';},3000);
   }catch(e){status.textContent='Ошибка сети';}
