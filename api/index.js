@@ -1287,10 +1287,16 @@ app.post('/api/premium/config', async (req,res)=>{
       updated_by:payload.email,
     };
     const { error }=await supabase.from('premium_settings').upsert(record,{ onConflict:'id' });
-    if(error)return res.status(500).json({ error:'Database error', details:error.message });
+    if(error){
+      console.error('premium_settings upsert error:', JSON.stringify(error));
+      return res.status(500).json({ error:'Database error', details:error.message||error.hint||JSON.stringify(error) });
+    }
     const { id,updated_at,updated_by, ...settings }=record;
     return res.json({ ok:true, settings });
-  }catch(e){ return res.status(500).json({ error:'Server error' }); }
+  }catch(e){
+    console.error('premium/config save error:', e);
+    return res.status(500).json({ error:'Server error', details:e.message });
+  }
 });
 
 // GET /api/premium/active-users — Список премиум-пользователей для админки
