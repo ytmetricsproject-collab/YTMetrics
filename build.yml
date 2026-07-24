@@ -1,0 +1,50 @@
+name: Build & Release Desktop App
+
+# Запускается автоматически, когда вы отправляете тег вида v1.0.0
+# (git tag v1.0.0 && git push origin v1.0.0), либо вручную из вкладки Actions на GitHub.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+defaults:
+  run:
+    # Проект лежит в подпапке electron-app внутри общего репозитория сайта —
+    # все команды ниже выполняются именно там, а не в корне репозитория.
+    working-directory: electron-app
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            script: dist:win
+          - os: macos-latest
+            script: dist:mac
+          - os: ubuntu-latest
+            script: dist:linux
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install
+
+      - run: npm run ${{ matrix.script }}
+
+      # Собранные установщики (.exe/.dmg/.AppImage/.deb) складываются в electron-app/dist/ —
+      # публикуем их как вложения к GitHub Release с тем же тегом, что запустил сборку.
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            electron-app/dist/*.exe
+            electron-app/dist/*.dmg
+            electron-app/dist/*.AppImage
+            electron-app/dist/*.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
