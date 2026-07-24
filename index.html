@@ -1769,6 +1769,19 @@ button[onclick*="togglePasswordVisibility"] {
      </div>
     </div>
 
+    <div class="modal-overlay" id="ads-moderation-modal">
+     <div class="modal-box" style="max-width:720px;">
+      <div class="modal-header">
+        <div class="modal-title">🔎 Проверка рекламы</div>
+        <button class="modal-close" onclick="closeModal('ads-moderation-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="prem-hint" style="margin-bottom:16px;">Все новые объявления попадают сюда и ждут проверки. Можно отправить объявление на автоматическую проверку ИИ, либо проверить его содержимое самостоятельно.</div>
+        <div id="ads-pending-list"><div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div></div>
+      </div>
+     </div>
+    </div>
+
     <div class="modal-overlay" id="premium-config-modal">
      <div class="modal-box" style="max-width:820px;">
       <div class="modal-header">
@@ -1861,6 +1874,13 @@ button[onclick*="togglePasswordVisibility"] {
       <div class="prem-block" id="ads-config-open-block" style="border-color:rgba(255,159,71,.25);">
         <button class="prem-instr-btn" style="width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;background:rgba(255,159,71,.06);border-color:rgba(255,159,71,.25);color:#ff9f47;" onclick="openModal('ads-config-modal');loadAdsAdminConfig();">
           <span>📢 Настроить рекламу — цена, лимиты, включение/выключение</span>
+          <span>→</span>
+        </button>
+      </div>
+
+      <div class="prem-block" id="ads-moderation-open-block" style="border-color:rgba(255,159,71,.25);">
+        <button class="prem-instr-btn" style="width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;background:rgba(255,159,71,.06);border-color:rgba(255,159,71,.25);color:#ff9f47;" onclick="openModal('ads-moderation-modal');loadAdsPending();">
+          <span>🔎 Проверка рекламы — очередь объявлений на модерацию <span id="ads-pending-badge" style="display:none;background:var(--red);color:#fff;border-radius:20px;padding:1px 8px;font-size:11px;margin-left:6px;"></span></span>
           <span>→</span>
         </button>
       </div>
@@ -2137,6 +2157,10 @@ button[onclick*="togglePasswordVisibility"] {
       <div class="perm-row" onclick="togglePermCheckbox('access_premium_panel')" style="border-color:rgba(232,255,71,.25)">
         <div><div class="perm-row-label">👑 Доступ к разделу «Премиум»</div><div class="perm-row-desc">Может настраивать монетизацию и рекламу сайта</div></div>
         <div class="perm-checkbox" id="perm-cb-access_premium_panel">✓</div>
+      </div>
+      <div class="perm-row" onclick="togglePermCheckbox('moderate_ads')" style="border-color:rgba(255,159,71,.25)">
+        <div><div class="perm-row-label">📢 Модерация рекламы</div><div class="perm-row-desc">Может проверять и одобрять/отклонять объявления пользователей</div></div>
+        <div class="perm-checkbox" id="perm-cb-moderate_ads">✓</div>
       </div>
       <div class="perm-row" onclick="togglePermCheckbox('transfer_ownership')" style="border-color:rgba(255,71,87,.25)">
         <div><div class="perm-row-label">👑 Передать права владельца</div><div class="perm-row-desc">Крайне чувствительное право — полная передача контроля над проектом</div></div>
@@ -2670,8 +2694,8 @@ const API_URL = (window.location.hostname === 'localhost' || window.location.hos
   : (window.location.hostname.endsWith('github.io') || window.location.protocol === 'file:' ? 'https://yt-metrics-seven.vercel.app' : window.location.origin);
 const LS_KEY='ytmetrics_user', LS_TOK='ytmetrics_token', LS_CHAT='ytmetrics_chat';
 const LS_THEME='ytmetrics_theme', LS_FORMAT='ytmetrics_format', LS_LANG='ytmetrics_lang';
-const PERM_KEYS=['read_notifications','view_users','ban_users','view_admins','ban_admins','add_admins','remove_admins','manage_billing','transfer_ownership','access_admin_panel','access_premium_panel'];
-const DEFAULT_PERMISSIONS_CLIENT={read_notifications:true,view_users:true,ban_users:false,view_admins:true,ban_admins:false,add_admins:false,remove_admins:false,manage_billing:false,transfer_ownership:false,access_admin_panel:false,access_premium_panel:false};
+const PERM_KEYS=['read_notifications','view_users','ban_users','view_admins','ban_admins','add_admins','remove_admins','manage_billing','transfer_ownership','access_admin_panel','access_premium_panel','moderate_ads'];
+const DEFAULT_PERMISSIONS_CLIENT={read_notifications:true,view_users:true,ban_users:false,view_admins:true,ban_admins:false,add_admins:false,remove_admins:false,manage_billing:false,transfer_ownership:false,access_admin_panel:false,access_premium_panel:false,moderate_ads:false};
 let _banUserId=null, _banEmail=null;
 let _deferredInstallPrompt=null;
 let _installBrowser='chrome';
@@ -5596,9 +5620,12 @@ async function refreshAdminNavAccess(){
   const canAdmin = _isSupreme || (_myPermissions&&_myPermissions.access_admin_panel);
   const canPremium = _isSupreme || (_myPermissions&&_myPermissions.access_premium_panel);
   const canBilling = _isSupreme || (_myPermissions&&_myPermissions.manage_billing);
+  const canModerateAds = _isSupreme || (_myPermissions&&_myPermissions.moderate_ads);
   const navAdmin=document.getElementById('nav-admin'); if(navAdmin)navAdmin.style.display=canAdmin?'flex':'none';
   const navPremium=document.getElementById('premium-config-open-block'); if(navPremium)navPremium.style.display=canPremium?'block':'none';
   const adsConfigOpenBlock=document.getElementById('ads-config-open-block'); if(adsConfigOpenBlock)adsConfigOpenBlock.style.display=canPremium?'block':'none';
+  const adsModOpenBlock=document.getElementById('ads-moderation-open-block'); if(adsModOpenBlock)adsModOpenBlock.style.display=canModerateAds?'block':'none';
+  if(canModerateAds)refreshAdsPendingBadge();
   const adsAdminBlock=document.getElementById('ads-admin-block'); if(adsAdminBlock)adsAdminBlock.style.display=canPremium?'block':'none';
   const balanceBlock=document.getElementById('admin-balance-block'); if(balanceBlock)balanceBlock.style.display=canBilling?'block':'none';
   if(canPremium)loadAdsAdminConfig();
@@ -6175,6 +6202,93 @@ async function saveAdsConfig(){
   }catch(e){status.textContent='Ошибка сети';}
 }
 
+// ════════════════════════════════════════════════════════
+// ОЧЕРЕДЬ МОДЕРАЦИИ РЕКЛАМЫ (право moderate_ads)
+// ════════════════════════════════════════════════════════
+async function refreshAdsPendingBadge(){
+  try{
+    const res=await apiFetch('/api/ads/pending');
+    if(!res.ok)return;
+    const data=await res.json();
+    const n=(data.ads||[]).length;
+    const badge=document.getElementById('ads-pending-badge');
+    if(badge){ badge.style.display=n>0?'inline-block':'none'; badge.textContent=n; }
+  }catch(e){}
+}
+
+async function loadAdsPending(){
+  const list=document.getElementById('ads-pending-list');
+  list.innerHTML='<div class="admin-loading"><span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span></div>';
+  try{
+    const res=await apiFetch('/api/ads/pending');
+    if(!res.ok){ list.innerHTML='<div class="admin-empty">Не удалось загрузить очередь</div>'; return; }
+    const data=await res.json();
+    const ads=data.ads||[];
+    refreshAdsPendingBadge();
+    if(!ads.length){ list.innerHTML='<div class="admin-empty">Объявлений на проверке нет 🎉</div>'; return; }
+    list.innerHTML=ads.map(function(a){
+      const photoHtml=a.photo_data?'<img src="'+a.photo_data+'" style="max-width:220px;border-radius:10px;margin-top:8px;display:block;">':'';
+      return '<div class="prem-block" id="ads-pending-item-'+a.id+'" style="margin-bottom:12px;">'
+        +'<div style="font-size:12px;color:var(--muted);font-family:\'DM Mono\',monospace;margin-bottom:6px;">'+escapeHtml(a.user_email)+' · '+new Date(a.created_at).toLocaleString('ru-RU')+'</div>'
+        +'<div style="font-size:14px;font-weight:700;margin-bottom:6px;">'+escapeHtml(a.ad_text)+'</div>'
+        +'<a href="'+escapeHtml(a.youtube_channel_url)+'" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent2);word-break:break-all;">'+escapeHtml(a.youtube_channel_url)+'</a>'
+        +photoHtml
+        +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">'
+        +'<button type="button" class="prem-instr-btn" style="background:rgba(71,200,255,.08);border-color:rgba(71,200,255,.25);color:var(--accent2);" onclick="runAdsAiReview(\''+a.id+'\',this)">🤖 Отправить ИИ на проверку</button>'
+        +'<button type="button" class="prem-instr-btn" style="background:rgba(232,255,71,.06);border-color:rgba(232,255,71,.25);color:var(--accent);" onclick="toggleManualReview(\''+a.id+'\')">👤 Проверить самому</button>'
+        +'</div>'
+        +'<div id="ads-manual-'+a.id+'" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);gap:10px;flex-wrap:wrap;">'
+        +'<div style="display:flex;gap:10px;flex-wrap:wrap;">'
+        +'<button type="button" class="prem-instr-btn" style="background:rgba(57,255,154,.08);border-color:rgba(57,255,154,.25);color:var(--green);" onclick="submitAdsManualDecision(\''+a.id+'\',\'approve\',this)">✅ Одобрить</button>'
+        +'<button type="button" class="prem-instr-btn" style="background:rgba(255,71,87,.08);border-color:rgba(255,71,87,.25);color:var(--red);" onclick="submitAdsManualDecision(\''+a.id+'\',\'reject\',this)">❌ Отклонить</button>'
+        +'</div>'
+        +'<input type="text" class="prem-input" id="ads-manual-reason-'+a.id+'" placeholder="Причина отклонения (необязательно)" style="margin-top:8px;">'
+        +'<div id="ads-pending-status-'+a.id+'" style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--muted);margin-top:8px;"></div>'
+        +'</div>'
+        +'</div>';
+    }).join('');
+  }catch(e){ list.innerHTML='<div class="admin-empty">Ошибка сети</div>'; }
+}
+
+function toggleManualReview(id){
+  const el=document.getElementById('ads-manual-'+id);
+  if(!el)return;
+  el.style.display=(el.style.display==='none'||!el.style.display)?'flex':'none';
+  el.style.flexDirection='column';
+}
+
+async function runAdsAiReview(id,btn){
+  const original=btn.textContent;
+  btn.disabled=true; btn.textContent='Проверяем...';
+  try{
+    const res=await apiFetch('/api/ads/'+id+'/ai-review',{method:'POST'});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){ btn.disabled=false; btn.textContent=original; showToast(data.details||data.error||'Ошибка проверки'); return; }
+    handleAdsModerationResult(id, data);
+  }catch(e){ btn.disabled=false; btn.textContent=original; showToast('Ошибка сети'); }
+}
+
+async function submitAdsManualDecision(id,action,btn){
+  const reasonInput=document.getElementById('ads-manual-reason-'+id);
+  const statusEl=document.getElementById('ads-pending-status-'+id);
+  if(statusEl)statusEl.textContent='Сохранение...';
+  try{
+    const res=await apiFetch('/api/ads/'+id+'/manual-decision',{method:'POST',body:JSON.stringify({ action, reason:reasonInput?reasonInput.value.trim():'' })});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){ if(statusEl)statusEl.textContent='Ошибка: '+(data.details||data.error||res.status); return; }
+    handleAdsModerationResult(id, data);
+  }catch(e){ if(statusEl)statusEl.textContent='Ошибка сети'; }
+}
+
+function handleAdsModerationResult(id, data){
+  const item=document.getElementById('ads-pending-item-'+id);
+  if(!item)return;
+  const labels={ active:'✅ Одобрено и опубликовано', awaiting_payment:'✅ Одобрено — ждём оплату от пользователя', rejected:'❌ Отклонено: '+(data.reason||'') };
+  const text=labels[data.status]||('Статус: '+data.status);
+  item.innerHTML='<div style="font-size:13px;font-weight:700;">'+text+'</div>';
+  refreshAdsPendingBadge();
+}
+
 let _adsPublicSettings={enabled:false,price_text:''};
 async function loadAdsMy(){
   const grid=document.getElementById('ads-my-grid');
@@ -6195,10 +6309,14 @@ async function loadAdsMy(){
     if(!_adsMyList.length){grid.innerHTML='<div class="ads-empty-state">У вас пока нет рекламы. Нажмите ＋, чтобы создать первую.</div>';return;}
     const statusLabels={active:'Активна',awaiting_payment:'Ждёт оплаты',pending_review:'На проверке',rejected:'Отклонена'};
     grid.innerHTML=_adsMyList.map(function(a){
+      const payBtn=(a.status==='awaiting_payment'&&a.pay_url)
+        ?'<button type="button" class="prem-instr-btn" style="width:100%;margin-top:8px;background:rgba(57,255,154,.08);border-color:rgba(57,255,154,.25);color:var(--green);" onclick="event.stopPropagation();openPaymentPopup(\''+a.pay_url+'\')">💳 Оплатить</button>'
+        :'';
       return '<div class="ad-card" onclick="openAdDetails(\''+a.id+'\')">'
         +(a.has_photo?'<div class="ad-card-photo" style="display:flex;align-items:center;justify-content:center;">🖼️</div>':'')
         +'<div class="ad-card-text">'+escapeHtml(a.ad_text)+'</div>'
         +'<div class="ad-card-status '+a.status+'">'+(statusLabels[a.status]||a.status)+'</div>'
+        +payBtn
         +'</div>';
     }).join('');
   }catch(e){grid.innerHTML='<div class="ads-empty-state">Ошибка загрузки</div>';}
@@ -6244,26 +6362,13 @@ async function submitAdCreate(){
   const channelUrl=document.getElementById('ad-form-channel-url').value.trim();
   const adText=document.getElementById('ad-form-text').value.trim();
   if(!channelUrl||!adText){status.textContent='Заполните ссылку на канал и текст объявления';return;}
-  btn.disabled=true;status.textContent='Проверяем канал, текст и фото...';
+  btn.disabled=true;status.textContent='Отправляем...';
   try{
     const res=await apiFetch('/api/ads/create',{method:'POST',body:JSON.stringify({ ad_text:adText, photo_base64:_adPhotoBase64, youtube_channel_url:channelUrl })});
     const data=await res.json().catch(()=>({}));
     if(!res.ok){status.textContent='Ошибка: '+(data.error||res.status);btn.disabled=false;return;}
-    if(data.status==='rejected'){
-      status.textContent='❌ Отклонено модератором: '+(data.reason||'нарушение правил');
-      btn.disabled=false;
-      setTimeout(function(){loadAdsMy();},2500);
-      return;
-    }
-    if(data.status==='active'){
-      status.textContent='✅ Проверка пройдена — реклама опубликована бесплатно!';
-    }else if(data.pay_url){
-      status.textContent='✓ Проверка пройдена! Открываем страницу оплаты...';
-      openPaymentPopup(data.pay_url);
-    }else{
-      status.textContent='✓ Проверка пройдена. '+(data.note||'Ожидайте оплату.');
-    }
-    setTimeout(function(){closeModal('ad-create-modal');loadAdsMy();},1500);
+    status.textContent='✓ Отправлено на проверку администратору. Мы пришлём уведомление, как только реклама будет проверена.';
+    setTimeout(function(){closeModal('ad-create-modal');loadAdsMy();},1800);
   }catch(e){status.textContent='Ошибка сети';btn.disabled=false;}
 }
 

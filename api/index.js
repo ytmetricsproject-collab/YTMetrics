@@ -35,6 +35,7 @@ const ALL_PERMISSIONS = {
   transfer_ownership: true,
   access_admin_panel: true,
   access_premium_panel: true,
+  moderate_ads: true,
 };
 const DEFAULT_PERMISSIONS = {
   read_notifications: true,
@@ -48,6 +49,7 @@ const DEFAULT_PERMISSIONS = {
   transfer_ownership: false,
   access_admin_panel: false,
   access_premium_panel: false,
+  moderate_ads: false,
 };
 
 let supabase;
@@ -1241,6 +1243,14 @@ async function requirePremiumAccess(req,res) {
   return payload;
 }
 
+// Доступ к модерации рекламы: главный (supreme) админ ИЛИ админ с правом moderate_ads
+async function requireAdsModerationAccess(req,res) {
+  const payload=await requireAdmin(req,res); if(!payload)return null;
+  const ok=await hasPermission(payload.email,'moderate_ads');
+  if(!ok){ res.status(403).json({ error:'Insufficient permissions', required:'moderate_ads' }); return null; }
+  return payload;
+}
+
 // GET /api/premium/config — полная конфигурация.
 app.get('/api/premium/config', async (req,res)=>{
   const payload=await requirePremiumAccess(req,res); if(!payload)return;
@@ -1626,11 +1636,74 @@ app.get('/api/ads/my', async (req,res)=>{
       created_at:a.created_at, published_at:a.published_at,
       days_live: a.published_at? Math.floor((Date.now()-new Date(a.published_at).getTime())/86400000) : null,
     }));
+    const awaitingIds=ads.filter(a=>a.status==='awaiting_payment').map(a=>a.id);
+    if(awaitingIds.length){
+      const { data:pays }=await supabase.from('payments').select('reference_id,pay_url').eq('purpose','ad').eq('status','pending').in('reference_id',awaitingIds).order('created_at',{ ascending:false });
+      const payMap={};
+      (pays||[]).forEach(p=>{ if(!payMap[p.reference_id])payMap[p.reference_id]=p.pay_url; });
+      ads.forEach(a=>{ if(a.status==='awaiting_payment')a.pay_url=payMap[a.id]||null; });
+    }
     return res.json({ ads });
   }catch(e){ return res.status(500).json({ error:'Server error' }); }
 });
 
-// POST /api/ads/create — создать объявление: модерация канала + текста + фото, затем — оплата
+// Прогоняет текст+фото объявления через ИИ-модерацию. Возвращает { rejected, reason } или { rejected:false }.
+async function runAdAiModeration(adText, photoBase64, channelTitle, channelDescription){
+  let rejection=null;
+  try{
+    const model=genAI.getGenerativeModel({ model:'gemini-2.5-flash', systemInstruction:AD_MODERATION_SYSTEM_PROMPT });
+    const prompt=`Текст объявления: "${adText}"\nКанал: "${channelTitle||''}"\nОписание канала: "${(channelDescription||'').slice(0,500)}"`;
+    const result=await model.generateContent(prompt);
+    const jsonMatch=result.response.text().trim().match(/\{[\s\S]*\}/);
+    if(jsonMatch){
+      const verdict=JSON.parse(jsonMatch[0]);
+      if(verdict.violation&&(verdict.severity==='medium'||verdict.severity==='high'))rejection=verdict.reason||'Нарушение правил площадки';
+    }
+  }catch(e){ console.warn('Ad text moderation (non-fatal):',e.message); }
+
+  if(!rejection&&photoBase64){
+    try{
+      const model=genAI.getGenerativeModel({ model:'gemini-2.5-flash', systemInstruction:AD_IMAGE_MODERATION_PROMPT });
+      const match=photoBase64.match(/^data:(image\/\w+);base64,(.+)$/);
+      if(match){
+        const result=await model.generateContent([{ inlineData:{ mimeType:match[1], data:match[2] } },'Проверь это изображение.']);
+        const jsonMatch=result.response.text().trim().match(/\{[\s\S]*\}/);
+        if(jsonMatch){
+          const verdict=JSON.parse(jsonMatch[0]);
+          if(verdict.violation&&(verdict.severity==='medium'||verdict.severity==='high'))rejection=verdict.reason||'Изображение нарушает правила площадки';
+        }
+      }
+    }catch(e){ console.warn('Ad photo moderation (non-fatal):',e.message); }
+  }
+  return rejection? { rejected:true, reason:rejection } : { rejected:false };
+}
+
+// Применяет решение «одобрено» к объявлению: бесплатная реклама публикуется сразу,
+// платная — создаётся счёт на оплату. Возвращает объект для ответа клиенту.
+async function approveAdRecord(ad, adSettings){
+  if(adSettings.free){
+    await supabase.from('ads').update({ status:'active', rejection_reason:null, published_at:new Date().toISOString() }).eq('id',ad.id);
+    await sendUserMessage(ad.user_id,'ad_published','✅ Реклама опубликована','Ваша реклама прошла проверку и уже опубликована — бесплатно, оплата не требуется.');
+    return { status:'active' };
+  }
+  const amount=parseFloat(String(adSettings.price_text).replace(/[^\d.]/g,''));
+  if(!amount||amount<=0||!adSettings.offer_id){
+    await supabase.from('ads').update({ status:'awaiting_payment', rejection_reason:null }).eq('id',ad.id);
+    await sendUserMessage(ad.user_id,'ad_review_passed','✓ Реклама прошла проверку','Ваша реклама одобрена. Оплата пока не настроена администратором — ссылка на оплату появится позже.');
+    return { status:'awaiting_payment', note:'Оплата рекламы ещё не настроена администратором' };
+  }
+  try{
+    const { pay_url }=await initiatePayment({ userId:ad.user_id, email:ad.user_email, purpose:'ad', referenceId:ad.id, amountUsd:amount, offerId:adSettings.offer_id });
+    await supabase.from('ads').update({ status:'awaiting_payment', rejection_reason:null }).eq('id',ad.id);
+    await sendUserMessage(ad.user_id,'ad_review_passed','✓ Реклама прошла проверку — можно оплатить','Ваша реклама одобрена. Перейдите в «Моя реклама», чтобы оплатить размещение.');
+    return { status:'awaiting_payment', pay_url };
+  }catch(e){
+    await supabase.from('ads').update({ status:'awaiting_payment', rejection_reason:null }).eq('id',ad.id);
+    return { status:'awaiting_payment', note:'Ошибка создания счёта: '+e.message };
+  }
+}
+
+// POST /api/ads/create — создать объявление, отправляется в очередь на проверку администратору
 app.post('/api/ads/create', async (req,res)=>{
   const payload=await requireAuth(req,res); if(!payload)return;
   const { ad_text, photo_base64, youtube_channel_url }=req.body||{};
@@ -1648,76 +1721,87 @@ app.post('/api/ads/create', async (req,res)=>{
       if(daysSince<needDays)return res.status(429).json({ error:'Слишком рано для новой рекламы', retry_in_days:Math.ceil(needDays-daysSince) });
     }
 
-    // Модерация канала
-    let channelInfo;
-    try{
-      const accessToken=await getValidAccessToken(payload);
-      channelInfo=await resolveChannelFromUrl(youtube_channel_url, accessToken);
-    }catch(e){ return res.status(400).json({ error:'Не удалось проверить канал: '+e.message }); }
-    const ch=(channelInfo.items||[])[0];
-    if(!ch)return res.status(400).json({ error:'Канал не найден по указанной ссылке' });
-
-    let rejection=null;
-    try{
-      const model=genAI.getGenerativeModel({ model:'gemini-2.5-flash', systemInstruction:AD_MODERATION_SYSTEM_PROMPT });
-      const prompt=`Текст объявления: "${ad_text}"\nКанал: "${ch.snippet.title}"\nОписание канала: "${(ch.snippet.description||'').slice(0,500)}"`;
-      const result=await model.generateContent(prompt);
-      const jsonMatch=result.response.text().trim().match(/\{[\s\S]*\}/);
-      if(jsonMatch){
-        const verdict=JSON.parse(jsonMatch[0]);
-        if(verdict.violation&&(verdict.severity==='medium'||verdict.severity==='high'))rejection=verdict.reason||'Нарушение правил площадки';
-      }
-    }catch(e){ console.warn('Ad text moderation (non-fatal):',e.message); }
-
-    if(!rejection&&photo_base64){
-      try{
-        const model=genAI.getGenerativeModel({ model:'gemini-2.5-flash', systemInstruction:AD_IMAGE_MODERATION_PROMPT });
-        const match=photo_base64.match(/^data:(image\/\w+);base64,(.+)$/);
-        if(match){
-          const result=await model.generateContent([{ inlineData:{ mimeType:match[1], data:match[2] } },'Проверь это изображение.']);
-          const jsonMatch=result.response.text().trim().match(/\{[\s\S]*\}/);
-          if(jsonMatch){
-            const verdict=JSON.parse(jsonMatch[0]);
-            if(verdict.violation&&(verdict.severity==='medium'||verdict.severity==='high'))rejection=verdict.reason||'Изображение нарушает правила площадки';
-          }
-        }
-      }catch(e){ console.warn('Ad photo moderation (non-fatal):',e.message); }
-    }
-
     const record={
       user_id:payload.sub, user_email:payload.email, ad_text:ad_text.trim().slice(0,500),
       photo_data: photo_base64? String(photo_base64).slice(0,7_000_000) : null,
       youtube_channel_url:youtube_channel_url.trim(),
-      status: rejection?'rejected':(adSettings.free?'active':'awaiting_payment'),
-      rejection_reason: rejection,
+      status:'pending_review', rejection_reason:null,
       created_at:new Date().toISOString(),
     };
-    if(!rejection&&adSettings.free) record.published_at=new Date().toISOString();
     const { data:inserted, error:insErr }=await supabase.from('ads').insert(record).select().single();
     if(insErr)return res.status(500).json({ error:'Database error', details:insErr.message });
 
-    if(rejection){
-      await sendUserMessage(payload.sub,'violation_warning','⚠️ Реклама отклонена модератором',`Ваша реклама не прошла проверку: ${rejection}`);
-      return res.json({ ok:true, status:'rejected', reason:rejection });
-    }
-
-    // Реклама бесплатная — модерация пройдена, публикуем сразу, без оплаты.
-    if(adSettings.free){
-      await sendUserMessage(payload.sub,'ad_published','✅ Реклама опубликована','Ваша реклама прошла проверку и уже опубликована — бесплатно, оплата не требуется.');
-      return res.json({ ok:true, status:'active', ad_id:inserted.id });
-    }
-
-    // Прошло модерацию — создаём счёт на оплату
-    const amount=parseFloat(String(adSettings.price_text).replace(/[^\d.]/g,''));
-    if(!amount||amount<=0)return res.json({ ok:true, status:'awaiting_payment', ad_id:inserted.id, pay_url:null, note:'Цена рекламы не задана администратором' });
-    if(!adSettings.offer_id)return res.json({ ok:true, status:'awaiting_payment', ad_id:inserted.id, pay_url:null, note:'Оплата рекламы ещё не настроена администратором' });
-    try{
-      const { pay_url }=await initiatePayment({ userId:payload.sub, email:payload.email, purpose:'ad', referenceId:inserted.id, amountUsd:amount, offerId:adSettings.offer_id });
-      return res.json({ ok:true, status:'awaiting_payment', ad_id:inserted.id, pay_url });
-    }catch(e){
-      return res.json({ ok:true, status:'awaiting_payment', ad_id:inserted.id, pay_url:null, note:'Платёжная система ещё не настроена' });
-    }
+    await createAdminNotification('ad_review','📢 Новая реклама на проверку',`От: ${payload.email}\nТекст: "${ad_text.trim().slice(0,200)}"`,inserted.id);
+    return res.json({ ok:true, status:'pending_review', ad_id:inserted.id });
   }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
+});
+
+// GET /api/ads/pending — очередь объявлений на проверку (для админов с правом moderate_ads)
+app.get('/api/ads/pending', async (req,res)=>{
+  const payload=await requireAdsModerationAccess(req,res); if(!payload)return;
+  try{
+    const { data, error }=await supabase.from('ads').select('*').eq('status','pending_review').order('created_at',{ ascending:true });
+    if(error)return res.status(500).json({ error:'Database error', details:error.message });
+    const ads=(data||[]).map(a=>({
+      id:a.id, user_email:a.user_email, ad_text:a.ad_text,
+      photo_data:a.photo_data, youtube_channel_url:a.youtube_channel_url,
+      created_at:a.created_at,
+    }));
+    return res.json({ ads });
+  }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
+});
+
+// POST /api/ads/:id/ai-review — прогнать конкретное объявление через ИИ и сразу применить решение
+app.post('/api/ads/:id/ai-review', async (req,res)=>{
+  const payload=await requireAdsModerationAccess(req,res); if(!payload)return;
+  try{
+    const { data:ad, error }=await supabase.from('ads').select('*').eq('id',req.params.id).single();
+    if(error||!ad)return res.status(404).json({ error:'Объявление не найдено' });
+    if(ad.status!=='pending_review')return res.status(400).json({ error:'Это объявление уже проверено' });
+
+    let channelTitle='', channelDescription='';
+    try{
+      const accessToken=await getValidAccessToken(payload);
+      const channelInfo=await resolveChannelFromUrl(ad.youtube_channel_url, accessToken);
+      const ch=(channelInfo.items||[])[0];
+      if(ch){ channelTitle=ch.snippet.title; channelDescription=ch.snippet.description||''; }
+    }catch(e){ console.warn('ai-review channel resolve (non-fatal):',e.message); }
+
+    const verdict=await runAdAiModeration(ad.ad_text, ad.photo_data, channelTitle, channelDescription);
+    if(verdict.rejected){
+      await supabase.from('ads').update({ status:'rejected', rejection_reason:verdict.reason }).eq('id',ad.id);
+      await sendUserMessage(ad.user_id,'violation_warning','⚠️ Реклама отклонена модератором',`Ваша реклама не прошла проверку: ${verdict.reason}`);
+      return res.json({ ok:true, status:'rejected', reason:verdict.reason });
+    }
+
+    const adSettings=await getAdSettings();
+    const result=await approveAdRecord(ad, adSettings);
+    return res.json({ ok:true, ...result });
+  }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
+});
+
+// POST /api/ads/:id/manual-decision — ручное решение админа (approve|reject), без ИИ
+app.post('/api/ads/:id/manual-decision', async (req,res)=>{
+  const payload=await requireAdsModerationAccess(req,res); if(!payload)return;
+  const { action, reason }=req.body||{};
+  if(!['approve','reject'].includes(action))return res.status(400).json({ error:'action должен быть approve или reject' });
+  try{
+    const { data:ad, error }=await supabase.from('ads').select('*').eq('id',req.params.id).single();
+    if(error||!ad)return res.status(404).json({ error:'Объявление не найдено' });
+    if(ad.status!=='pending_review')return res.status(400).json({ error:'Это объявление уже проверено' });
+
+    if(action==='reject'){
+      const finalReason=(typeof reason==='string'&&reason.trim())?reason.trim().slice(0,300):'Отклонено администратором';
+      await supabase.from('ads').update({ status:'rejected', rejection_reason:finalReason }).eq('id',ad.id);
+      await sendUserMessage(ad.user_id,'violation_warning','⚠️ Реклама отклонена модератором',`Ваша реклама не прошла проверку: ${finalReason}`);
+      return res.json({ ok:true, status:'rejected', reason:finalReason });
+    }
+
+    const adSettings=await getAdSettings();
+    const result=await approveAdRecord(ad, adSettings);
+    return res.json({ ok:true, ...result });
+  }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
+});
 });
 
 // POST /api/ads/:id/view — засчитать просмотр объявления (вызывается лентой Новостей)
