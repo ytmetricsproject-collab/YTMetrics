@@ -314,8 +314,12 @@ async function getSupremeAdminEmail() {
 }
 async function isSupremeAdmin(email) {
   if(!email)return false;
+  const lower=email.toLowerCase();
+  // Захардкоженный владелец сайта всегда имеет верховные права — независимо от
+  // того, что записано в таблице admins (is_primary могла сбиться/потеряться).
+  if(lower===SUPREME_ADMIN_EMAIL.toLowerCase())return true;
   const supreme = await getSupremeAdminEmail();
-  return email.toLowerCase() === supreme.toLowerCase();
+  return lower === supreme.toLowerCase();
 }
 async function isAdminEmail(email) {
   if(await isSupremeAdmin(email))return true;
