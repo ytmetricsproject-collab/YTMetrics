@@ -1566,17 +1566,6 @@ button[onclick*="togglePasswordVisibility"] {
           <div style="font-size:16px;font-weight:800;margin-bottom:6px" id="already-installed-title">Приложение уже установлено</div>
           <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)" id="already-installed-sub">Вы используете YTMetrics как приложение прямо сейчас.</div>
         </div>
-
-        <div class="install-hero" id="install-desktop-card" style="margin-top:24px;">
-          <div class="install-hero-title" id="install-desktop-title">Скачать для компьютера</div>
-          <div class="install-hero-sub" id="install-desktop-sub">Полноценное настольное приложение — не PWA, ставится как обычная программа со своим ярлыком.</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
-            <a class="install-btn" id="desktop-dl-win" href="#" target="_blank" rel="noopener" style="text-decoration:none;">🪟 <span>Windows (.exe)</span></a>
-            <a class="install-btn" id="desktop-dl-mac" href="#" target="_blank" rel="noopener" style="text-decoration:none;">🍎 <span>macOS (.dmg)</span></a>
-            <a class="install-btn" id="desktop-dl-linux" href="#" target="_blank" rel="noopener" style="text-decoration:none;">🐧 <span>Linux (.AppImage)</span></a>
-          </div>
-          <div class="prem-hint" style="margin-top:16px;max-width:480px;margin-left:auto;margin-right:auto;" id="install-desktop-hint">Без подписи разработчика первый запуск может показать предупреждение системы — это нормально, просто подтвердите запуск.</div>
-        </div>
       </div>
     </div>
 
@@ -2763,56 +2752,6 @@ function showPWAAlreadyInstalled(){
   if(card)card.style.display='none';
   if(already)already.style.display='block';
 }
-
-// ════════════════════════════════════════════════════════
-// СКАЧАТЬ ДЛЯ КОМПЬЮТЕРА (Electron, не PWA)
-// Замените ссылки, когда соберёте установщики (например, на GitHub Releases).
-// ════════════════════════════════════════════════════════
-const DESKTOP_APP_LINKS = {
-  win:   '#', // https://github.com/USER/REPO/releases/latest/download/YTMetrics-Setup.exe
-  mac:   '#', // https://github.com/USER/REPO/releases/latest/download/YTMetrics.dmg
-  linux: '#', // https://github.com/USER/REPO/releases/latest/download/YTMetrics.AppImage
-};
-
-function detectDesktopOsForInstall(){
-  const ua=navigator.userAgent;
-  if(/Win/.test(ua))return 'win';
-  if(/Mac/.test(ua))return 'mac';
-  if(/Linux|X11/.test(ua))return 'linux';
-  return null;
-}
-
-function initDesktopDownloadButtons(){
-  const winBtn=document.getElementById('desktop-dl-win');
-  const macBtn=document.getElementById('desktop-dl-mac');
-  const linuxBtn=document.getElementById('desktop-dl-linux');
-  if(winBtn)winBtn.href=DESKTOP_APP_LINKS.win;
-  if(macBtn)macBtn.href=DESKTOP_APP_LINKS.mac;
-  if(linuxBtn)linuxBtn.href=DESKTOP_APP_LINKS.linux;
-
-  // Ссылки ещё не выставлены — не даём кликнуть в никуда, а объясняем, что скоро будет.
-  [winBtn,macBtn,linuxBtn].forEach(function(btn){
-    if(!btn)return;
-    btn.addEventListener('click', function(e){
-      const target=DESKTOP_APP_LINKS[btn.id.replace('desktop-dl-','')];
-      if(!target||target==='#'){
-        e.preventDefault();
-        if(typeof showToast==='function')showToast('Скачивание пока не готово — скоро будет доступно');
-      }
-    });
-  });
-
-  // Подсвечиваем кнопку под текущую ОС пользователя.
-  const os=detectDesktopOsForInstall();
-  const map={ win:winBtn, mac:macBtn, linux:linuxBtn };
-  if(os && map[os]){
-    Object.keys(map).forEach(function(k){
-      if(map[k])map[k].style.opacity = (k===os) ? '1' : '.6';
-    });
-  }
-}
-document.addEventListener('DOMContentLoaded', initDesktopDownloadButtons);
-initDesktopDownloadButtons(); // скрипт подключён в конце body — DOM уже готов, DOMContentLoaded может не наступить позже
 
 function detectPlatformForInstall(){
   const ua=navigator.userAgent;
@@ -6333,7 +6272,9 @@ function openAdCreateModal(){
   if(priceBanner){
     const priceText=(_adsPublicSettings&&_adsPublicSettings.price_text||'').trim();
     const amount=parseFloat(String(priceText).replace(/[^\d.]/g,''));
-    if(!priceText||!amount||amount<=0){
+    if(_adsPublicSettings&&_adsPublicSettings.free){
+      priceBanner.textContent='🎁 Размещение бесплатно';
+    }else if(!priceText||!amount||amount<=0){
       priceBanner.textContent='🎁 Размещение бесплатно';
     }else{
       priceBanner.textContent='💰 Стоимость размещения: '+priceText;
