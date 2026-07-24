@@ -1806,7 +1806,6 @@ app.post('/api/ads/:id/manual-decision', async (req,res)=>{
     return res.json({ ok:true, ...result });
   }catch(e){ return res.status(500).json({ error:'Server error', details:e.message }); }
 });
-});
 
 // POST /api/ads/:id/view — засчитать просмотр объявления (вызывается лентой Новостей)
 app.post('/api/ads/:id/view', async (req,res)=>{
